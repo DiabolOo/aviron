@@ -1,0 +1,137 @@
+# PulseFit - Contexte et Règles du Projet
+
+## Vue d'ensemble
+PulseFit est une application mobile React Native/Expo de fitness et nutrition avec suivi d'entraînement et analyse de repas par IA. Design moderne inspiré des apps type "Campus/Strava".
+
+## Stack Technique
+- **Framework**: React Native avec Expo SDK 57
+- **Navigation**: Expo Router (file-based routing dans `app/`)
+- **Styling**: NativeWind (Tailwind CSS pour React Native)
+- **State Management**: Zustand
+- **Icons**: lucide-react-native
+- **TypeScript**: Strict mode activé
+- **Build**: EAS CLI pour builds cloud
+
+## Structure du Projet
+```
+app/
+  (tabs)/          # Écrans principaux avec tab navigation
+    _layout.tsx    # Configuration tab bar
+    index.tsx      # Dashboard (Home)
+    training.tsx   # Entraînement
+    scan.tsx       # Scan repas (caméra + IA)
+components/
+  dashboard/       # Composants Dashboard
+    HomeHeader.tsx
+    WorkoutWidget.tsx
+    NutritionWidget.tsx
+    MealTimeline.tsx
+  training/        # Composants Entraînement
+    WeekStrip.tsx
+    SessionDetail.tsx
+    AdaptControls.tsx
+  scan/            # Composants Scan
+    CapturePane.tsx
+    AnalyzingState.tsx
+    MealResultCard.tsx
+  ui/              # Composants UI réutilisables
+    Card.tsx
+    PrimaryButton.tsx
+    MacroBar.tsx
+    Screen.tsx
+lib/
+  store.ts         # Zustand store
+  types.ts         # Types TypeScript
+  mock-data.ts     # Données mockées pour développement
+```
+
+## Design System
+Style épuré / futuriste : monochrome + un seul accent lime, beaucoup d'espace, peu de texte.
+
+### Thème clair / sombre
+- Couleurs = variables CSS dans `global.css` (`:root` = clair, `.dark:root` = sombre)
+- Tokens Tailwind sémantiques : `canvas` (fond), `surface` (cards), `fg` (texte), `muted`,
+  `accent` (lime), `accent-fg` (texte sur accent), `aqua`, `iris` (macros)
+- Opacités via `/` : `border-fg/5`, `bg-fg/5`, `bg-fg/10`
+- Couleurs JS (icônes, SVG, navigation) : `useTheme()` (`lib/useTheme.ts`) → `colors` depuis `constants/theme.ts`
+- Toujours garder `constants/theme.ts` synchronisé avec `global.css`
+- Préférence persistée dans le store (`themePreference`), appliquée via `colorScheme.set()` dans `app/_layout.tsx`
+
+### Styling Rules
+- Utiliser exclusivement les classes NativeWind (pas de couleurs hex dans les classes)
+- Cards `rounded-3xl border border-fg/5 bg-surface`, boutons `rounded-full`
+- Labels : composant `Label` (SpaceMono, uppercase, `text-[10px] tracking-[2px]`)
+- Titres `text-3xl font-semibold tracking-tight`, chiffres clés `text-6xl font-semibold tracking-tighter`
+- Listes : séparateurs `border-t border-fg/5` plutôt que des cards imbriquées
+- Sélection : fond `bg-fg` + `text-canvas` ; accent réservé à l'action principale / progression
+
+### Composants UI (`components/ui/`)
+- **Screen** : fond `bg-canvas` + `Glow` (halo radial accent), SafeArea, ScrollView optionnel
+- **Card**, **Label**, **IconButton** (surface/accent/outline), **Segmented**
+- **PrimaryButton** : variants `primary` (accent) / `ghost`, haptics
+- **ProgressRing** (SVG), **MacroBar** (colonne compacte, `target` optionnel)
+- **ThemeToggle**, **TabBar** (barre flottante custom passée à `Tabs tabBar`)
+
+## Règles de Développement
+
+### Expo/React Native
+- **TOUJOURS** utiliser `npx expo install <package>` au lieu de npm/yarn
+- **TOUJOURS** vérifier la version Expo SDK dans package.json avant d'utiliser une API
+- Consulter https://docs.expo.dev/llms.txt pour les docs Expo mises à jour
+- Ne jamais créer/éditer ios/ ou android/ manuellement (Continuous Native Generation)
+- Après ajout de modules natifs, utiliser `npx expo run:ios|android` ou `eas build --profile development`
+
+### Navigation
+- Importer `Link`, `router`, `useLocalSearchParams` depuis `expo-router`
+- Routes dans `app/(tabs)/` - chaque fichier est un écran
+- `_layout.tsx` définit les navigators
+
+### TypeScript
+- Strict mode activé
+- Définir tous les types dans `lib/types.ts`
+- Pas de `any`, utiliser des types explicites
+
+### NativeWind
+- Classes Tailwind uniquement, pas de styles inline
+- Utiliser les couleurs custom du config (night, card, ink, etc.)
+
+## Commandes Utiles
+```bash
+npx expo start              # Démarrer dev server
+npx expo start --dev-client # Pour development build
+npx expo lint               # Linter
+npx tsc --noEmit            # Typecheck
+npx expo-doctor             # Diagnostiquer problèmes
+npx expo install --fix      # Fixer versions incompatibles
+npx expo install <package>  # Installer package compatible SDK
+npx eas-cli@latest <command> # EAS builds et updates
+```
+
+## État Actuel du Projet
+- **Expo SDK**: 57.0.0
+- **React**: 19.2.3
+- **React Native**: 0.86.3
+- **expo-router**: ~57.0.28
+- **typedRoutes**: false (désactivé dans app.json pour compatibilité)
+- **UI**: Épuré / futuriste, mode clair + sombre (suit le système, bascule manuelle sur l'accueil)
+
+## Problèmes Connus
+- `react-native-worklets` peut causer des conflits de peer dependencies
+- Utiliser `--legacy-peer-deps` pour npm install si nécessaire
+- typedRoutes doit être désactivé avec expo-router v3
+
+## Priorités pour Nouvelles Fonctionnalités
+1. Maintenir la cohérence du design system
+2. Utiliser les composants UI existants avant d'en créer de nouveaux
+3. Respecter l'architecture modulaire
+4. TypeScript strict pour tous les nouveaux fichiers
+5. Mock data pour les features nécessitant des API externes
+
+## Mock Data
+Les données mockées sont dans `lib/mock-data.ts`. Utiliser ces données pour:
+- Sessions d'entraînement
+- Profils utilisateur
+- Repas analysés
+- Macros nutritionnelles
+
+Cela évite d'avoir besoin de clés API ou backends pendant le développement.

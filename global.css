@@ -1,0 +1,26 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --css-interop-darkMode: class dark;
+  --canvas: 244 245 247;
+  --surface: 255 255 255;
+  --fg: 10 11 13;
+  --muted: 110 115 128;
+  --accent: 168 225 12;
+  --accent-fg: 10 11 13;
+  --aqua: 8 145 178;
+  --iris: 124 58 237;
+}
+
+.dark:root {
+  --canvas: 7 8 11;
+  --surface: 17 19 24;
+  --fg: 244 245 247;
+  --muted: 124 129 144;
+  --accent: 198 244 50;
+  --accent-fg: 10 11 13;
+  --aqua: 94 225 230;
+  --iris: 167 139 250;
+}
