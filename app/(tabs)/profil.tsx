@@ -1,4 +1,4 @@
-import { Pencil } from 'lucide-react-native';
+import { Pencil, Unplug } from 'lucide-react-native';
 import { useState } from 'react';
 import { Text, View } from 'react-native';
 
@@ -7,6 +7,7 @@ import { EditNameSheet } from '@/components/profile/EditNameSheet';
 import { GoalSheet } from '@/components/profile/GoalSheet';
 import { SettingRow } from '@/components/profile/SettingRow';
 import { Card } from '@/components/ui/Card';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { IconButton } from '@/components/ui/IconButton';
 import { Label } from '@/components/ui/Label';
 import { Screen } from '@/components/ui/Screen';
@@ -102,6 +103,15 @@ export default function ProfileScreen() {
       </Card>
 
       <Label className="mt-8">Connexions</Label>
+      {!stravaConnected && !watchConnected ? (
+        <EmptyState
+          compact
+          className="mt-3"
+          icon={Unplug}
+          title="Aucun appareil connecté"
+          description="Active Strava ou ta montre pour synchroniser tes données."
+        />
+      ) : null}
       <Card className="mt-3 py-1">
         <SettingRow first label="Strava" hint={stravaConnected ? 'Synchronisé' : 'Non connecté'}>
           <ConnectionSwitch label="Strava" value={stravaConnected} onToggle={toggleStrava} />

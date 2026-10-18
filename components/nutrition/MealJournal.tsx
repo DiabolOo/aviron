@@ -1,9 +1,12 @@
-import { Pencil, UtensilsCrossed } from 'lucide-react-native';
+import { router } from 'expo-router';
+import { PenLine, Pencil, ScanLine, UtensilsCrossed } from 'lucide-react-native';
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
 import { MealEditSheet } from '@/components/nutrition/MealEditSheet';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { Label } from '@/components/ui/Label';
+import { PrimaryButton } from '@/components/ui/PrimaryButton';
 import { mealMomentForHour } from '@/lib/dates';
 import { formatKcal, sumMacros } from '@/lib/format';
 import { usePulseFitStore } from '@/lib/store';
@@ -12,6 +15,7 @@ import { useTheme } from '@/lib/useTheme';
 
 type MealJournalProps = {
   meals: Meal[];
+  onAddMeal: () => void;
 };
 
 const MOMENTS: { id: MealMoment; label: string }[] = [
@@ -31,7 +35,7 @@ function mealTime(loggedAt: string): string {
   return date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
 }
 
-export function MealJournal({ meals }: MealJournalProps) {
+export function MealJournal({ meals, onAddMeal }: MealJournalProps) {
   const { colors } = useTheme();
   const updateMeal = usePulseFitStore((s) => s.updateMeal);
   const deleteMeal = usePulseFitStore((s) => s.deleteMeal);
@@ -41,12 +45,23 @@ export function MealJournal({ meals }: MealJournalProps) {
     <View className="mt-10">
       <Label>Journal</Label>
       {meals.length === 0 ? (
-        <View className="mt-5 items-center rounded-3xl border border-fg/5 bg-surface px-6 py-10">
-          <View className="h-12 w-12 items-center justify-center rounded-full bg-fg/5">
-            <UtensilsCrossed color={colors.muted} size={20} strokeWidth={1.8} />
-          </View>
-          <Text className="mt-4 text-sm text-muted">Aucun repas enregistré pour ce jour</Text>
-        </View>
+        <EmptyState
+          className="mt-5"
+          icon={UtensilsCrossed}
+          title="Aucun repas ce jour"
+          description="Scanne une assiette ou ajoute un repas manuellement."
+          action={{
+            label: 'Scanner une assiette',
+            onPress: () => router.push('/scan'),
+            icon: <ScanLine color={colors.fg} size={16} strokeWidth={1.8} />,
+          }}>
+          <PrimaryButton
+            variant="ghost"
+            label="Ajout manuel"
+            icon={<PenLine color={colors.fg} size={16} strokeWidth={1.8} />}
+            onPress={onAddMeal}
+          />
+        </EmptyState>
       ) : (
         MOMENTS.map((moment) => {
           const items = meals

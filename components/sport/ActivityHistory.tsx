@@ -1,7 +1,8 @@
 import { router } from 'expo-router';
-import { Bike, Footprints, Mountain } from 'lucide-react-native';
+import { Bike, Footprints, Mountain, RefreshCcw } from 'lucide-react-native';
 import { Pressable, Text, View } from 'react-native';
 
+import { EmptyState } from '@/components/ui/EmptyState';
 import { Label } from '@/components/ui/Label';
 import { formatDayMonth } from '@/lib/dates';
 import { formatDuration, formatPace, formatSpeed } from '@/lib/format';
@@ -43,6 +44,13 @@ export function ActivityHistory({ activities, connected }: ActivityHistoryProps)
           <Text className="text-base font-semibold text-fg">Connecter Strava</Text>
           <Text className="mt-1 text-sm text-muted">Importe tes sorties depuis le Profil.</Text>
         </Pressable>
+      ) : activities.length === 0 ? (
+        <EmptyState
+          className="mt-3"
+          icon={RefreshCcw}
+          title="Aucune activité Strava synchronisée"
+          description="Tes sorties apparaîtront ici après la prochaine synchro."
+        />
       ) : (
         <View className="mt-2">
           {activities.map((activity, index) => {

@@ -5,6 +5,7 @@ import { View } from 'react-native';
 import { AnalyzingState } from '@/components/scan/AnalyzingState';
 import { CapturePane } from '@/components/scan/CapturePane';
 import { MealResultCard } from '@/components/scan/MealResultCard';
+import { ErrorState } from '@/components/ui/ErrorState';
 import { IconButton } from '@/components/ui/IconButton';
 import { Screen } from '@/components/ui/Screen';
 import { usePulseFitStore } from '@/lib/store';
@@ -39,6 +40,13 @@ export default function ScanScreen() {
       </View>
       {scanStep === 'analyzing' ? (
         <AnalyzingState />
+      ) : scanStep === 'error' ? (
+        <ErrorState
+          className="mt-10"
+          title="Analyse impossible"
+          description="La photo n'a pas pu être analysée. Réessaie avec une assiette bien éclairée."
+          onRetry={discardPendingMeal}
+        />
       ) : showResult ? (
         <MealResultCard meal={pendingMeal} onSave={save} onRetry={discardPendingMeal} />
       ) : (

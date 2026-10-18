@@ -5,6 +5,7 @@ import { Pressable, Text, View } from 'react-native';
 import { HeartRateChart } from '@/components/sport/HeartRateChart';
 import { RouteMap } from '@/components/sport/RouteMap';
 import { SplitsList } from '@/components/sport/SplitsList';
+import { ErrorState } from '@/components/ui/ErrorState';
 import { Label } from '@/components/ui/Label';
 import { Screen } from '@/components/ui/Screen';
 import { parseISODate } from '@/lib/dates';
@@ -50,7 +51,13 @@ export default function ActivityScreen() {
     return (
       <Screen>
         {header}
-        <Text className="mt-6 text-muted">Activité introuvable.</Text>
+        <ErrorState
+          className="mt-10"
+          title="Activité introuvable"
+          description="Cette activité n'existe plus ou n'a pas été synchronisée."
+          retryLabel="Retour"
+          onRetry={() => router.back()}
+        />
       </Screen>
     );
   }

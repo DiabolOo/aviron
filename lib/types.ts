@@ -92,7 +92,7 @@ export type ActivitySplit = {
 
 export type RoutePoint = { x: number; y: number };
 
-export type ScanStep = 'idle' | 'analyzing' | 'result';
+export type ScanStep = 'idle' | 'analyzing' | 'result' | 'error';
 
 export type FatigueLevel = 'fresh' | 'ok' | 'tired';
 export type TimeBudget = '30' | '45' | '60' | '90';

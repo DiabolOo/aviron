@@ -1,8 +1,8 @@
 import { useRouter } from 'expo-router';
-import { Check } from 'lucide-react-native';
+import { Check, MoonStar } from 'lucide-react-native';
 import { Pressable, Text, View } from 'react-native';
 
-import { Card } from '@/components/ui/Card';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { IconButton } from '@/components/ui/IconButton';
 import { Label } from '@/components/ui/Label';
 import type { WorkoutSession } from '@/lib/types';
@@ -19,10 +19,15 @@ export function WorkoutWidget({ session, onComplete }: WorkoutWidgetProps) {
 
   if (!session) {
     return (
-      <Card className="mt-10">
+      <View className="mt-10">
         <Label>Séance du jour</Label>
-        <Text className="mt-2 text-xl font-semibold text-fg">Repos</Text>
-      </Card>
+        <EmptyState
+          className="mt-3"
+          icon={MoonStar}
+          title="Journée de repos préconisée"
+          description="Aucune séance prévue — profite-en pour récupérer."
+        />
+      </View>
     );
   }
 

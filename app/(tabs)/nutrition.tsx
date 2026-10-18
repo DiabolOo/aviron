@@ -33,7 +33,7 @@ export default function NutritionScreen() {
         />
       </View>
       <MacroSummary consumed={consumed} target={profile.macrosTarget} />
-      <MealJournal meals={dayMeals} />
+      <MealJournal meals={dayMeals} onAddMeal={() => setAdding(true)} />
       <AddMealSheet
         visible={adding}
         date={selectedDate}

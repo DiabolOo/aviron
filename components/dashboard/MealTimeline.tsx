@@ -1,5 +1,7 @@
+import { UtensilsCrossed } from 'lucide-react-native';
 import { Text, View } from 'react-native';
 
+import { EmptyState } from '@/components/ui/EmptyState';
 import { Label } from '@/components/ui/Label';
 import { formatKcal } from '@/lib/format';
 import type { Meal } from '@/lib/types';
@@ -19,7 +21,12 @@ export function MealTimeline({ meals }: MealTimelineProps) {
     <View className="mt-10">
       <Label>Repas</Label>
       {meals.length === 0 ? (
-        <Text className="mt-4 text-sm text-muted">Aucun repas — scanne ton premier plat.</Text>
+        <EmptyState
+          className="mt-3"
+          icon={UtensilsCrossed}
+          title="Aucun repas"
+          description="Ta journée apparaîtra ici."
+        />
       ) : (
         <View className="mt-2">
           {meals.map((meal, index) => (

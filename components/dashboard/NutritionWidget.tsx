@@ -1,4 +1,7 @@
-import { Text, View } from 'react-native';
+import * as Haptics from 'expo-haptics';
+import { useRouter } from 'expo-router';
+import { ChevronRight } from 'lucide-react-native';
+import { Pressable, Text, View } from 'react-native';
 
 import { Label } from '@/components/ui/Label';
 import { MacroBar } from '@/components/ui/MacroBar';
@@ -14,6 +17,7 @@ type NutritionWidgetProps = {
 };
 
 export function NutritionWidget({ consumed, target, remaining }: NutritionWidgetProps) {
+  const router = useRouter();
   const { colors } = useTheme();
 
   return (
@@ -29,6 +33,20 @@ export function NutritionWidget({ consumed, target, remaining }: NutritionWidget
         </Text>
         <Label className="mt-1">{remaining >= 0 ? 'kcal restantes' : 'kcal en trop'}</Label>
       </ProgressRing>
+
+      {consumed.calories === 0 ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Scanner ou ajouter un repas"
+          onPress={() => {
+            void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            router.navigate('/nutrition');
+          }}
+          className="mt-6 flex-row items-center gap-1.5 active:opacity-70">
+          <Text className="text-sm text-muted">Scanne ou ajoute ton premier repas</Text>
+          <ChevronRight color={colors.muted} size={14} strokeWidth={1.8} />
+        </Pressable>
+      ) : null}
 
       <View className="mt-10 w-full flex-row gap-6">
         <MacroBar label="Prot." value={consumed.protein} target={target.protein} accentClass="bg-accent" />

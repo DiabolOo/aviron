@@ -48,6 +48,7 @@ type PulseFitState = {
   pendingMeal: Meal | null;
   isAdapting: boolean;
   completeSession: (id: string) => void;
+  resetWeek: () => void;
   analyzePhoto: (uri: string) => Promise<void>;
   savePendingMeal: () => void;
   discardPendingMeal: () => void;
@@ -109,10 +110,15 @@ export const usePulseFitStore = create<PulseFitState>()(
           ),
         });
       },
+      resetWeek: () => set({ sessions: buildWeekSessions() }),
       analyzePhoto: async (uri) => {
         set({ scanStep: 'analyzing', pendingMeal: null });
-        const meal = await mockAnalyzePlate(uri);
-        set({ scanStep: 'result', pendingMeal: meal });
+        try {
+          const meal = await mockAnalyzePlate(uri);
+          set({ scanStep: 'result', pendingMeal: meal });
+        } catch {
+          set({ scanStep: 'error', pendingMeal: null });
+        }
       },
       savePendingMeal: () => {
         const pending = get().pendingMeal;
@@ -145,12 +151,16 @@ export const usePulseFitStore = create<PulseFitState>()(
       },
       adaptWeek: async (fatigue, timeBudget) => {
         set({ isAdapting: true });
-        const next = await mockAdaptWeek({
-          fatigue,
-          timeBudget,
-          sessions: get().sessions,
-        });
-        set({ sessions: next, isAdapting: false });
+        try {
+          const next = await mockAdaptWeek({
+            fatigue,
+            timeBudget,
+            sessions: get().sessions,
+          });
+          set({ sessions: next });
+        } finally {
+          set({ isAdapting: false });
+        }
       },
     }),
     {
