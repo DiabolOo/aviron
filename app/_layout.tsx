@@ -4,7 +4,7 @@ import { useFonts } from 'expo-font';
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { colorScheme } from 'nativewind';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import 'react-native-reanimated';
 
 import { usePulseFitStore } from '@/lib/store';
@@ -44,7 +44,14 @@ export default function RootLayout() {
     };
   }, [scheme, colors]);
 
-  if (!fontsLoaded) return null;
+  const hasCompletedOnboarding = usePulseFitStore((s) => s.hasCompletedOnboarding);
+  const [hydrated, setHydrated] = useState(usePulseFitStore.persist.hasHydrated());
+
+  useEffect(() => {
+    return usePulseFitStore.persist.onFinishHydration(() => setHydrated(true));
+  }, []);
+
+  if (!fontsLoaded || !hydrated) return null;
 
   return (
     <ThemeProvider value={navigationTheme}>
@@ -55,23 +62,28 @@ export default function RootLayout() {
           contentStyle: { backgroundColor: colors.canvas },
           animation: 'fade',
         }}>
-        <Stack.Screen name="(tabs)" />
-        <Stack.Screen
-          name="scan"
-          options={{ presentation: 'fullScreenModal', animation: 'slide_from_bottom' }}
-        />
-        <Stack.Screen
-          name="session/[id]"
-          options={{
-            headerShown: true,
-            headerTitle: '',
-            headerTintColor: colors.fg,
-            headerStyle: { backgroundColor: colors.canvas },
-            headerShadowVisible: false,
-            animation: 'slide_from_right',
-          }}
-        />
-        <Stack.Screen name="activity/[id]" options={{ animation: 'slide_from_right' }} />
+        <Stack.Protected guard={!hasCompletedOnboarding}>
+          <Stack.Screen name="onboarding/index" options={{ gestureEnabled: false }} />
+        </Stack.Protected>
+        <Stack.Protected guard={hasCompletedOnboarding}>
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen
+            name="scan"
+            options={{ presentation: 'fullScreenModal', animation: 'slide_from_bottom' }}
+          />
+          <Stack.Screen
+            name="session/[id]"
+            options={{
+              headerShown: true,
+              headerTitle: '',
+              headerTintColor: colors.fg,
+              headerStyle: { backgroundColor: colors.canvas },
+              headerShadowVisible: false,
+              animation: 'slide_from_right',
+            }}
+          />
+          <Stack.Screen name="activity/[id]" options={{ animation: 'slide_from_right' }} />
+        </Stack.Protected>
       </Stack>
     </ThemeProvider>
   );

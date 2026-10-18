@@ -44,8 +44,19 @@ export type Meal = {
   confidence: number;
 };
 
+export type Sex = 'male' | 'female' | 'other';
+
+export type ActivityLevel = 'sedentary' | 'light' | 'active' | 'athlete';
+
+export type MainSport = 'running' | 'strength' | 'cycling' | 'triathlon' | 'fitness';
+
 export type UserProfile = {
   firstName: string;
+  mainSport?: MainSport;
+  sex?: Sex;
+  ageYears?: number;
+  heightCm?: number;
+  activityLevel?: ActivityLevel;
   goalLabel: string;
   calorieTarget: number;
   macrosTarget: Omit<Macros, 'calories'> & { calories: number };

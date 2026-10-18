@@ -17,10 +17,10 @@ type TabHeaderProps = {
   children?: ReactNode;
 };
 
-const BADGE: Record<TabTint, string> = {
-  accent: 'bg-accent/15 border-accent/30',
-  aqua: 'bg-aqua/15 border-aqua/30',
-  iris: 'bg-iris/15 border-iris/30',
+const BORDER: Record<TabTint, string> = {
+  accent: 'border-accent/30',
+  aqua: 'border-aqua/30',
+  iris: 'border-iris/30',
 };
 
 export function TabHeader({ icon: Icon, tint, eyebrow, title, subtitle, right, children }: TabHeaderProps) {
@@ -30,7 +30,7 @@ export function TabHeader({ icon: Icon, tint, eyebrow, title, subtitle, right, c
   return (
     <View className="mt-2">
       <View className="flex-row items-center gap-4">
-        <View className={`h-14 w-14 items-center justify-center rounded-full border ${BADGE[tint]}`}>
+        <View className={`h-14 w-14 items-center justify-center rounded-full border bg-black ${BORDER[tint]}`}>
           <Icon color={color} size={26} strokeWidth={1.9} />
         </View>
         <View className="flex-1">

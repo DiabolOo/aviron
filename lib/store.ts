@@ -5,30 +5,32 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 import { addDaysISO, toISODate } from '@/lib/dates';
 import { remainingCalories, sumMacros, uid } from '@/lib/format';
 import {
-    MOCK_MEALS,
-    MOCK_PROFILE,
-    MOCK_WEATHER,
-    buildStravaActivities,
-    buildWeekSessions,
-    mockAdaptWeek,
-    mockAnalyzePlate,
+  MOCK_MEALS,
+  MOCK_PROFILE,
+  MOCK_WEATHER,
+  buildStravaActivities,
+  buildWeekSessions,
+  mockAdaptWeek,
+  mockAnalyzePlate,
 } from '@/lib/mock';
 import type {
-    FatigueLevel,
-    Meal,
-    ScanStep,
-    StravaActivity,
-    ThemePreference,
-    TimeBudget,
-    UserProfile,
-    Weather,
-    WorkoutSession,
+  FatigueLevel,
+  Meal,
+  ScanStep,
+  StravaActivity,
+  ThemePreference,
+  TimeBudget,
+  UserProfile,
+  Weather,
+  WorkoutSession,
 } from '@/lib/types';
 
 type PulseFitState = {
   themePreference: ThemePreference;
   setThemePreference: (value: ThemePreference) => void;
   profile: UserProfile;
+  hasCompletedOnboarding: boolean;
+  completeOnboarding: (profileData: Partial<UserProfile>) => void;
   updateProfile: (patch: Partial<UserProfile>) => void;
   setCalorieTarget: (calories: number) => void;
   stravaConnected: boolean;
@@ -60,7 +62,13 @@ type PulseFitState = {
 
 type PersistedState = Pick<
   PulseFitState,
-  'themePreference' | 'profile' | 'stravaConnected' | 'watchConnected' | 'sessions' | 'meals'
+  | 'themePreference'
+  | 'profile'
+  | 'hasCompletedOnboarding'
+  | 'stravaConnected'
+  | 'watchConnected'
+  | 'sessions'
+  | 'meals'
 >;
 
 function todayKey(): string {
@@ -73,6 +81,9 @@ export const usePulseFitStore = create<PulseFitState>()(
       themePreference: 'system',
       setThemePreference: (value) => set({ themePreference: value }),
       profile: MOCK_PROFILE,
+      hasCompletedOnboarding: false,
+      completeOnboarding: (profileData) =>
+        set({ profile: { ...get().profile, ...profileData }, hasCompletedOnboarding: true }),
       updateProfile: (patch) => set({ profile: { ...get().profile, ...patch } }),
       setCalorieTarget: (calories) => {
         const profile = get().profile;
@@ -164,11 +175,12 @@ export const usePulseFitStore = create<PulseFitState>()(
       },
     }),
     {
-      name: 'pulsefit-mvp',
+      name: 'pulsefit-mvp2',
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (state): PersistedState => ({
         themePreference: state.themePreference,
         profile: state.profile,
+        hasCompletedOnboarding: state.hasCompletedOnboarding,
         stravaConnected: state.stravaConnected,
         watchConnected: state.watchConnected,
         sessions: state.sessions,

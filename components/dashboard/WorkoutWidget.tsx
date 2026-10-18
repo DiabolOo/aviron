@@ -4,6 +4,7 @@ import { Check, MoonStar } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { Animated, Pressable, Text, View } from 'react-native';
 
+import { WorkoutMetrics } from '@/components/sport/WorkoutCard';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { IconButton } from '@/components/ui/IconButton';
 import { Label } from '@/components/ui/Label';
@@ -38,32 +39,32 @@ export function WorkoutWidget({ session, onComplete }: WorkoutWidgetProps) {
   return (
     <Pressable
       onPress={() => router.push(`/session/${session.id}`)}
-      className={`mt-10 flex-row items-center rounded-3xl border bg-surface p-5 active:opacity-80 ${
+      className={`mt-10 rounded-3xl border bg-surface p-5 active:opacity-80 ${
         isCompleted ? 'border-accent/40' : 'border-fg/5'
       }`}>
-      <View className="flex-1 pr-4">
-        <Label>Séance du jour</Label>
-        <Text className="mt-2 text-xl font-semibold tracking-tight text-fg">{session.title}</Text>
-        <Text className="mt-1 text-sm text-muted">
-          {session.durationMin} min · {session.caloriesBurn} kcal
+      <View className="flex-row items-center">
+        <View className="flex-1 pr-4">
+          <Label>Séance du jour</Label>
+          <Text className="mt-2 text-xl font-semibold tracking-tight text-fg">{session.title}</Text>
           {isCompleted ? (
-            <Text className="font-medium text-accent">{'  •  Séance pliée ! 💪'}</Text>
+            <Text className="mt-1 text-sm font-medium text-accent">Séance pliée ! 💪</Text>
           ) : null}
-        </Text>
+        </View>
+        {isCompleted ? (
+          <DoneCheck color={colors.accentFg} />
+        ) : (
+          <IconButton
+            variant="outline"
+            label="Valider la séance"
+            onPress={() => {
+              void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+              onComplete(session.id);
+            }}>
+            <Check color={colors.muted} size={18} strokeWidth={2} />
+          </IconButton>
+        )}
       </View>
-      {isCompleted ? (
-        <DoneCheck color={colors.accentFg} />
-      ) : (
-        <IconButton
-          variant="outline"
-          label="Valider la séance"
-          onPress={() => {
-            void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-            onComplete(session.id);
-          }}>
-          <Check color={colors.muted} size={18} strokeWidth={2} />
-        </IconButton>
-      )}
+      <WorkoutMetrics session={session} />
     </Pressable>
   );
 }
