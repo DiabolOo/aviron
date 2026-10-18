@@ -1,9 +1,14 @@
-import { Text, View } from 'react-native';
+import { Pencil } from 'lucide-react-native';
+import { useState } from 'react';
+import { Pressable, Text, View } from 'react-native';
 
+import { MealEditSheet } from '@/components/nutrition/MealEditSheet';
 import { Label } from '@/components/ui/Label';
 import { mealMomentForHour } from '@/lib/dates';
 import { formatKcal, sumMacros } from '@/lib/format';
+import { usePulseFitStore } from '@/lib/store';
 import type { Meal, MealMoment } from '@/lib/types';
+import { useTheme } from '@/lib/useTheme';
 
 type MealJournalProps = {
   meals: Meal[];
@@ -27,6 +32,11 @@ function mealTime(loggedAt: string): string {
 }
 
 export function MealJournal({ meals }: MealJournalProps) {
+  const { colors } = useTheme();
+  const updateMeal = usePulseFitStore((s) => s.updateMeal);
+  const deleteMeal = usePulseFitStore((s) => s.deleteMeal);
+  const [editingMeal, setEditingMeal] = useState<Meal | null>(null);
+
   return (
     <View className="mt-10">
       <Label>Journal</Label>
@@ -45,17 +55,31 @@ export function MealJournal({ meals }: MealJournalProps) {
               </Text>
             </View>
             {items.map((meal) => (
-              <View key={meal.id} className="mt-2 flex-row items-center border-t border-fg/5 pt-3">
+              <Pressable
+                key={meal.id}
+                accessibilityRole="button"
+                accessibilityLabel={`Modifier ${meal.name}`}
+                onPress={() => setEditingMeal(meal)}
+                className="mt-2 flex-row items-center border-t border-fg/5 pt-3 active:opacity-70">
                 <Text className="w-14 font-mono text-xs text-muted">{mealTime(meal.loggedAt)}</Text>
                 <Text numberOfLines={1} className="flex-1 pr-3 text-sm text-fg">
                   {meal.name}
                 </Text>
                 <Text className="text-sm text-muted">{formatKcal(meal.macros.calories)}</Text>
-              </View>
+                <View className="ml-3">
+                  <Pencil color={colors.muted} size={13} strokeWidth={1.8} />
+                </View>
+              </Pressable>
             ))}
           </View>
         );
       })}
+      <MealEditSheet
+        meal={editingMeal}
+        onClose={() => setEditingMeal(null)}
+        onSave={updateMeal}
+        onDelete={deleteMeal}
+      />
     </View>
   );
 }

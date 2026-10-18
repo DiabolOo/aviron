@@ -7,7 +7,9 @@
 ## Comment utiliser ce fichier
 - Cocher `[x]` chaque sous-tâche terminée, et passer le statut du jalon à ✅ quand tout est coché.
 - Un jalon = un ensemble livrable et testable sur téléphone. On n'ouvre pas le suivant tant que
-  le précédent n'est pas utilisable.
+  le précédent n'est pas utilisable. **Exception** : le **Jalon 6 (monétisation)** démarre dès que
+  les jalons 4 + 5 sont livrés, et se développe **en parallèle** des jalons 7–9 — l'app apporte
+  déjà assez de valeur pour être payante, les premiers abonnés financent la suite.
 - Ajouter une ligne dans le **Journal** en bas à chaque étape importante. Ça motive de voir le chemin parcouru 💪
 - Statuts : ✅ terminé · 🚧 en cours · ⏳ à venir
 
@@ -21,11 +23,12 @@
 | 3 | Backend & comptes utilisateurs | ⏳ |
 | 4 | Scan d'assiette IA réel | ⏳ |
 | 5 | Intégration Strava | ⏳ |
-| 6 | Planification des séances | ⏳ |
-| 7 | Objectifs de courses (catalogue) | ⏳ |
-| 8 | Recommandations de recettes | ⏳ |
-| 9 | Qualité, monétisation & lancement | ⏳ |
-| 10+ | Phase 2 — Life OS (gamification & productivité) | ⏳ |
+| 6 | Monétisation : paywall & essai 7 jours | ⏳ |
+| 7 | Planification des séances | ⏳ |
+| 8 | Objectifs de courses (catalogue) | ⏳ |
+| 9 | Recommandations de recettes | ⏳ |
+| 10 | Qualité & lancement | ⏳ |
+| 11+ | Phase 2 — Life OS (gamification & productivité) | ⏳ |
 
 ---
 
@@ -62,7 +65,7 @@
 - [x] Scan d'assiette : caméra / galerie → analyse → résultat (IA mockée)
 - [x] Apports du jour + macros (protéines / glucides / lipides)
 - [x] Journal par moment (matin / midi / collation / soir)
-- [ ] Modifier / supprimer un repas
+- [x] Modifier / supprimer un repas
 - [ ] Ajout manuel d'un repas (sans photo)
 - [ ] Naviguer entre les jours (hier, avant-hier…)
 
@@ -113,7 +116,24 @@
 - [ ] Analyse : volume hebdo, allure moyenne, évolution sur 4 semaines
 - [ ] Validation automatique d'une séance prévue quand une activité correspondante arrive
 
-### Jalon 6 — Planification des séances ⏳
+### Jalon 6 — Monétisation : paywall & essai 7 jours ⏳
+> **À activer dès que les jalons 4 + 5 sont livrés**, sans attendre les jalons 7–9 : scan IA réel +
+> synchro Strava suffisent à justifier un abonnement. Les premiers clients payants peuvent signer
+> pendant que la suite de la roadmap est développée.
+- [ ] Choisir le provider : **RevenueCat** (`react-native-purchases`) pour l'in-app iOS/Android —
+      Stripe seulement si une version web arrive un jour
+- [ ] Créer les produits dans App Store Connect / Play Console : mensuel + annuel, **essai 7 jours**
+- [ ] Config RevenueCat : clés publiques, entitlement `premium` (build EAS requis, pas Expo Go)
+- [ ] Écran paywall dans le design system : une promesse, 2 offres (mensuel / annuel mis en avant),
+      CTA accent + restauration des achats
+- [ ] Gating premium : scan illimité, plans IA, stats avancées — gratuit : jauge calories,
+      journal basique, historique
+- [ ] Afficher le paywall en fin d'onboarding et à l'expiration de l'essai (pas à froid au 1er lancement)
+- [ ] Profil : statut d'abonnement + lien « Gérer mon abonnement »
+- [ ] Liens CGU + politique de confidentialité dans le paywall (obligatoire App Store / Play)
+- [ ] Mesurer : taux de conversion essai → payant, revenu mensuel récurrent
+
+### Jalon 7 — Planification des séances ⏳
 - [ ] Modèles de plans (10 km, semi, marathon, renforcement) par niveau
 - [ ] Génération du plan selon l'objectif, le niveau et les jours disponibles
 - [ ] Éditeur : ajouter / modifier / déplacer une séance (glisser-déposer dans la semaine)
@@ -121,7 +141,7 @@
 - [ ] Rappels de séance (expo-notifications)
 - [ ] Vue mois / vue plan complet
 
-### Jalon 7 — Objectifs de courses (catalogue) ⏳
+### Jalon 8 — Objectifs de courses (catalogue) ⏳
 - [ ] Catalogue de courses v1 (fichier JSON : nom, date, ville, distance, dénivelé)
 - [ ] Recherche et filtres (distance, date, région)
 - [ ] Ajouter une course comme objectif (temps visé)
@@ -130,19 +150,19 @@
 - [ ] Prédiction du temps final à partir des activités Strava (formule de Riegel)
 - [ ] Catalogue v2 : source de données externe mise à jour automatiquement
 
-### Jalon 8 — Recommandations de recettes ⏳
+### Jalon 9 — Recommandations de recettes ⏳
 - [ ] Base de recettes (kcal, macros, temps de préparation, tags)
 - [ ] Suggestions selon les calories et macros restantes du jour
 - [ ] Filtres : végétarien, rapide, riche en protéines, avant / après séance
 - [ ] Favoris
 - [ ] Ajouter une recette au journal en un tap
 
-### Jalon 9 — Qualité, monétisation & lancement ⏳
+### Jalon 10 — Qualité & lancement ⏳
 - [ ] Tests (jest-expo) sur la logique métier + parcours critiques
 - [ ] Suivi des erreurs (Sentry) et analytics produit (ex. PostHog)
 - [ ] Profils EAS Build : development / preview / production
 - [ ] Bêta : TestFlight (iOS) + test interne Play Store (Android)
-- [ ] Abonnement premium (RevenueCat) : scan illimité, plans IA, stats avancées
+- [ ] Itérer sur le paywall selon les retours bêta (prix, offres, wording)
 - [ ] Mentions légales, politique de confidentialité (données de santé), CGU
 - [ ] Fiches stores : captures, description, icône finale
 - [ ] Mises à jour OTA (EAS Update)
@@ -155,21 +175,21 @@
 > À démarrer une fois la v1.0 publiée. Ces briques se branchent sur **Aujourd'hui** (widgets)
 > et **Profil** (hub), sans ajouter d'onglet.
 
-### Jalon 10 — Objectifs & habitudes
+### Jalon 11 — Objectifs & habitudes
 - [ ] Objectifs journaliers (tâches du jour)
 - [ ] Objectifs long terme découpés en étapes
 - [ ] Suivi de streaks pour ancrer une nouvelle habitude
 
-### Jalon 11 — Points & boutique de récompenses
+### Jalon 12 — Points & boutique de récompenses
 - [ ] Points gagnés à chaque tâche / séance / repas suivi
 - [ ] Boutique de récompenses personnalisables (sieste, cheat meal…)
 - [ ] Historique des gains et des achats
 
-### Jalon 12 — Énergie & statistiques
+### Jalon 13 — Énergie & statistiques
 - [ ] Barre d'énergie journalière (sommeil, charge d'entraînement, nutrition)
 - [ ] Statistiques personnalisées (tableaux de bord)
 
-### Jalon 13 — Productivité
+### Jalon 14 — Productivité
 - [ ] Minuteur Pomodoro intégré aux tâches
 - [ ] Description vocale de la journée → l'IA planifie et découpe les tâches
 
@@ -181,6 +201,7 @@
 | 2026-10-16 | Création du projet Expo + premiers écrans |
 | 2026-10-18 | Design épuré / futuriste + mode clair / sombre |
 | 2026-10-18 | Navigation à 4 onglets (Aujourd'hui · Sport · Nutrition · Profil), historique Strava et profil (mock) |
+| 2026-10-18 | Monétisation avancée : nouveau Jalon 6 (paywall RevenueCat + essai 7 jours) activé dès les jalons 4 + 5, en parallèle des jalons 7–9 |
 
 ## ▶️ Prochaine étape conseillée
 Terminer le **Jalon 1** (modifier / supprimer un repas, ajout manuel, états vides), puis

@@ -46,6 +46,8 @@ type PulseFitState = {
   analyzePhoto: (uri: string) => Promise<void>;
   savePendingMeal: () => void;
   discardPendingMeal: () => void;
+  deleteMeal: (mealId: string) => void;
+  updateMeal: (mealId: string, updatedMeal: Partial<Meal>) => void;
   adaptWeek: (fatigue: FatigueLevel, timeBudget: TimeBudget) => Promise<void>;
 };
 
@@ -109,6 +111,16 @@ export const usePulseFitStore = create<PulseFitState>()(
       },
       discardPendingMeal: () => {
         set({ pendingMeal: null, scanStep: 'idle' });
+      },
+      deleteMeal: (mealId) => {
+        set({ meals: get().meals.filter((meal) => meal.id !== mealId) });
+      },
+      updateMeal: (mealId, updatedMeal) => {
+        set({
+          meals: get().meals.map((meal) =>
+            meal.id === mealId ? { ...meal, ...updatedMeal } : meal,
+          ),
+        });
       },
       adaptWeek: async (fatigue, timeBudget) => {
         set({ isAdapting: true });
