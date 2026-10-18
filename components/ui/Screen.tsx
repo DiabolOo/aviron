@@ -7,9 +7,10 @@ import { Glow } from '@/components/ui/Glow';
 type ScreenProps = {
   children: ReactNode;
   scroll?: boolean;
+  withSafeBottom?: boolean;
 };
 
-export function Screen({ children, scroll = true }: ScreenProps) {
+export function Screen({ children, scroll = true, withSafeBottom = false }: ScreenProps) {
   const content = scroll ? (
     <ScrollView
       className="flex-1"
@@ -24,7 +25,7 @@ export function Screen({ children, scroll = true }: ScreenProps) {
   return (
     <View className="flex-1 bg-canvas">
       <Glow />
-      <SafeAreaView className="flex-1" edges={['top']}>
+      <SafeAreaView className="flex-1" edges={withSafeBottom ? ['top', 'bottom'] : ['top']}>
         {content}
       </SafeAreaView>
     </View>

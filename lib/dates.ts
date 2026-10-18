@@ -1,3 +1,5 @@
+import type { MealMoment } from '@/lib/types';
+
 const WEEKDAY_LABELS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'] as const;
 
 export function toISODate(date: Date): string {
@@ -41,6 +43,13 @@ export function greetingForHour(hour: number): string {
   if (hour < 12) return 'Bonjour';
   if (hour < 18) return 'Bon après-midi';
   return 'Bonsoir';
+}
+
+export function mealMomentForHour(hour: number): MealMoment {
+  if (hour < 11) return 'morning';
+  if (hour < 15) return 'noon';
+  if (hour < 18) return 'snack';
+  return 'evening';
 }
 
 export function formatDayMonth(iso: string): string {

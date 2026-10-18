@@ -1,13 +1,46 @@
 # PulseFit - Contexte et Règles du Projet
 
-## Vue d'ensemble
-PulseFit est une application mobile React Native/Expo de fitness et nutrition avec suivi d'entraînement et analyse de repas par IA. Design moderne inspiré des apps type "Campus/Strava".
+## Vision produit
+PulseFit vise à devenir un **"Life OS" tout-en-un** : une seule app mobile pour piloter son sport,
+sa nutrition et ses objectifs personnels.
+
+### Phase 1 — MVP « Option A : Sport + Nutrition » (EN COURS)
+Le cheval de Troie : concret, facile à comprendre, public habitué à payer ses apps.
+- **Sport** : analyse Strava, planification des séances, suivi d'objectifs (courses à venir depuis un catalogue)
+- **Nutrition** : scan d'assiette avec comptage IA des calories, compteur journalier vs objectif,
+  recommandations de recettes
+
+### Phase 2 — « Option B : Gamification & productivité » (PLUS TARD — ne pas implémenter maintenant)
+Une app qui se joue comme un jeu vidéo pour la vraie vie :
+- Objectifs journaliers + objectifs long terme
+- Points gagnés à chaque tâche → boutique de récompenses (sieste, cheat meal…)
+- Barre d'énergie journalière, statistiques personnalisées
+- Pomodoro, streaks d'habitudes
+- Description vocale de sa journée → l'IA planifie et découpe les tâches
+
+👉 La feuille de route détaillée et l'avancement sont dans **`ROADMAP.md`** (à tenir à jour à chaque jalon).
+
+### Règle d'or
+Construire le MVP de façon **extensible** : les futures briques Life OS viendront se brancher sur
+l'onglet Aujourd'hui (widgets) et l'onglet Profil (hub), sans changer la navigation à 4 onglets.
+
+## Architecture des écrans (Bottom Nav à 4 onglets — maximum)
+| Onglet | Route | Contenu MVP |
+|---|---|---|
+| 🏠 Aujourd'hui | `app/(tabs)/index.tsx` | Météo + statut du jour, jauge calories (mangées / brûlées / objectif), séance prévue |
+| 🏋️ Sport | `app/(tabs)/sport.tsx` | Programme en cours, calendrier de la semaine, détail séance, historique Strava, adaptation IA |
+| 🥗 Nutrition | `app/(tabs)/nutrition.tsx` | Bouton scan rapide, apports + macros, journal (matin / midi / collation / soir) |
+| 👤 Profil | `app/(tabs)/profil.tsx` | Profil, objectifs poids & calories, connexions Strava / montre, apparence |
+
+Écrans hors onglets :
+- `app/scan.tsx` : scan d'assiette en modal plein écran (ouvert depuis Nutrition)
+- `app/session/[id].tsx` : détail d'une séance
 
 ## Stack Technique
 - **Framework**: React Native avec Expo SDK 57
 - **Navigation**: Expo Router (file-based routing dans `app/`)
 - **Styling**: NativeWind (Tailwind CSS pour React Native)
-- **State Management**: Zustand
+- **State Management**: Zustand (persisté via AsyncStorage)
 - **Icons**: lucide-react-native
 - **TypeScript**: Strict mode activé
 - **Build**: EAS CLI pour builds cloud
@@ -15,35 +48,32 @@ PulseFit est une application mobile React Native/Expo de fitness et nutrition av
 ## Structure du Projet
 ```
 app/
-  (tabs)/          # Écrans principaux avec tab navigation
-    _layout.tsx    # Configuration tab bar
-    index.tsx      # Dashboard (Home)
-    training.tsx   # Entraînement
-    scan.tsx       # Scan repas (caméra + IA)
+  _layout.tsx        # Stack racine : thème, polices, modal scan
+  (tabs)/
+    _layout.tsx      # 4 onglets + TabBar custom
+    index.tsx        # Aujourd'hui
+    sport.tsx        # Sport
+    nutrition.tsx    # Nutrition
+    profil.tsx       # Profil
+  scan.tsx           # Modal scan d'assiette
+  session/[id].tsx   # Détail séance
 components/
-  dashboard/       # Composants Dashboard
-    HomeHeader.tsx
-    WorkoutWidget.tsx
-    NutritionWidget.tsx
-    MealTimeline.tsx
-  training/        # Composants Entraînement
-    WeekStrip.tsx
-    SessionDetail.tsx
-    AdaptControls.tsx
-  scan/            # Composants Scan
-    CapturePane.tsx
-    AnalyzingState.tsx
-    MealResultCard.tsx
-  ui/              # Composants UI réutilisables
-    Card.tsx
-    PrimaryButton.tsx
-    MacroBar.tsx
-    Screen.tsx
+  dashboard/         # Aujourd'hui : HomeHeader, DayStatus, CalorieGauge, WorkoutWidget
+  sport/             # WeekStrip, SessionDetail, ActivityHistory, AdaptControls
+  nutrition/         # ScanButton, MacroSummary, MealJournal
+  scan/              # CapturePane, AnalyzingState, MealResultCard
+  profile/           # SettingRow, ConnectionSwitch
+  ui/                # Composants réutilisables (voir Design System)
+constants/
+  theme.ts           # Palettes JS clair/sombre (miroir de global.css)
 lib/
-  store.ts         # Zustand store
-  types.ts         # Types TypeScript
-  mock-data.ts     # Données mockées pour développement
+  store.ts           # Store Zustand (+ useTodayStats)
+  types.ts           # Tous les types
+  mock.ts            # Données mockées (profil, séances, repas, Strava, météo, IA)
+  dates.ts / format.ts
+  useTheme.ts        # Couleurs JS selon le thème actif
 ```
+Un dossier de composants par onglet. Le code non-route reste hors de `app/`.
 
 ## Design System
 Style épuré / futuriste : monochrome + un seul accent lime, beaucoup d'espace, peu de texte.
@@ -55,7 +85,8 @@ Style épuré / futuriste : monochrome + un seul accent lime, beaucoup d'espace,
 - Opacités via `/` : `border-fg/5`, `bg-fg/5`, `bg-fg/10`
 - Couleurs JS (icônes, SVG, navigation) : `useTheme()` (`lib/useTheme.ts`) → `colors` depuis `constants/theme.ts`
 - Toujours garder `constants/theme.ts` synchronisé avec `global.css`
-- Préférence persistée dans le store (`themePreference`), appliquée via `colorScheme.set()` dans `app/_layout.tsx`
+- Préférence (`themePreference` : system / light / dark) persistée dans le store, réglable dans Profil,
+  appliquée via `colorScheme.set()` dans `app/_layout.tsx`
 
 ### Styling Rules
 - Utiliser exclusivement les classes NativeWind (pas de couleurs hex dans les classes)
@@ -64,13 +95,14 @@ Style épuré / futuriste : monochrome + un seul accent lime, beaucoup d'espace,
 - Titres `text-3xl font-semibold tracking-tight`, chiffres clés `text-6xl font-semibold tracking-tighter`
 - Listes : séparateurs `border-t border-fg/5` plutôt que des cards imbriquées
 - Sélection : fond `bg-fg` + `text-canvas` ; accent réservé à l'action principale / progression
+- Peu de texte : une info clé par bloc, pas de sous-titres décoratifs
 
 ### Composants UI (`components/ui/`)
 - **Screen** : fond `bg-canvas` + `Glow` (halo radial accent), SafeArea, ScrollView optionnel
-- **Card**, **Label**, **IconButton** (surface/accent/outline), **Segmented**
+- **Card**, **Label**, **IconButton** (surface/accent/outline), **Segmented**, **Stepper**
 - **PrimaryButton** : variants `primary` (accent) / `ghost`, haptics
 - **ProgressRing** (SVG), **MacroBar** (colonne compacte, `target` optionnel)
-- **ThemeToggle**, **TabBar** (barre flottante custom passée à `Tabs tabBar`)
+- **TabBar** : barre flottante custom passée à `Tabs tabBar` (onglet actif = pilule `bg-fg` + libellé)
 
 ## Règles de Développement
 
@@ -83,17 +115,21 @@ Style épuré / futuriste : monochrome + un seul accent lime, beaucoup d'espace,
 
 ### Navigation
 - Importer `Link`, `router`, `useLocalSearchParams` depuis `expo-router`
-- Routes dans `app/(tabs)/` - chaque fichier est un écran
-- `_layout.tsx` définit les navigators
+- Ne pas ajouter de 5e onglet : les nouvelles fonctionnalités vont dans un onglet existant
+  ou dans un écran empilé (Stack)
 
 ### TypeScript
 - Strict mode activé
 - Définir tous les types dans `lib/types.ts`
 - Pas de `any`, utiliser des types explicites
 
-### NativeWind
-- Classes Tailwind uniquement, pas de styles inline
-- Utiliser les couleurs custom du config (night, card, ink, etc.)
+### State / données
+- Nouveaux champs persistés : les ajouter à `partialize` dans `lib/store.ts`
+  (le `merge` fusionne `profile` pour rester compatible avec les anciennes sauvegardes)
+- Jamais de clé API dans l'app : les appels IA / Strava passeront par un backend (voir ROADMAP)
+
+### Suivi de projet
+- Après chaque fonctionnalité livrée, cocher les cases correspondantes dans `ROADMAP.md`
 
 ## Commandes Utiles
 ```bash
@@ -106,6 +142,7 @@ npx expo install --fix      # Fixer versions incompatibles
 npx expo install <package>  # Installer package compatible SDK
 npx eas-cli@latest <command> # EAS builds et updates
 ```
+Lancer lint + typecheck avant de considérer une tâche terminée.
 
 ## État Actuel du Projet
 - **Expo SDK**: 57.0.0
@@ -113,25 +150,24 @@ npx eas-cli@latest <command> # EAS builds et updates
 - **React Native**: 0.86.3
 - **expo-router**: ~57.0.28
 - **typedRoutes**: false (désactivé dans app.json pour compatibilité)
-- **UI**: Épuré / futuriste, mode clair + sombre (suit le système, bascule manuelle sur l'accueil)
+- **UI**: Épuré / futuriste, mode clair + sombre, navigation 4 onglets
+- **Données**: 100 % mockées (pas encore de backend)
 
 ## Problèmes Connus
 - `react-native-worklets` peut causer des conflits de peer dependencies
 - Utiliser `--legacy-peer-deps` pour npm install si nécessaire
-- typedRoutes doit être désactivé avec expo-router v3
+- L'éditeur peut supprimer un import ajouté avant sa première utilisation : écrire l'import et
+  son usage dans la même modification
 
 ## Priorités pour Nouvelles Fonctionnalités
-1. Maintenir la cohérence du design system
-2. Utiliser les composants UI existants avant d'en créer de nouveaux
-3. Respecter l'architecture modulaire
-4. TypeScript strict pour tous les nouveaux fichiers
-5. Mock data pour les features nécessitant des API externes
+1. Rester dans le périmètre de la phase en cours (voir ROADMAP)
+2. Maintenir la cohérence du design system
+3. Utiliser les composants UI existants avant d'en créer de nouveaux
+4. Respecter l'architecture modulaire (un dossier par onglet)
+5. TypeScript strict pour tous les nouveaux fichiers
+6. Mock data pour les features nécessitant des API externes
 
 ## Mock Data
-Les données mockées sont dans `lib/mock-data.ts`. Utiliser ces données pour:
-- Sessions d'entraînement
-- Profils utilisateur
-- Repas analysés
-- Macros nutritionnelles
-
+Les données mockées sont dans `lib/mock.ts` : profil, séances de la semaine, repas,
+activités Strava, météo, analyse d'assiette IA et adaptation de semaine IA.
 Cela évite d'avoir besoin de clés API ou backends pendant le développement.

@@ -1,17 +1,21 @@
 import { useMemo, useState } from 'react';
 import { Text, View } from 'react-native';
 
-import { AdaptControls } from '@/components/training/AdaptControls';
-import { SessionDetail } from '@/components/training/SessionDetail';
-import { WeekStrip } from '@/components/training/WeekStrip';
+import { ActivityHistory } from '@/components/sport/ActivityHistory';
+import { AdaptControls } from '@/components/sport/AdaptControls';
+import { SessionDetail } from '@/components/sport/SessionDetail';
+import { WeekStrip } from '@/components/sport/WeekStrip';
 import { Label } from '@/components/ui/Label';
 import { Screen } from '@/components/ui/Screen';
 import { toISODate, weekDates } from '@/lib/dates';
 import { usePulseFitStore } from '@/lib/store';
 import type { FatigueLevel, TimeBudget, WorkoutSession } from '@/lib/types';
 
-export default function TrainingScreen() {
+export default function SportScreen() {
   const sessions = usePulseFitStore((s) => s.sessions);
+  const goalLabel = usePulseFitStore((s) => s.profile.goalLabel);
+  const activities = usePulseFitStore((s) => s.activities);
+  const stravaConnected = usePulseFitStore((s) => s.stravaConnected);
   const completeSession = usePulseFitStore((s) => s.completeSession);
   const adaptWeek = usePulseFitStore((s) => s.adaptWeek);
   const isAdapting = usePulseFitStore((s) => s.isAdapting);
@@ -32,9 +36,10 @@ export default function TrainingScreen() {
   return (
     <Screen>
       <View className="mt-2 flex-row items-end justify-between">
-        <View>
-          <Label>Cette semaine</Label>
-          <Text className="mt-2 text-3xl font-semibold tracking-tight text-fg">Entraînement</Text>
+        <View className="flex-1 pr-4">
+          <Label>Programme en cours</Label>
+          <Text className="mt-2 text-3xl font-semibold tracking-tight text-fg">Sport</Text>
+          <Text className="mt-1 text-sm text-muted">{goalLabel}</Text>
         </View>
         <Text className="mb-1 text-base text-muted">
           <Text className="font-semibold text-fg">{done}</Text> / {week.length}
@@ -46,6 +51,7 @@ export default function TrainingScreen() {
         onSelect={setSelectedDate}
       />
       {selected ? <SessionDetail session={selected} onComplete={completeSession} /> : null}
+      <ActivityHistory activities={activities} connected={stravaConnected} />
       <AdaptControls
         fatigue={fatigue}
         timeBudget={timeBudget}

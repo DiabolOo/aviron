@@ -29,6 +29,23 @@ export function sumMacros(items: Macros[]): Macros {
   );
 }
 
+export function formatDuration(minutes: number): string {
+  const h = Math.floor(minutes / 60);
+  const m = Math.round(minutes % 60);
+  return h > 0 ? `${h}h${`${m}`.padStart(2, '0')}` : `${m} min`;
+}
+
+export function formatPace(distanceKm: number, minutes: number): string {
+  if (distanceKm <= 0) return '–';
+  const secPerKm = Math.round((minutes * 60) / distanceKm);
+  return `${Math.floor(secPerKm / 60)}:${`${secPerKm % 60}`.padStart(2, '0')} /km`;
+}
+
+export function formatSpeed(distanceKm: number, minutes: number): string {
+  if (minutes <= 0) return '–';
+  return `${((distanceKm / minutes) * 60).toFixed(1)} km/h`;
+}
+
 export function uid(prefix: string): string {
   return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
 }

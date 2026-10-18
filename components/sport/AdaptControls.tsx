@@ -41,7 +41,7 @@ export function AdaptControls({
   const { colors } = useTheme();
 
   return (
-    <Card className="mt-4">
+    <Card className="mt-8">
       <View className="flex-row items-center gap-2">
         <Sparkles color={colors.fg} size={16} strokeWidth={1.8} />
         <Text className="text-base font-semibold text-fg">Adapter ma semaine</Text>

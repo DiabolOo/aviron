@@ -1,7 +1,7 @@
 import { useLocalSearchParams } from 'expo-router';
 import { Text, View } from 'react-native';
 
-import { SessionDetail } from '@/components/training/SessionDetail';
+import { SessionDetail } from '@/components/sport/SessionDetail';
 import { Screen } from '@/components/ui/Screen';
 import { usePulseFitStore } from '@/lib/store';
 

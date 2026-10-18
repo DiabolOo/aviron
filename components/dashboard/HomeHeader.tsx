@@ -1,7 +1,7 @@
-import { Text, View } from 'react-native';
+import { router } from 'expo-router';
+import { Pressable, Text, View } from 'react-native';
 
 import { Label } from '@/components/ui/Label';
-import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { greetingForHour } from '@/lib/dates';
 
 type HomeHeaderProps = {
@@ -24,7 +24,15 @@ export function HomeHeader({ firstName }: HomeHeaderProps) {
           {greetingForHour(now.getHours())}, {firstName}
         </Text>
       </View>
-      <ThemeToggle />
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Ouvrir le profil"
+        onPress={() => router.navigate('/profil')}
+        className="h-11 w-11 items-center justify-center rounded-full bg-fg active:opacity-70">
+        <Text className="text-base font-semibold text-canvas">
+          {firstName.charAt(0).toUpperCase()}
+        </Text>
+      </Pressable>
     </View>
   );
 }

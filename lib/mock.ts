@@ -1,5 +1,5 @@
 import { toISODate, weekDates } from '@/lib/dates';
-import type { Meal, UserProfile, WorkoutSession } from '@/lib/types';
+import type { Meal, StravaActivity, UserProfile, Weather, WorkoutSession } from '@/lib/types';
 
 export const MOCK_PROFILE: UserProfile = {
   firstName: 'Alex',
@@ -11,6 +11,14 @@ export const MOCK_PROFILE: UserProfile = {
     carbs: 320,
     fat: 75,
   },
+  weightKg: 74.5,
+  targetWeightKg: 72,
+};
+
+export const MOCK_WEATHER: Weather = {
+  city: 'Lyon',
+  tempC: 14,
+  condition: 'partly',
 };
 
 function dated(offsetFromToday: number): string {
@@ -141,7 +149,24 @@ export const MOCK_MEALS: Meal[] = [
     confidence: 0.88,
     macros: { calories: 640, protein: 48, carbs: 72, fat: 14 },
   },
+  {
+    id: 'meal-snack',
+    name: 'Banane · amandes',
+    loggedAt: `${dated(0)}T16:10:00`,
+    confidence: 0.93,
+    macros: { calories: 260, protein: 7, carbs: 32, fat: 12 },
+  },
 ];
+
+export function buildStravaActivities(): StravaActivity[] {
+  return [
+    { id: 'act-1', name: 'Footing recovery', type: 'run', date: dated(-1), distanceKm: 8.1, movingTimeMin: 48, elevationM: 42 },
+    { id: 'act-2', name: 'Vélotaf', type: 'ride', date: dated(-2), distanceKm: 18.4, movingTimeMin: 46, elevationM: 120 },
+    { id: 'act-3', name: 'Sortie longue', type: 'run', date: dated(-4), distanceKm: 16.2, movingTimeMin: 92, elevationM: 135 },
+    { id: 'act-4', name: 'Fractionné 6 x 1000', type: 'run', date: dated(-6), distanceKm: 11.0, movingTimeMin: 55, elevationM: 38 },
+    { id: 'act-5', name: 'Marche active', type: 'walk', date: dated(-7), distanceKm: 5.3, movingTimeMin: 62, elevationM: 25 },
+  ];
+}
 
 const SCAN_PRESETS: Omit<Meal, 'id' | 'loggedAt' | 'photoUri'>[] = [
   {
@@ -172,7 +197,7 @@ export async function mockAnalyzePlate(photoUri: string): Promise<Meal> {
   return {
     ...pick,
     id: `scan-${Date.now()}`,
-    loggedAt: new Date().toISOString(),
+    loggedAt: `${toISODate(new Date())}T${new Date().toTimeString().slice(0, 8)}`,
     photoUri,
   };
 }

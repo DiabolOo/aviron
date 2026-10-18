@@ -4,14 +4,24 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 
 import { toISODate } from '@/lib/dates';
 import { remainingCalories, sumMacros, uid } from '@/lib/format';
-import { MOCK_MEALS, MOCK_PROFILE, buildWeekSessions, mockAdaptWeek, mockAnalyzePlate } from '@/lib/mock';
+import {
+    MOCK_MEALS,
+    MOCK_PROFILE,
+    MOCK_WEATHER,
+    buildStravaActivities,
+    buildWeekSessions,
+    mockAdaptWeek,
+    mockAnalyzePlate,
+} from '@/lib/mock';
 import type {
     FatigueLevel,
     Meal,
     ScanStep,
+    StravaActivity,
     ThemePreference,
     TimeBudget,
     UserProfile,
+    Weather,
     WorkoutSession,
 } from '@/lib/types';
 
@@ -19,6 +29,14 @@ type PulseFitState = {
   themePreference: ThemePreference;
   setThemePreference: (value: ThemePreference) => void;
   profile: UserProfile;
+  updateProfile: (patch: Partial<UserProfile>) => void;
+  setCalorieTarget: (calories: number) => void;
+  stravaConnected: boolean;
+  watchConnected: boolean;
+  toggleStrava: () => void;
+  toggleWatch: () => void;
+  activities: StravaActivity[];
+  weather: Weather;
   sessions: WorkoutSession[];
   meals: Meal[];
   scanStep: ScanStep;
@@ -31,6 +49,11 @@ type PulseFitState = {
   adaptWeek: (fatigue: FatigueLevel, timeBudget: TimeBudget) => Promise<void>;
 };
 
+type PersistedState = Pick<
+  PulseFitState,
+  'themePreference' | 'profile' | 'stravaConnected' | 'watchConnected' | 'sessions' | 'meals'
+>;
+
 function todayKey(): string {
   return toISODate(new Date());
 }
@@ -41,6 +64,23 @@ export const usePulseFitStore = create<PulseFitState>()(
       themePreference: 'system',
       setThemePreference: (value) => set({ themePreference: value }),
       profile: MOCK_PROFILE,
+      updateProfile: (patch) => set({ profile: { ...get().profile, ...patch } }),
+      setCalorieTarget: (calories) => {
+        const profile = get().profile;
+        set({
+          profile: {
+            ...profile,
+            calorieTarget: calories,
+            macrosTarget: { ...profile.macrosTarget, calories },
+          },
+        });
+      },
+      stravaConnected: true,
+      watchConnected: false,
+      toggleStrava: () => set({ stravaConnected: !get().stravaConnected }),
+      toggleWatch: () => set({ watchConnected: !get().watchConnected }),
+      activities: buildStravaActivities(),
+      weather: MOCK_WEATHER,
       sessions: buildWeekSessions(),
       meals: MOCK_MEALS,
       scanStep: 'idle',
@@ -83,12 +123,22 @@ export const usePulseFitStore = create<PulseFitState>()(
     {
       name: 'pulsefit-mvp',
       storage: createJSONStorage(() => AsyncStorage),
-      partialize: (state) => ({
+      partialize: (state): PersistedState => ({
         themePreference: state.themePreference,
         profile: state.profile,
+        stravaConnected: state.stravaConnected,
+        watchConnected: state.watchConnected,
         sessions: state.sessions,
         meals: state.meals,
       }),
+      merge: (persisted, current) => {
+        const saved = (persisted ?? {}) as Partial<PersistedState>;
+        return {
+          ...current,
+          ...saved,
+          profile: { ...current.profile, ...saved.profile },
+        };
+      },
     },
   ),
 );

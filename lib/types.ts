@@ -49,6 +49,30 @@ export type UserProfile = {
   goalLabel: string;
   calorieTarget: number;
   macrosTarget: Omit<Macros, 'calories'> & { calories: number };
+  weightKg: number;
+  targetWeightKg: number;
+};
+
+export type MealMoment = 'morning' | 'noon' | 'snack' | 'evening';
+
+export type WeatherCondition = 'sunny' | 'cloudy' | 'partly' | 'rain';
+
+export type Weather = {
+  city: string;
+  tempC: number;
+  condition: WeatherCondition;
+};
+
+export type ActivityType = 'run' | 'ride' | 'walk';
+
+export type StravaActivity = {
+  id: string;
+  name: string;
+  type: ActivityType;
+  date: string;
+  distanceKm: number;
+  movingTimeMin: number;
+  elevationM: number;
 };
 
 export type ScanStep = 'idle' | 'analyzing' | 'result';
