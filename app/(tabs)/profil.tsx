@@ -1,21 +1,20 @@
-import { Pencil, Unplug } from 'lucide-react-native';
+import { Unplug } from 'lucide-react-native';
 import { useState } from 'react';
-import { Text, View } from 'react-native';
+import { Text } from 'react-native';
 
 import { ConnectionSwitch } from '@/components/profile/ConnectionSwitch';
 import { EditNameSheet } from '@/components/profile/EditNameSheet';
 import { GoalSheet } from '@/components/profile/GoalSheet';
+import { MemberCard } from '@/components/profile/MemberCard';
 import { SettingRow } from '@/components/profile/SettingRow';
 import { Card } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { IconButton } from '@/components/ui/IconButton';
 import { Label } from '@/components/ui/Label';
 import { Screen } from '@/components/ui/Screen';
 import { Segmented } from '@/components/ui/Segmented';
 import { Stepper } from '@/components/ui/Stepper';
-import { usePulseFitStore } from '@/lib/store';
+import { usePulseFitStore, useStreak } from '@/lib/store';
 import type { ThemePreference } from '@/lib/types';
-import { useTheme } from '@/lib/useTheme';
 
 const THEMES = [
   { id: 'system', label: 'Auto' },
@@ -39,26 +38,22 @@ export default function ProfileScreen() {
   const toggleWatch = usePulseFitStore((s) => s.toggleWatch);
   const themePreference = usePulseFitStore((s) => s.themePreference);
   const setThemePreference = usePulseFitStore((s) => s.setThemePreference);
-  const { colors } = useTheme();
+  const sessions = usePulseFitStore((s) => s.sessions);
+  const activities = usePulseFitStore((s) => s.activities);
+  const streak = useStreak();
   const [nameSheetVisible, setNameSheetVisible] = useState(false);
   const [goalSheetVisible, setGoalSheetVisible] = useState(false);
 
   return (
     <Screen>
-      <View className="mt-2 flex-row items-center gap-4">
-        <View className="h-16 w-16 items-center justify-center rounded-full bg-fg">
-          <Text className="text-2xl font-semibold text-canvas">
-            {profile.firstName.charAt(0).toUpperCase()}
-          </Text>
-        </View>
-        <View className="flex-1">
-          <Text className="text-3xl font-semibold tracking-tight text-fg">{profile.firstName}</Text>
-          <Text className="mt-1 text-sm text-muted">{profile.goalLabel}</Text>
-        </View>
-        <IconButton label="Modifier le prénom" onPress={() => setNameSheetVisible(true)}>
-          <Pencil color={colors.fg} size={16} strokeWidth={1.8} />
-        </IconButton>
-      </View>
+      <MemberCard
+        firstName={profile.firstName}
+        goalLabel={profile.goalLabel}
+        streak={streak}
+        sessionsDone={sessions.filter((session) => session.completed).length}
+        activities={activities.length}
+        onEdit={() => setNameSheetVisible(true)}
+      />
 
       <Label className="mt-10">Objectifs</Label>
       <Card className="mt-3 py-1">

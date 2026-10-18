@@ -15,6 +15,13 @@ const ICONS = {
   profil: CircleUser,
 } as const;
 
+const HAPTICS = {
+  index: () => Haptics.selectionAsync(),
+  sport: () => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium),
+  nutrition: () => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light),
+  profil: () => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success),
+} as const;
+
 export function TabBar({ state, descriptors, navigation, insets }: TabBarProps) {
   const { colors } = useTheme();
 
@@ -33,7 +40,7 @@ export function TabBar({ state, descriptors, navigation, insets }: TabBarProps) 
               canPreventDefault: true,
             });
             if (!focused && !event.defaultPrevented) {
-              void Haptics.selectionAsync();
+              void HAPTICS[route.name as keyof typeof HAPTICS]?.();
               navigation.navigate(route.name, route.params);
             }
           };

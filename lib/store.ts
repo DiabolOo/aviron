@@ -209,6 +209,25 @@ export function useStatsForDate(date: string) {
   };
 }
 
+export function useStreak(): number {
+  const sessions = usePulseFitStore((s) => s.sessions);
+  const activities = usePulseFitStore((s) => s.activities);
+
+  const active = new Set<string>([
+    ...sessions.filter((session) => session.completed).map((session) => session.date),
+    ...activities.map((activity) => activity.date.slice(0, 10)),
+  ]);
+
+  let cursor = todayKey();
+  if (!active.has(cursor)) cursor = addDaysISO(cursor, -1);
+  let streak = 0;
+  while (active.has(cursor)) {
+    streak += 1;
+    cursor = addDaysISO(cursor, -1);
+  }
+  return streak;
+}
+
 export function useTodayStats() {
   const today = todayKey();
   const stats = useStatsForDate(today);

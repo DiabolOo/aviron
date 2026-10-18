@@ -71,7 +71,7 @@ export function ActivityHistory({ activities, connected }: ActivityHistoryProps)
                   <Text numberOfLines={1} className="text-base text-fg">
                     {activity.name}
                   </Text>
-                  <Text className="mt-0.5 text-sm text-muted">
+                  <Text className="mt-0.5 text-sm font-medium text-fg/70">
                     {formatDayMonth(activity.date)} · {formatDuration(activity.movingTimeMin)} · {pace}
                   </Text>
                 </View>

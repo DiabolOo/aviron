@@ -1,14 +1,14 @@
-import { CalendarOff, Sparkles } from 'lucide-react-native';
+import { CalendarOff, Sparkles, Zap } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
-import { Text, View } from 'react-native';
+import { Text } from 'react-native';
 
 import { ActivityHistory } from '@/components/sport/ActivityHistory';
 import { AdaptControls } from '@/components/sport/AdaptControls';
 import { SessionDetail } from '@/components/sport/SessionDetail';
 import { WeekStrip } from '@/components/sport/WeekStrip';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { Label } from '@/components/ui/Label';
 import { Screen } from '@/components/ui/Screen';
+import { TabHeader } from '@/components/ui/TabHeader';
 import { toISODate, weekDates } from '@/lib/dates';
 import { usePulseFitStore } from '@/lib/store';
 import type { FatigueLevel, TimeBudget, WorkoutSession } from '@/lib/types';
@@ -40,18 +40,20 @@ export default function SportScreen() {
 
   return (
     <Screen>
-      <View className="mt-2 flex-row items-end justify-between">
-        <View className="flex-1 pr-4">
-          <Label>Programme en cours</Label>
-          <Text className="mt-2 text-3xl font-semibold tracking-tight text-fg">Sport</Text>
-          <Text className="mt-1 text-sm text-muted">{goalLabel}</Text>
-        </View>
-        {week.length > 0 ? (
-          <Text className="mb-1 text-base text-muted">
-            <Text className="font-semibold text-fg">{done}</Text> / {week.length}
-          </Text>
-        ) : null}
-      </View>
+      <TabHeader
+        icon={Zap}
+        tint="aqua"
+        eyebrow="Programme en cours"
+        title="Sport"
+        subtitle={goalLabel}
+        right={
+          week.length > 0 ? (
+            <Text className="text-base text-muted">
+              <Text className="font-semibold text-aqua">{done}</Text> / {week.length}
+            </Text>
+          ) : null
+        }
+      />
       {week.length === 0 ? (
         <EmptyState
           className="mt-8"

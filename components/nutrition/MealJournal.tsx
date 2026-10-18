@@ -73,7 +73,7 @@ export function MealJournal({ meals, onAddMeal }: MealJournalProps) {
             <View key={moment.id} className="mt-5">
               <View className="flex-row items-baseline justify-between">
                 <Text className="text-base font-semibold text-fg">{moment.label}</Text>
-                <Text className="text-sm text-muted">
+                <Text className="text-sm font-medium text-fg/70">
                   {items.length > 0 ? `${formatKcal(total)} kcal` : '—'}
                 </Text>
               </View>
@@ -84,13 +84,15 @@ export function MealJournal({ meals, onAddMeal }: MealJournalProps) {
                   accessibilityLabel={`Modifier ${meal.name}`}
                   onPress={() => setEditingMeal(meal)}
                   className="mt-2 flex-row items-center border-t border-fg/5 pt-3 active:opacity-70">
-                  <Text className="w-14 font-mono text-xs text-muted">
+                  <Text className="w-14 font-mono text-sm text-fg/70">
                     {mealTime(meal.loggedAt)}
                   </Text>
                   <Text numberOfLines={1} className="flex-1 pr-3 text-sm text-fg">
                     {meal.name}
                   </Text>
-                  <Text className="text-sm text-muted">{formatKcal(meal.macros.calories)}</Text>
+                  <Text className="text-sm font-medium text-fg/70">
+                    {formatKcal(meal.macros.calories)}
+                  </Text>
                   <View className="ml-3">
                     <Pencil color={colors.muted} size={13} strokeWidth={1.8} />
                   </View>

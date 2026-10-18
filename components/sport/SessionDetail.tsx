@@ -43,7 +43,7 @@ export function SessionDetail({ session, onComplete }: SessionDetailProps) {
     <Card className="mt-6">
       <Label>{KIND_LABEL[session.kind]}</Label>
       <Text className="mt-2 text-2xl font-semibold tracking-tight text-fg">{session.title}</Text>
-      <Text className="mt-1 text-sm text-muted">{session.subtitle}</Text>
+      <Text className="mt-1 text-sm font-medium text-fg/70">{session.subtitle}</Text>
 
       <View className="mt-5 flex-row gap-8">
         <Metric value={session.durationMin} unit="min" />
@@ -58,7 +58,7 @@ export function SessionDetail({ session, onComplete }: SessionDetailProps) {
             </Text>
             <View className="flex-1 pr-3">
               <Text className="text-base text-fg">{block.title}</Text>
-              <Text className="mt-0.5 text-sm text-muted">{block.detail}</Text>
+              <Text className="mt-0.5 text-sm font-medium text-fg/70">{block.detail}</Text>
             </View>
             {block.durationMin ? (
               <Text className="font-mono text-xs text-muted">{block.durationMin}′</Text>
@@ -69,7 +69,7 @@ export function SessionDetail({ session, onComplete }: SessionDetailProps) {
           <Row key={exercise.id} index={index}>
             <View className="flex-1 pr-3">
               <Text className="text-base text-fg">{exercise.name}</Text>
-              <Text className="mt-0.5 text-sm text-muted">Repos {exercise.restSec} s</Text>
+              <Text className="mt-0.5 text-sm font-medium text-fg/70">Repos {exercise.restSec} s</Text>
             </View>
             <Text className="font-semibold text-fg">
               {exercise.sets} × {exercise.reps}
