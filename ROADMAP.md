@@ -66,7 +66,7 @@
 - [x] Apports du jour + macros (protéines / glucides / lipides)
 - [x] Journal par moment (matin / midi / collation / soir)
 - [x] Modifier / supprimer un repas
-- [ ] Ajout manuel d'un repas (sans photo)
+- [x] Ajout manuel d'un repas (sans photo)
 - [ ] Naviguer entre les jours (hier, avant-hier…)
 
 **👤 Profil**
