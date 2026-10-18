@@ -7,6 +7,7 @@ type IconButtonProps = {
   label: string;
   onPress: () => void;
   variant?: 'surface' | 'accent' | 'outline';
+  disabled?: boolean;
 };
 
 const VARIANT = {
@@ -15,16 +16,23 @@ const VARIANT = {
   outline: 'border border-fg/15',
 } as const;
 
-export function IconButton({ children, label, onPress, variant = 'surface' }: IconButtonProps) {
+export function IconButton({
+  children,
+  label,
+  onPress,
+  variant = 'surface',
+  disabled = false,
+}: IconButtonProps) {
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={label}
+      disabled={disabled}
       onPress={() => {
         void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         onPress();
       }}
-      className={`h-11 w-11 items-center justify-center rounded-full active:opacity-70 ${VARIANT[variant]}`}>
+      className={`h-11 w-11 items-center justify-center rounded-full active:opacity-70 ${VARIANT[variant]} ${disabled ? 'opacity-30' : ''}`}>
       {children}
     </Pressable>
   );

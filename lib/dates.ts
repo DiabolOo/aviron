@@ -58,3 +58,26 @@ export function formatDayMonth(iso: string): string {
     month: 'short',
   });
 }
+
+export function addDaysISO(iso: string, days: number): string {
+  const date = parseISODate(iso);
+  date.setDate(date.getDate() + days);
+  return toISODate(date);
+}
+
+export function formatFullDay(iso: string): string {
+  const label = parseISODate(iso).toLocaleDateString('fr-FR', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+  });
+  return label.charAt(0).toUpperCase() + label.slice(1);
+}
+
+export function relativeDayLabel(iso: string): string {
+  const today = toISODate(new Date());
+  if (iso === today) return 'Aujourd’hui';
+  if (iso === addDaysISO(today, -1)) return 'Hier';
+  if (iso === addDaysISO(today, -2)) return 'Avant-hier';
+  return formatFullDay(iso);
+}

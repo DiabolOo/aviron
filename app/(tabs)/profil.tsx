@@ -1,14 +1,20 @@
+import { Pencil } from 'lucide-react-native';
+import { useState } from 'react';
 import { Text, View } from 'react-native';
 
 import { ConnectionSwitch } from '@/components/profile/ConnectionSwitch';
+import { EditNameSheet } from '@/components/profile/EditNameSheet';
+import { GoalSheet } from '@/components/profile/GoalSheet';
 import { SettingRow } from '@/components/profile/SettingRow';
 import { Card } from '@/components/ui/Card';
+import { IconButton } from '@/components/ui/IconButton';
 import { Label } from '@/components/ui/Label';
 import { Screen } from '@/components/ui/Screen';
 import { Segmented } from '@/components/ui/Segmented';
 import { Stepper } from '@/components/ui/Stepper';
 import { usePulseFitStore } from '@/lib/store';
 import type { ThemePreference } from '@/lib/types';
+import { useTheme } from '@/lib/useTheme';
 
 const THEMES = [
   { id: 'system', label: 'Auto' },
@@ -32,6 +38,9 @@ export default function ProfileScreen() {
   const toggleWatch = usePulseFitStore((s) => s.toggleWatch);
   const themePreference = usePulseFitStore((s) => s.themePreference);
   const setThemePreference = usePulseFitStore((s) => s.setThemePreference);
+  const { colors } = useTheme();
+  const [nameSheetVisible, setNameSheetVisible] = useState(false);
+  const [goalSheetVisible, setGoalSheetVisible] = useState(false);
 
   return (
     <Screen>
@@ -45,11 +54,20 @@ export default function ProfileScreen() {
           <Text className="text-3xl font-semibold tracking-tight text-fg">{profile.firstName}</Text>
           <Text className="mt-1 text-sm text-muted">{profile.goalLabel}</Text>
         </View>
+        <IconButton label="Modifier le prénom" onPress={() => setNameSheetVisible(true)}>
+          <Pencil color={colors.fg} size={16} strokeWidth={1.8} />
+        </IconButton>
       </View>
 
       <Label className="mt-10">Objectifs</Label>
       <Card className="mt-3 py-1">
-        <SettingRow first label="Poids actuel">
+        <SettingRow
+          first
+          label="Objectif sportif"
+          hint={profile.goalLabel}
+          onPress={() => setGoalSheetVisible(true)}
+        />
+        <SettingRow label="Poids actuel">
           <Stepper
             value={profile.weightKg}
             step={0.5}
@@ -104,6 +122,19 @@ export default function ProfileScreen() {
       <Text className="mt-10 text-center font-mono text-[10px] uppercase tracking-[2px] text-muted">
         PulseFit · MVP
       </Text>
+
+      <EditNameSheet
+        visible={nameSheetVisible}
+        firstName={profile.firstName}
+        onClose={() => setNameSheetVisible(false)}
+        onSave={(firstName) => updateProfile({ firstName })}
+      />
+      <GoalSheet
+        visible={goalSheetVisible}
+        goal={profile.goalLabel}
+        onClose={() => setGoalSheetVisible(false)}
+        onSave={(goalLabel) => updateProfile({ goalLabel })}
+      />
     </Screen>
   );
 }

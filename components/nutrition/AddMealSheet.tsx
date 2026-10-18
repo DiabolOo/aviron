@@ -22,12 +22,14 @@ import { useTheme } from '@/lib/useTheme';
 
 type AddMealSheetProps = {
   visible: boolean;
+  date: string;
   onClose: () => void;
   onAdd: (meal: Omit<Meal, 'id'>) => void;
 };
 
 type AddMealFormProps = {
   paddingBottom: number;
+  date: string;
   onClose: () => void;
   onAdd: (meal: Omit<Meal, 'id'>) => void;
 };
@@ -60,16 +62,17 @@ function toGrams(value: string): number {
   return Number.isNaN(parsed) ? 0 : Math.max(0, parsed);
 }
 
-function loggedAtFor(moment: MealMoment): string {
+function loggedAtFor(moment: MealMoment, date: string): string {
   const now = new Date();
+  const isToday = date === toISODate(now);
   const time =
-    mealMomentForHour(now.getHours()) === moment
+    isToday && mealMomentForHour(now.getHours()) === moment
       ? now.toTimeString().slice(0, 8)
       : `${`${MOMENT_HOURS[moment]}`.padStart(2, '0')}:00:00`;
-  return `${toISODate(now)}T${time}`;
+  return `${date}T${time}`;
 }
 
-function AddMealForm({ paddingBottom, onClose, onAdd }: AddMealFormProps) {
+function AddMealForm({ paddingBottom, date, onClose, onAdd }: AddMealFormProps) {
   const { colors } = useTheme();
   const [moment, setMoment] = useState<MealMoment>(() =>
     mealMomentForHour(new Date().getHours()),
@@ -97,7 +100,7 @@ function AddMealForm({ paddingBottom, onClose, onAdd }: AddMealFormProps) {
       fat: toGrams(fields.fat),
     };
     void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    onAdd({ name: name.trim(), loggedAt: loggedAtFor(moment), macros, confidence: 1 });
+    onAdd({ name: name.trim(), loggedAt: loggedAtFor(moment, date), macros, confidence: 1 });
     onClose();
   };
 
@@ -153,7 +156,7 @@ function AddMealForm({ paddingBottom, onClose, onAdd }: AddMealFormProps) {
   );
 }
 
-export function AddMealSheet({ visible, onClose, onAdd }: AddMealSheetProps) {
+export function AddMealSheet({ visible, date, onClose, onAdd }: AddMealSheetProps) {
   const insets = useSafeAreaInsets();
 
   return (
@@ -167,7 +170,12 @@ export function AddMealSheet({ visible, onClose, onAdd }: AddMealSheetProps) {
           className="absolute inset-0 bg-black/50"
         />
         {visible ? (
-          <AddMealForm paddingBottom={insets.bottom + 24} onClose={onClose} onAdd={onAdd} />
+          <AddMealForm
+            paddingBottom={insets.bottom + 24}
+            date={date}
+            onClose={onClose}
+            onAdd={onAdd}
+          />
         ) : null}
       </KeyboardAvoidingView>
     </Modal>

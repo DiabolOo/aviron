@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
-import { toISODate } from '@/lib/dates';
+import { addDaysISO, toISODate } from '@/lib/dates';
 import { remainingCalories, sumMacros, uid } from '@/lib/format';
 import {
     MOCK_MEALS,
@@ -39,6 +39,11 @@ type PulseFitState = {
   weather: Weather;
   sessions: WorkoutSession[];
   meals: Meal[];
+  selectedDate: string;
+  setSelectedDate: (date: string) => void;
+  goToPreviousDay: () => void;
+  goToNextDay: () => void;
+  goToToday: () => void;
   scanStep: ScanStep;
   pendingMeal: Meal | null;
   isAdapting: boolean;
@@ -86,6 +91,14 @@ export const usePulseFitStore = create<PulseFitState>()(
       weather: MOCK_WEATHER,
       sessions: buildWeekSessions(),
       meals: MOCK_MEALS,
+      selectedDate: todayKey(),
+      setSelectedDate: (date) => set({ selectedDate: date }),
+      goToPreviousDay: () => set({ selectedDate: addDaysISO(get().selectedDate, -1) }),
+      goToNextDay: () => {
+        const next = addDaysISO(get().selectedDate, 1);
+        if (next <= todayKey()) set({ selectedDate: next });
+      },
+      goToToday: () => set({ selectedDate: todayKey() }),
       scanStep: 'idle',
       pendingMeal: null,
       isAdapting: false,
@@ -104,8 +117,12 @@ export const usePulseFitStore = create<PulseFitState>()(
       savePendingMeal: () => {
         const pending = get().pendingMeal;
         if (!pending) return;
+        const time = pending.loggedAt.split('T')[1] ?? '12:00:00';
         set({
-          meals: [{ ...pending, id: uid('meal') }, ...get().meals],
+          meals: [
+            { ...pending, id: uid('meal'), loggedAt: `${get().selectedDate}T${time}` },
+            ...get().meals,
+          ],
           pendingMeal: null,
           scanStep: 'idle',
         });
@@ -159,26 +176,37 @@ export const usePulseFitStore = create<PulseFitState>()(
   ),
 );
 
-export function useTodayStats() {
+export function useStatsForDate(date: string) {
   const profile = usePulseFitStore((s) => s.profile);
   const meals = usePulseFitStore((s) => s.meals);
   const sessions = usePulseFitStore((s) => s.sessions);
-  const today = todayKey();
 
-  const todaysMeals = meals.filter((meal) => meal.loggedAt.startsWith(today));
-  const consumed = sumMacros(todaysMeals.map((meal) => meal.macros));
-  const todaysSession = sessions.find((session) => session.date === today);
+  const dayMeals = meals.filter((meal) => meal.loggedAt.startsWith(date));
+  const consumed = sumMacros(dayMeals.map((meal) => meal.macros));
+  const daySession = sessions.find((session) => session.date === date);
   const burned = sessions
-    .filter((session) => session.date === today && session.completed)
+    .filter((session) => session.date === date && session.completed)
     .reduce((sum, session) => sum + session.caloriesBurn, 0);
 
   return {
     profile,
-    today,
-    todaysMeals,
+    date,
+    dayMeals,
     consumed,
     burned,
     remaining: remainingCalories(consumed.calories, burned, profile.calorieTarget),
-    todaysSession,
+    daySession,
+  };
+}
+
+export function useTodayStats() {
+  const today = todayKey();
+  const stats = useStatsForDate(today);
+
+  return {
+    ...stats,
+    today,
+    todaysMeals: stats.dayMeals,
+    todaysSession: stats.daySession,
   };
 }

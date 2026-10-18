@@ -67,13 +67,13 @@
 - [x] Journal par moment (matin / midi / collation / soir)
 - [x] Modifier / supprimer un repas
 - [x] Ajout manuel d'un repas (sans photo)
-- [ ] Naviguer entre les jours (hier, avant-hier…)
+- [x] Naviguer entre les jours (hier, avant-hier…)
 
 **👤 Profil**
 - [x] Objectifs poids actuel / cible + calories par jour
 - [x] Connexions Strava / montre (bascule mock)
 - [x] Choix du thème
-- [ ] Modifier le prénom et l'objectif sportif
+- [x] Modifier le prénom et l'objectif sportif
 
 **Finition**
 - [ ] États vides et états d'erreur sur chaque écran
@@ -202,6 +202,7 @@
 | 2026-10-18 | Design épuré / futuriste + mode clair / sombre |
 | 2026-10-18 | Navigation à 4 onglets (Aujourd'hui · Sport · Nutrition · Profil), historique Strava et profil (mock) |
 | 2026-10-18 | Monétisation avancée : nouveau Jalon 6 (paywall RevenueCat + essai 7 jours) activé dès les jalons 4 + 5, en parallèle des jalons 7–9 |
+| 2026-10-18 | Nutrition : navigation entre les jours (DateSelector + week strip, ajout/édition de repas sur une date passée) |
 
 ## ▶️ Prochaine étape conseillée
 Terminer le **Jalon 1** (modifier / supprimer un repas, ajout manuel, états vides), puis
