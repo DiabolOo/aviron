@@ -20,6 +20,7 @@ export function ProgressRing({
   children,
 }: ProgressRingProps) {
   const clamped = Math.min(1, Math.max(0, progress));
+  const reached = clamped >= 1;
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const center = size / 2;
@@ -27,6 +28,28 @@ export function ProgressRing({
   return (
     <View style={{ width: size, height: size }} className="items-center justify-center">
       <Svg width={size} height={size} style={{ position: 'absolute' }}>
+        {reached ? (
+          <>
+            <Circle
+              cx={center}
+              cy={center}
+              r={radius}
+              stroke={color}
+              strokeOpacity={0.12}
+              strokeWidth={strokeWidth + 8}
+              fill="none"
+            />
+            <Circle
+              cx={center}
+              cy={center}
+              r={radius}
+              stroke={color}
+              strokeOpacity={0.22}
+              strokeWidth={strokeWidth + 4}
+              fill="none"
+            />
+          </>
+        ) : null}
         <Circle
           cx={center}
           cy={center}

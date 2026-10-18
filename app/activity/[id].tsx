@@ -81,7 +81,7 @@ export default function ActivityScreen() {
         <Text className="text-6xl font-semibold tracking-tighter text-fg">
           {activity.distanceKm.toFixed(1)}
         </Text>
-        <Text className="mb-2 ml-2 text-base text-muted">km</Text>
+        <Text className="mb-2 ml-2 text-sm font-medium text-muted">km</Text>
       </View>
 
       <View className="mt-2 flex-row flex-wrap">

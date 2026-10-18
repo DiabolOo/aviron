@@ -28,7 +28,7 @@ export function MealResultCard({ meal, onSave, onRetry }: MealResultCardProps) {
 
       <Text className="mt-6 text-6xl font-semibold tracking-tighter text-fg">
         {formatKcal(meal.macros.calories)}
-        <Text className="text-base font-normal tracking-normal text-muted"> kcal</Text>
+        <Text className="text-sm font-medium tracking-normal text-muted"> kcal</Text>
       </Text>
 
       <View className="mt-8 flex-row gap-6">

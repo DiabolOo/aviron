@@ -8,7 +8,7 @@ type LabelProps = {
 
 export function Label({ children, className = '' }: LabelProps) {
   return (
-    <Text className={`font-mono text-[10px] uppercase tracking-[2px] text-muted ${className}`}>
+    <Text className={`font-mono text-xs font-medium uppercase tracking-[2px] text-fg/70 ${className}`}>
       {children}
     </Text>
   );
