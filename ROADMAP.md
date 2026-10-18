@@ -58,7 +58,7 @@
 - [x] Détail de séance (blocs course / exercices muscu)
 - [x] Historique des activités Strava (mock)
 - [x] Adaptation de la semaine selon forme / temps (IA mockée)
-- [ ] Écran détail d'une activité Strava (carte, splits, FC)
+- [x] Écran détail d'une activité Strava (carte, splits, FC)
 
 **🥗 Nutrition**
 - [x] Bouton scan rapide → modal plein écran

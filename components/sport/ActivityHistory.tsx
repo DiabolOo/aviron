@@ -52,9 +52,10 @@ export function ActivityHistory({ activities, connected }: ActivityHistoryProps)
                 ? formatSpeed(activity.distanceKm, activity.movingTimeMin)
                 : formatPace(activity.distanceKm, activity.movingTimeMin);
             return (
-              <View
+              <Pressable
                 key={activity.id}
-                className={`flex-row items-center gap-4 py-4 ${index > 0 ? 'border-t border-fg/5' : ''}`}>
+                onPress={() => router.push(`/activity/${activity.id}`)}
+                className={`flex-row items-center gap-4 py-4 active:opacity-70 ${index > 0 ? 'border-t border-fg/5' : ''}`}>
                 <View className="h-10 w-10 items-center justify-center rounded-full bg-fg/5">
                   <Icon color={colors.fg} size={17} strokeWidth={1.8} />
                 </View>
@@ -70,7 +71,7 @@ export function ActivityHistory({ activities, connected }: ActivityHistoryProps)
                   {activity.distanceKm.toFixed(1)}
                   <Text className="text-xs font-normal text-muted"> km</Text>
                 </Text>
-              </View>
+              </Pressable>
             );
           })}
         </View>

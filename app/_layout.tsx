@@ -71,6 +71,7 @@ export default function RootLayout() {
             animation: 'slide_from_right',
           }}
         />
+        <Stack.Screen name="activity/[id]" options={{ animation: 'slide_from_right' }} />
       </Stack>
     </ThemeProvider>
   );

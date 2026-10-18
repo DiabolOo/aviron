@@ -73,7 +73,24 @@ export type StravaActivity = {
   distanceKm: number;
   movingTimeMin: number;
   elevationM: number;
+  startTime: string;
+  calories: number;
+  avgHr: number;
+  maxHr: number;
+  splits: ActivitySplit[];
+  hrStream: number[];
+  polyline: RoutePoint[];
 };
+
+export type ActivitySplit = {
+  km: number;
+  pace: string;
+  paceSec: number;
+  elevationGain: number;
+  avgHr: number;
+};
+
+export type RoutePoint = { x: number; y: number };
 
 export type ScanStep = 'idle' | 'analyzing' | 'result';
 

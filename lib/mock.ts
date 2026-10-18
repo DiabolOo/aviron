@@ -158,14 +158,85 @@ export const MOCK_MEALS: Meal[] = [
   },
 ];
 
+type ActivitySeed = Pick<
+  StravaActivity,
+  'id' | 'name' | 'type' | 'distanceKm' | 'movingTimeMin' | 'elevationM' | 'startTime'
+> & { offset: number; avgHr: number; calories: number; seed: number };
+
+function seededRandom(seed: number): () => number {
+  let state = seed;
+  return () => {
+    state = (state * 1664525 + 1013904223) % 4294967296;
+    return state / 4294967296;
+  };
+}
+
+function paceLabel(sec: number): string {
+  return `${Math.floor(sec / 60)}:${`${Math.round(sec % 60)}`.padStart(2, '0')}`;
+}
+
+function buildActivity(seed: ActivitySeed): StravaActivity {
+  const rand = seededRandom(seed.seed);
+  const avgPaceSec = (seed.movingTimeMin * 60) / seed.distanceKm;
+  const fullKm = Math.floor(seed.distanceKm);
+  const lastKm = seed.distanceKm - fullKm;
+  const count = fullKm + (lastKm >= 0.1 ? 1 : 0);
+
+  const splits = Array.from({ length: count }, (_, i) => {
+    const wave = Math.sin((i / Math.max(1, count - 1)) * Math.PI * 2) * 0.03;
+    const fade = (i / Math.max(1, count)) * 0.02;
+    const paceSec = Math.round(avgPaceSec * (1 + wave + fade + (rand() - 0.5) * 0.08));
+    return {
+      km: i + 1,
+      paceSec,
+      pace: paceLabel(paceSec),
+      elevationGain: Math.round((seed.elevationM / count) * (0.4 + rand() * 1.2)),
+      avgHr: Math.round(seed.avgHr - 8 + (i / Math.max(1, count)) * 14 + (rand() - 0.5) * 6),
+    };
+  });
+
+  const points = Math.max(40, Math.round(seed.movingTimeMin * 1.2));
+  const hrStream = Array.from({ length: points }, (_, i) => {
+    const t = i / (points - 1);
+    const warmup = Math.min(1, t / 0.12);
+    return Math.round(
+      seed.avgHr - 14 + warmup * 12 + t * 12 + Math.sin(t * Math.PI * 6) * 4 + (rand() - 0.5) * 4,
+    );
+  });
+
+  const polyline = Array.from({ length: 60 }, (_, i) => {
+    const a = (i / 59) * Math.PI * 2;
+    const r = 1 + 0.28 * Math.sin(a * 3 + seed.seed) + 0.12 * Math.cos(a * 2);
+    return { x: 0.5 + 0.5 * r * Math.cos(a) * 0.8, y: 0.5 + 0.5 * r * Math.sin(a) * 0.7 };
+  });
+
+  return {
+    id: seed.id,
+    name: seed.name,
+    type: seed.type,
+    date: dated(seed.offset),
+    startTime: seed.startTime,
+    distanceKm: seed.distanceKm,
+    movingTimeMin: seed.movingTimeMin,
+    elevationM: seed.elevationM,
+    calories: seed.calories,
+    avgHr: Math.round(hrStream.reduce((s, v) => s + v, 0) / hrStream.length),
+    maxHr: Math.max(...hrStream),
+    splits,
+    hrStream,
+    polyline,
+  };
+}
+
 export function buildStravaActivities(): StravaActivity[] {
-  return [
-    { id: 'act-1', name: 'Footing recovery', type: 'run', date: dated(-1), distanceKm: 8.1, movingTimeMin: 48, elevationM: 42 },
-    { id: 'act-2', name: 'Vélotaf', type: 'ride', date: dated(-2), distanceKm: 18.4, movingTimeMin: 46, elevationM: 120 },
-    { id: 'act-3', name: 'Sortie longue', type: 'run', date: dated(-4), distanceKm: 16.2, movingTimeMin: 92, elevationM: 135 },
-    { id: 'act-4', name: 'Fractionné 6 x 1000', type: 'run', date: dated(-6), distanceKm: 11.0, movingTimeMin: 55, elevationM: 38 },
-    { id: 'act-5', name: 'Marche active', type: 'walk', date: dated(-7), distanceKm: 5.3, movingTimeMin: 62, elevationM: 25 },
+  const seeds: ActivitySeed[] = [
+    { id: 'act-1', name: 'Footing recovery', type: 'run', offset: -1, startTime: '07:15', distanceKm: 8.1, movingTimeMin: 48, elevationM: 42, avgHr: 142, calories: 520, seed: 11 },
+    { id: 'act-2', name: 'Vélotaf', type: 'ride', offset: -2, startTime: '08:05', distanceKm: 18.4, movingTimeMin: 46, elevationM: 120, avgHr: 128, calories: 430, seed: 23 },
+    { id: 'act-3', name: 'Sortie longue', type: 'run', offset: -4, startTime: '09:30', distanceKm: 16.2, movingTimeMin: 92, elevationM: 135, avgHr: 152, calories: 1080, seed: 37 },
+    { id: 'act-4', name: 'Fractionné 6 x 1000', type: 'run', offset: -6, startTime: '18:40', distanceKm: 11.0, movingTimeMin: 55, elevationM: 38, avgHr: 164, calories: 760, seed: 41 },
+    { id: 'act-5', name: 'Marche active', type: 'walk', offset: -7, startTime: '12:20', distanceKm: 5.3, movingTimeMin: 62, elevationM: 25, avgHr: 112, calories: 290, seed: 53 },
   ];
+  return seeds.map(buildActivity);
 }
 
 const SCAN_PRESETS: Omit<Meal, 'id' | 'loggedAt' | 'photoUri'>[] = [
