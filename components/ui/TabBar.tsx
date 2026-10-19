@@ -1,19 +1,13 @@
 import * as Haptics from 'expo-haptics';
 import { Tabs } from 'expo-router';
-import { CircleUser, Dumbbell, House, Salad } from 'lucide-react-native';
+import { House } from 'lucide-react-native';
 import { type ComponentProps } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
+import { TAB_ICONS as ICONS } from '@/components/ui/tabIcons';
 import { useTheme } from '@/lib/useTheme';
 
 type TabBarProps = Parameters<NonNullable<ComponentProps<typeof Tabs>['tabBar']>>[0];
-
-const ICONS = {
-  index: House,
-  sport: Dumbbell,
-  nutrition: Salad,
-  profil: CircleUser,
-} as const;
 
 const HAPTICS = {
   index: () => Haptics.selectionAsync(),

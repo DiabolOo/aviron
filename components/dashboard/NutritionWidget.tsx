@@ -4,7 +4,6 @@ import { ChevronRight } from 'lucide-react-native';
 import { Pressable, Text, View } from 'react-native';
 
 import { Label } from '@/components/ui/Label';
-import { MacroBar } from '@/components/ui/MacroBar';
 import { ProgressRing } from '@/components/ui/ProgressRing';
 import { clampRatio, formatKcal } from '@/lib/format';
 import type { Macros } from '@/lib/types';
@@ -47,12 +46,6 @@ export function NutritionWidget({ consumed, target, remaining }: NutritionWidget
           <ChevronRight color={colors.muted} size={14} strokeWidth={1.8} />
         </Pressable>
       ) : null}
-
-      <View className="mt-10 w-full flex-row gap-6">
-        <MacroBar label="Prot." value={consumed.protein} target={target.protein} accentClass="bg-accent" />
-        <MacroBar label="Gluc." value={consumed.carbs} target={target.carbs} accentClass="bg-aqua" />
-        <MacroBar label="Lip." value={consumed.fat} target={target.fat} accentClass="bg-iris" />
-      </View>
     </View>
   );
 }

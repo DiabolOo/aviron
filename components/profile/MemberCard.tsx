@@ -3,6 +3,7 @@ import { Text, View } from 'react-native';
 
 import { IconButton } from '@/components/ui/IconButton';
 import { Label } from '@/components/ui/Label';
+import { TAB_ICONS } from '@/components/ui/tabIcons';
 import { useTheme } from '@/lib/useTheme';
 
 type MemberCardProps = {
@@ -39,10 +40,8 @@ export function MemberCard({
         </IconButton>
       </View>
       <View className="mt-3 flex-row items-center gap-4">
-        <View className="h-16 w-16 items-center justify-center rounded-full bg-fg">
-          <Text className="text-2xl font-semibold text-canvas">
-            {firstName.charAt(0).toUpperCase()}
-          </Text>
+        <View className="h-16 w-16 items-center justify-center rounded-full bg-black">
+          <TAB_ICONS.profil color={colors.accent} size={28} strokeWidth={1.9} />
         </View>
         <View className="flex-1">
           <Text className="text-3xl font-semibold tracking-tight text-fg">{firstName}</Text>

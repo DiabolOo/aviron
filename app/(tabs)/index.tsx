@@ -1,4 +1,5 @@
 import { DayStatus } from '@/components/dashboard/DayStatus';
+import { EnergyBatteryWidget } from '@/components/dashboard/EnergyBatteryWidget';
 import { HomeHeader } from '@/components/dashboard/HomeHeader';
 import { MealTimeline } from '@/components/dashboard/MealTimeline';
 import { NutritionWidget } from '@/components/dashboard/NutritionWidget';
@@ -17,6 +18,11 @@ export default function TodayScreen() {
       <HomeHeader firstName={profile.firstName} streak={streak} weather={weather} />
       <DayStatus session={todaysSession} />
       <NutritionWidget consumed={consumed} target={profile.macrosTarget} remaining={remaining} />
+      <EnergyBatteryWidget
+        session={todaysSession}
+        consumedKcal={consumed.calories}
+        targetKcal={profile.macrosTarget.calories}
+      />
       <WorkoutWidget session={todaysSession} onComplete={completeSession} />
       <MealTimeline meals={todaysMeals} />
     </Screen>

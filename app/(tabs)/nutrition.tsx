@@ -1,15 +1,15 @@
-import { PenLine, UtensilsCrossed } from 'lucide-react-native';
+import { PenLine } from 'lucide-react-native';
 import { useState } from 'react';
-import { Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
 import { AddMealSheet } from '@/components/nutrition/AddMealSheet';
 import { DateSelector } from '@/components/nutrition/DateSelector';
 import { MacroSummary } from '@/components/nutrition/MacroSummary';
 import { MealJournal } from '@/components/nutrition/MealJournal';
 import { ScanButton } from '@/components/nutrition/ScanButton';
-import { PrimaryButton } from '@/components/ui/PrimaryButton';
 import { Screen } from '@/components/ui/Screen';
 import { TabHeader } from '@/components/ui/TabHeader';
+import { TAB_ICONS } from '@/components/ui/tabIcons';
 import { formatKcal } from '@/lib/format';
 import { usePulseFitStore, useStatsForDate } from '@/lib/store';
 import type { Macros } from '@/lib/types';
@@ -31,7 +31,7 @@ export default function NutritionScreen() {
   return (
     <Screen>
       <TabHeader
-        icon={UtensilsCrossed}
+        icon={TAB_ICONS.nutrition}
         tint="accent"
         eyebrow="Assiette du jour"
         title="Nutrition"
@@ -52,14 +52,19 @@ export default function NutritionScreen() {
       </TabHeader>
       <DateSelector />
       <ScanButton />
-      <View className="mt-3">
-        <PrimaryButton
-          variant="ghost"
-          label="Ajout manuel"
-          icon={<PenLine color={colors.fg} size={16} strokeWidth={1.8} />}
-          onPress={() => setAdding(true)}
-        />
+      <View className="mt-4 flex-row items-center gap-3">
+        <View className="h-px flex-1 bg-fg/10" />
+        <Text className="text-xs text-muted">ou</Text>
+        <View className="h-px flex-1 bg-fg/10" />
       </View>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Ajout manuel"
+        onPress={() => setAdding(true)}
+        className="mt-3 flex-row items-center justify-center gap-2 py-2 active:opacity-60">
+        <PenLine color={colors.muted} size={16} strokeWidth={1.8} />
+        <Text className="text-sm font-medium text-muted">Ajout manuel</Text>
+      </Pressable>
       <MacroSummary consumed={consumed} target={profile.macrosTarget} />
       <MealJournal meals={dayMeals} onAddMeal={() => setAdding(true)} />
       <AddMealSheet

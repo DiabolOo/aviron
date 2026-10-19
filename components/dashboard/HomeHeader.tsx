@@ -3,6 +3,7 @@ import { Cloud, CloudRain, CloudSun, Sun } from 'lucide-react-native';
 import { Pressable, Text, View } from 'react-native';
 
 import { Label } from '@/components/ui/Label';
+import { TAB_ICONS } from '@/components/ui/tabIcons';
 import { greetingForHour } from '@/lib/dates';
 import type { Weather, WeatherCondition } from '@/lib/types';
 import { useTheme } from '@/lib/useTheme';
@@ -31,7 +32,10 @@ export function HomeHeader({ firstName, streak, weather }: HomeHeaderProps) {
   });
 
   return (
-    <View className="mt-2 flex-row items-center justify-between">
+    <View className="mt-2 flex-row items-center justify-between gap-4">
+      <View className="h-14 w-14 items-center justify-center rounded-full border border-accent/30 bg-black">
+        <TAB_ICONS.index color={colors.accent} size={26} strokeWidth={1.9} />
+      </View>
       <View className="flex-1 pr-4">
         <Label>{dateLabel}</Label>
         <Text className="mt-2 text-3xl font-semibold tracking-tight text-fg">

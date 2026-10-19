@@ -78,7 +78,7 @@ function todayKey(): string {
 export const usePulseFitStore = create<PulseFitState>()(
   persist(
     (set, get) => ({
-      themePreference: 'system',
+      themePreference: 'light',
       setThemePreference: (value) => set({ themePreference: value }),
       profile: MOCK_PROFILE,
       hasCompletedOnboarding: false,

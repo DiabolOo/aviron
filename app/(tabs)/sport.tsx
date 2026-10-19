@@ -1,17 +1,17 @@
-import { CalendarOff, Sparkles, Zap } from 'lucide-react-native';
+import { CalendarOff, Sparkles } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import { Text } from 'react-native';
 
 import { ActivityHistory } from '@/components/sport/ActivityHistory';
-import { AdaptControls } from '@/components/sport/AdaptControls';
 import { SessionDetail } from '@/components/sport/SessionDetail';
 import { WeekStrip } from '@/components/sport/WeekStrip';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Screen } from '@/components/ui/Screen';
 import { TabHeader } from '@/components/ui/TabHeader';
+import { TAB_ICONS } from '@/components/ui/tabIcons';
 import { toISODate, weekDates } from '@/lib/dates';
 import { usePulseFitStore } from '@/lib/store';
-import type { FatigueLevel, TimeBudget, WorkoutSession } from '@/lib/types';
+import type { WorkoutSession } from '@/lib/types';
 import { useTheme } from '@/lib/useTheme';
 
 export default function SportScreen() {
@@ -21,12 +21,8 @@ export default function SportScreen() {
   const stravaConnected = usePulseFitStore((s) => s.stravaConnected);
   const completeSession = usePulseFitStore((s) => s.completeSession);
   const resetWeek = usePulseFitStore((s) => s.resetWeek);
-  const adaptWeek = usePulseFitStore((s) => s.adaptWeek);
-  const isAdapting = usePulseFitStore((s) => s.isAdapting);
   const { colors } = useTheme();
   const [selectedDate, setSelectedDate] = useState(toISODate(new Date()));
-  const [fatigue, setFatigue] = useState<FatigueLevel>('ok');
-  const [timeBudget, setTimeBudget] = useState<TimeBudget>('60');
 
   const week = useMemo(() => {
     const dates = weekDates();
@@ -41,7 +37,7 @@ export default function SportScreen() {
   return (
     <Screen>
       <TabHeader
-        icon={Zap}
+        icon={TAB_ICONS.sport}
         tint="aqua"
         eyebrow="Programme en cours"
         title="Sport"
@@ -75,14 +71,6 @@ export default function SportScreen() {
             onSelect={setSelectedDate}
           />
           {selected ? <SessionDetail session={selected} onComplete={completeSession} /> : null}
-          <AdaptControls
-            fatigue={fatigue}
-            timeBudget={timeBudget}
-            isAdapting={isAdapting}
-            onFatigue={setFatigue}
-            onTime={setTimeBudget}
-            onAdapt={() => void adaptWeek(fatigue, timeBudget)}
-          />
         </>
       )}
       <ActivityHistory activities={activities} connected={stravaConnected} />
