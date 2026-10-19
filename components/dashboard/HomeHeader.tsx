@@ -1,30 +1,18 @@
-import { router } from 'expo-router';
-import { Cloud, CloudRain, CloudSun, Sun } from 'lucide-react-native';
-import { Pressable, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
-import { Label } from '@/components/ui/Label';
-import { TAB_ICONS } from '@/components/ui/tabIcons';
+import { StatusPill } from '@/components/dashboard/StatusPill';
 import { greetingForHour } from '@/lib/dates';
-import type { Weather, WeatherCondition } from '@/lib/types';
-import { useTheme } from '@/lib/useTheme';
+import type { Weather, WorkoutSession } from '@/lib/types';
 
 type HomeHeaderProps = {
   firstName: string;
   streak: number;
   weather: Weather;
+  session?: WorkoutSession;
 };
 
-const WEATHER_ICONS: Record<WeatherCondition, typeof Sun> = {
-  sunny: Sun,
-  partly: CloudSun,
-  cloudy: Cloud,
-  rain: CloudRain,
-};
-
-export function HomeHeader({ firstName, streak, weather }: HomeHeaderProps) {
-  const { colors } = useTheme();
+export function HomeHeader({ firstName, streak, weather, session }: HomeHeaderProps) {
   const now = new Date();
-  const WeatherIcon = WEATHER_ICONS[weather.condition];
   const dateLabel = now.toLocaleDateString('fr-FR', {
     weekday: 'long',
     day: 'numeric',
@@ -32,42 +20,16 @@ export function HomeHeader({ firstName, streak, weather }: HomeHeaderProps) {
   });
 
   return (
-    <View className="mt-2 flex-row items-center justify-between gap-4">
-      <View className="h-14 w-14 items-center justify-center rounded-full border border-accent/30 bg-black">
-        <TAB_ICONS.index color={colors.accent} size={26} strokeWidth={1.9} />
+    <View className="mb-6 mt-2 w-full items-center px-4">
+      <Text className="text-center text-3xl font-bold tracking-tight text-fg">
+        {greetingForHour(now.getHours())}, {firstName}
+      </Text>
+      <Text className="mt-0.5 text-center text-xs font-semibold uppercase tracking-wider text-fg/50">
+        {dateLabel}
+      </Text>
+      <View className="mt-3">
+        <StatusPill streak={streak} weather={weather} session={session} />
       </View>
-      <View className="flex-1 pr-4">
-        <Label>{dateLabel}</Label>
-        <Text className="mt-2 text-3xl font-semibold tracking-tight text-fg">
-          {greetingForHour(now.getHours())}, {firstName}
-        </Text>
-        <View className="mt-3 flex-row flex-wrap items-center gap-2">
-          <View
-            accessibilityLabel={`Série de ${streak} jours`}
-            className="flex-row items-center rounded-full bg-accent px-3 py-1">
-            <Text className="text-sm font-semibold text-accent-fg">
-              🔥 {streak} {streak > 1 ? 'jours' : 'jour'}
-            </Text>
-          </View>
-          <View
-            accessibilityLabel={`Météo ${weather.city}, ${weather.tempC} degrés`}
-            className="flex-row items-center gap-1.5 rounded-full border border-fg/10 bg-surface px-3 py-1">
-            <WeatherIcon color={colors.aqua} size={14} strokeWidth={1.9} />
-            <Text className="text-sm text-fg">
-              {weather.tempC}°<Text className="text-muted"> · {weather.city}</Text>
-            </Text>
-          </View>
-        </View>
-      </View>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="Ouvrir le profil"
-        onPress={() => router.navigate('/profil')}
-        className="h-11 w-11 items-center justify-center rounded-full bg-fg active:opacity-70">
-        <Text className="text-base font-semibold text-canvas">
-          {firstName.charAt(0).toUpperCase()}
-        </Text>
-      </Pressable>
     </View>
   );
 }

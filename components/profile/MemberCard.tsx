@@ -35,7 +35,7 @@ export function MemberCard({
       <View className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-iris/10" />
       <View className="flex-row items-center justify-between">
         <Label>Membre PulseFit</Label>
-        <IconButton label="Modifier le prénom" onPress={onEdit}>
+        <IconButton label="Modifier le profil" onPress={onEdit}>
           <Pencil color={colors.fg} size={16} strokeWidth={1.8} />
         </IconButton>
       </View>
@@ -50,13 +50,13 @@ export function MemberCard({
           </Text>
         </View>
       </View>
-      <View className="mt-5 flex-row border-t border-fg/5 pt-4">
+      <View className="mt-5 flex-row rounded-2xl border border-iris/20 bg-fg/5 px-4 py-3">
         {stats.map((stat) => (
           <View key={stat.label} className="flex-1">
             <Text className="font-mono text-[10px] uppercase tracking-[2px] text-muted">
               {stat.label}
             </Text>
-            <Text className="mt-1 text-2xl font-semibold tracking-tight text-fg">
+            <Text className="mt-1 text-3xl font-semibold tracking-tight text-fg">
               {stat.value}
               <Text className="text-xs font-normal tracking-normal text-muted"> {stat.unit}</Text>
             </Text>

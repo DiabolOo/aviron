@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Text } from 'react-native';
 
 import { ConnectionSwitch } from '@/components/profile/ConnectionSwitch';
-import { EditNameSheet } from '@/components/profile/EditNameSheet';
+import { EditProfileModal } from '@/components/profile/EditProfileModal';
 import { GoalSheet } from '@/components/profile/GoalSheet';
 import { MemberCard } from '@/components/profile/MemberCard';
 import { SettingRow } from '@/components/profile/SettingRow';
@@ -128,11 +128,11 @@ export default function ProfileScreen() {
         PulseFit · MVP
       </Text>
 
-      <EditNameSheet
+      <EditProfileModal
         visible={nameSheetVisible}
-        firstName={profile.firstName}
+        profile={profile}
         onClose={() => setNameSheetVisible(false)}
-        onSave={(firstName) => updateProfile({ firstName })}
+        onSave={updateProfile}
       />
       <GoalSheet
         visible={goalSheetVisible}

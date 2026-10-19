@@ -1,4 +1,3 @@
-import { DayStatus } from '@/components/dashboard/DayStatus';
 import { EnergyBatteryWidget } from '@/components/dashboard/EnergyBatteryWidget';
 import { HomeHeader } from '@/components/dashboard/HomeHeader';
 import { MealTimeline } from '@/components/dashboard/MealTimeline';
@@ -15,8 +14,12 @@ export default function TodayScreen() {
 
   return (
     <Screen>
-      <HomeHeader firstName={profile.firstName} streak={streak} weather={weather} />
-      <DayStatus session={todaysSession} />
+      <HomeHeader
+        firstName={profile.firstName}
+        streak={streak}
+        weather={weather}
+        session={todaysSession}
+      />
       <NutritionWidget consumed={consumed} target={profile.macrosTarget} remaining={remaining} />
       <EnergyBatteryWidget
         session={todaysSession}
