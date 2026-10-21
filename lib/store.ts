@@ -124,6 +124,7 @@ const NUTRITION_RECALC_KEYS: readonly (keyof UserProfile)[] = [
   'targetWeightKg',
   'activityLevel',
   'goal',
+  'weeklyPaceKg',
 ];
 
 export const usePulseFitStore = create<PulseFitState>()(

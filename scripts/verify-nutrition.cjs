@@ -17,6 +17,7 @@ const {
   calculateBMR,
   calculateTDEE,
   adjustForGoal,
+  paceToDailyKcalDelta,
   calculateMacros,
   inferGoal,
   calculateNutritionTargets,
@@ -82,6 +83,50 @@ checkDeep('targets femme weight_loss macros', femaleLoss, { calories: 1510, prot
 
 // Donnees incompletes -> null (on conserve les objectifs existants)
 check('profil incomplet -> null', calculateNutritionTargets({ weightKg: 70, targetWeightKg: 70 }), null);
+
+// Rythme en kg/semaine : 0.5 kg/sem -> 550 kcal/jour
+check('rythme 0.5 kg/sem', paceToDailyKcalDelta(0.5), 550);
+check('rythme 1 kg/sem', paceToDailyKcalDelta(1), 1100);
+
+// Deficit base sur le rythme : TDEE 2759 - 550 = 2209 -> 2210
+check(
+  'targets homme perte 0.5 kg/sem',
+  calculateNutritionTargets({
+    sex: 'male', ageYears: 30, heightCm: 180, weightKg: 80,
+    targetWeightKg: 75, weeklyPaceKg: 0.5, activityLevel: 'active',
+  }).calories,
+  2210,
+);
+
+// Surplus base sur le rythme : TDEE 2604 + 275 = 2879 -> 2880
+check(
+  'targets homme prise 0.25 kg/sem',
+  calculateNutritionTargets({
+    sex: 'male', ageYears: 30, heightCm: 180, weightKg: 70,
+    targetWeightKg: 74, weeklyPaceKg: 0.25, activityLevel: 'active',
+  }).calories,
+  2880,
+);
+
+// Plancher de securite : femme sédentaire, perte 1 kg/sem -> TDEE 1554 - 1100 = 454 -> 1200
+check(
+  'plancher 1200 kcal (femme)',
+  calculateNutritionTargets({
+    sex: 'female', ageYears: 35, heightCm: 165, weightKg: 60,
+    targetWeightKg: 50, weeklyPaceKg: 1, activityLevel: 'sedentary',
+  }).calories,
+  1200,
+);
+
+// Plancher homme : TDEE 1780*1.2=2136 - 1100 = 1036 -> 1500
+check(
+  'plancher 1500 kcal (homme)',
+  calculateNutritionTargets({
+    sex: 'male', ageYears: 30, heightCm: 180, weightKg: 80,
+    targetWeightKg: 70, weeklyPaceKg: 1, activityLevel: 'sedentary',
+  }).calories,
+  1500,
+);
 
 if (failures > 0) {
   console.error(`\n${failures} echec(s)`);

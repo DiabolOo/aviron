@@ -60,6 +60,7 @@ export type UserProfile = {
   heightCm?: number;
   activityLevel?: ActivityLevel;
   goal?: NutritionGoal;
+  weeklyPaceKg?: number;
   goalLabel: string;
   calorieTarget: number;
   macrosTarget: Omit<Macros, 'calories'> & { calories: number };

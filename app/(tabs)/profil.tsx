@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/Label';
 import { Screen } from '@/components/ui/Screen';
 import { Segmented } from '@/components/ui/Segmented';
 import { Stepper } from '@/components/ui/Stepper';
+import { inferGoal } from '@/lib/nutritionCalculator';
 import { usePulseFitStore, useStreak } from '@/lib/store';
 import type { ThemePreference } from '@/lib/types';
 
@@ -43,6 +44,7 @@ export default function ProfileScreen() {
   const streak = useStreak();
   const [nameSheetVisible, setNameSheetVisible] = useState(false);
   const [goalSheetVisible, setGoalSheetVisible] = useState(false);
+  const nutritionGoal = profile.goal ?? inferGoal(profile.weightKg, profile.targetWeightKg);
 
   return (
     <Screen>
@@ -85,6 +87,20 @@ export default function ProfileScreen() {
             onChange={(targetWeightKg) => updateProfile({ targetWeightKg })}
           />
         </SettingRow>
+        {nutritionGoal !== 'maintenance' ? (
+          <SettingRow
+            label={nutritionGoal === 'weight_loss' ? 'Rythme de perte' : 'Rythme de prise'}>
+            <Stepper
+              value={profile.weeklyPaceKg ?? 0.5}
+              step={0.1}
+              min={0.1}
+              max={1}
+              decimals={1}
+              unit="kg/sem"
+              onChange={(weeklyPaceKg) => updateProfile({ weeklyPaceKg })}
+            />
+          </SettingRow>
+        ) : null}
         <SettingRow label="Calories / jour">
           <Stepper
             value={profile.calorieTarget}
