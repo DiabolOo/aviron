@@ -68,6 +68,8 @@
 - [x] Modifier / supprimer un repas
 - [x] Ajout manuel d'un repas (sans photo)
 - [x] Naviguer entre les jours (hier, avant-hier…)
+- [x] Mes recettes : catalogue de 10 recettes sportif / récupération, accès rapide (bouton + → journal, haptique)
+- [x] Créer une recette perso (CreateRecipeModal) ; persistée dans le store
 
 **👤 Profil**
 - [x] Objectifs poids actuel / cible + calories par jour
@@ -204,6 +206,7 @@
 | 2026-10-18 | Monétisation avancée : nouveau Jalon 6 (paywall RevenueCat + essai 7 jours) activé dès les jalons 4 + 5, en parallèle des jalons 7–9 |
 | 2026-10-18 | Nutrition : navigation entre les jours (DateSelector + week strip, ajout/édition de repas sur une date passée) |
 | 2026-10-18 | États vides & erreurs : composants EmptyState / ErrorState sur les 4 onglets, écrans détail et scan |
+| 2026-10-19 | Nutrition : « Mes recettes » (accès rapide, création de recette perso, ajout en un tap au journal) |
 
 ## ▶️ Prochaine étape conseillée
 Terminer le **Jalon 1** (modifier / supprimer un repas, ajout manuel, états vides), puis

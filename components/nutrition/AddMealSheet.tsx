@@ -6,6 +6,7 @@ import {
     Modal,
     Platform,
     Pressable,
+    Switch,
     Text,
     TextInput,
     View,
@@ -24,14 +25,14 @@ type AddMealSheetProps = {
   visible: boolean;
   date: string;
   onClose: () => void;
-  onAdd: (meal: Omit<Meal, 'id'>) => void;
+  onAdd: (meal: Omit<Meal, 'id'>, saveAsRecipe: boolean) => void;
 };
 
 type AddMealFormProps = {
   paddingBottom: number;
   date: string;
   onClose: () => void;
-  onAdd: (meal: Omit<Meal, 'id'>) => void;
+  onAdd: (meal: Omit<Meal, 'id'>, saveAsRecipe: boolean) => void;
 };
 
 type MacroKey = keyof Macros;
@@ -78,6 +79,7 @@ function AddMealForm({ paddingBottom, date, onClose, onAdd }: AddMealFormProps) 
     mealMomentForHour(new Date().getHours()),
   );
   const [name, setName] = useState('');
+  const [saveAsRecipe, setSaveAsRecipe] = useState(false);
   const [fields, setFields] = useState<Record<MacroKey, string>>({
     calories: '',
     protein: '',
@@ -100,7 +102,10 @@ function AddMealForm({ paddingBottom, date, onClose, onAdd }: AddMealFormProps) 
       fat: toGrams(fields.fat),
     };
     void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    onAdd({ name: name.trim(), loggedAt: loggedAtFor(moment, date), macros, confidence: 1 });
+    onAdd(
+      { name: name.trim(), loggedAt: loggedAtFor(moment, date), macros, confidence: 1 },
+      saveAsRecipe,
+    );
     onClose();
   };
 
@@ -147,6 +152,11 @@ function AddMealForm({ paddingBottom, date, onClose, onAdd }: AddMealFormProps) 
             <Text className="w-9 text-right text-xs text-muted">{field.unit}</Text>
           </View>
         ))}
+      </View>
+
+      <View className="flex-row items-center justify-between border-t border-fg/5 pt-3">
+        <Text className="flex-1 pr-4 text-base text-fg">Sauvegarder dans mes recettes personnelles</Text>
+        <Switch value={saveAsRecipe} onValueChange={setSaveAsRecipe} trackColor={{ true: colors.accent }} />
       </View>
 
       <View className="mt-6">

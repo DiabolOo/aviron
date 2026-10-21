@@ -66,6 +66,23 @@ export type UserProfile = {
 
 export type MealMoment = 'morning' | 'noon' | 'snack' | 'evening';
 
+export type RecipeMealType = 'breakfast' | 'lunch' | 'dinner' | 'snack';
+
+export type RecipeCategory = 'weight_loss' | 'muscle_gain' | 'quick' | 'recovery' | 'custom';
+
+export type Recipe = {
+  id: string;
+  title: string;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  prepTimeMinutes?: number;
+  category: RecipeCategory;
+  ingredients?: { name: string; quantity: string }[];
+  isFavorite?: boolean;
+};
+
 export type WeatherCondition = 'sunny' | 'cloudy' | 'partly' | 'rain';
 
 export type Weather = {

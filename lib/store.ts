@@ -2,27 +2,31 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
-import { addDaysISO, toISODate } from '@/lib/dates';
+import { addDaysISO, mealMomentForHour, toISODate } from '@/lib/dates';
 import { remainingCalories, sumMacros, uid } from '@/lib/format';
 import {
   MOCK_MEALS,
   MOCK_PROFILE,
+  MOCK_RECIPES,
   MOCK_WEATHER,
   buildStravaActivities,
   buildWeekSessions,
   mockAdaptWeek,
-  mockAnalyzePlate,
+  mockAnalyzePlate
 } from '@/lib/mock';
 import type {
   FatigueLevel,
   Meal,
+  MealMoment,
+  Recipe,
+  RecipeMealType,
   ScanStep,
   StravaActivity,
   ThemePreference,
   TimeBudget,
   UserProfile,
   Weather,
-  WorkoutSession,
+  WorkoutSession
 } from '@/lib/types';
 
 type PulseFitState = {
@@ -52,11 +56,15 @@ type PulseFitState = {
   completeSession: (id: string) => void;
   resetWeek: () => void;
   analyzePhoto: (uri: string) => Promise<void>;
-  savePendingMeal: () => void;
+  savePendingMeal: (saveAsRecipe?: boolean) => void;
   discardPendingMeal: () => void;
-  addMeal: (meal: Omit<Meal, 'id'>) => void;
+  addMeal: (meal: Omit<Meal, 'id'>, saveAsRecipe?: boolean) => void;
   deleteMeal: (mealId: string) => void;
   updateMeal: (mealId: string, updatedMeal: Partial<Meal>) => void;
+  savedRecipes: Recipe[];
+  addRecipe: (recipe: Recipe) => void;
+  deleteRecipe: (id: string) => void;
+  logRecipeToJournal: (recipeId: string, mealType: RecipeMealType) => void;
   adaptWeek: (fatigue: FatigueLevel, timeBudget: TimeBudget) => Promise<void>;
 };
 
@@ -69,11 +77,42 @@ type PersistedState = Pick<
   | 'watchConnected'
   | 'sessions'
   | 'meals'
+  | 'savedRecipes'
 >;
+
+export function currentMealType(date: Date = new Date()): RecipeMealType {
+  return MOMENT_TO_MEAL_TYPE[mealMomentForHour(date.getHours())];
+}
+
+function recipeFromMeal(meal: Omit<Meal, 'id'>): Recipe {
+  return {
+    id: uid('recipe'),
+    title: meal.name,
+    calories: meal.macros.calories,
+    protein: meal.macros.protein,
+    carbs: meal.macros.carbs,
+    fat: meal.macros.fat,
+    category: 'custom',
+  };
+}
 
 function todayKey(): string {
   return toISODate(new Date());
 }
+
+const RECIPE_MEAL_HOURS: Record<RecipeMealType, string> = {
+  breakfast: '08',
+  lunch: '12',
+  snack: '16',
+  dinner: '20',
+};
+
+const MOMENT_TO_MEAL_TYPE: Record<MealMoment, RecipeMealType> = {
+  morning: 'breakfast',
+  noon: 'lunch',
+  snack: 'snack',
+  evening: 'dinner',
+};
 
 export const usePulseFitStore = create<PulseFitState>()(
   persist(
@@ -131,7 +170,7 @@ export const usePulseFitStore = create<PulseFitState>()(
           set({ scanStep: 'error', pendingMeal: null });
         }
       },
-      savePendingMeal: () => {
+      savePendingMeal: (saveAsRecipe = false) => {
         const pending = get().pendingMeal;
         if (!pending) return;
         const time = pending.loggedAt.split('T')[1] ?? '12:00:00';
@@ -143,12 +182,14 @@ export const usePulseFitStore = create<PulseFitState>()(
           pendingMeal: null,
           scanStep: 'idle',
         });
+        if (saveAsRecipe) get().addRecipe(recipeFromMeal(pending));
       },
       discardPendingMeal: () => {
         set({ pendingMeal: null, scanStep: 'idle' });
       },
-      addMeal: (meal) => {
+      addMeal: (meal, saveAsRecipe = false) => {
         set({ meals: [{ ...meal, id: uid('meal') }, ...get().meals] });
+        if (saveAsRecipe) get().addRecipe(recipeFromMeal(meal));
       },
       deleteMeal: (mealId) => {
         set({ meals: get().meals.filter((meal) => meal.id !== mealId) });
@@ -158,6 +199,37 @@ export const usePulseFitStore = create<PulseFitState>()(
           meals: get().meals.map((meal) =>
             meal.id === mealId ? { ...meal, ...updatedMeal } : meal,
           ),
+        });
+      },
+      savedRecipes: MOCK_RECIPES,
+      addRecipe: (recipe) => set({ savedRecipes: [recipe, ...get().savedRecipes] }),
+      deleteRecipe: (id) =>
+        set({ savedRecipes: get().savedRecipes.filter((recipe) => recipe.id !== id) }),
+      logRecipeToJournal: (recipeId, mealType) => {
+        const recipe = get().savedRecipes.find((item) => item.id === recipeId);
+        if (!recipe) return;
+        const { selectedDate } = get();
+        const now = new Date();
+        const time =
+          selectedDate === todayKey() && mealType === currentMealType(now)
+            ? now.toTimeString().slice(0, 8)
+            : `${RECIPE_MEAL_HOURS[mealType]}:00:00`;
+        set({
+          meals: [
+            {
+              id: uid('meal'),
+              name: recipe.title,
+              loggedAt: `${selectedDate}T${time}`,
+              macros: {
+                calories: recipe.calories,
+                protein: recipe.protein,
+                carbs: recipe.carbs,
+                fat: recipe.fat,
+              },
+              confidence: 1,
+            },
+            ...get().meals,
+          ],
         });
       },
       adaptWeek: async (fatigue, timeBudget) => {
@@ -185,6 +257,7 @@ export const usePulseFitStore = create<PulseFitState>()(
         watchConnected: state.watchConnected,
         sessions: state.sessions,
         meals: state.meals,
+        savedRecipes: state.savedRecipes,
       }),
       merge: (persisted, current) => {
         const saved = (persisted ?? {}) as Partial<PersistedState>;

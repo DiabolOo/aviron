@@ -24,8 +24,8 @@ export default function ScanScreen() {
     router.back();
   };
 
-  const save = () => {
-    savePendingMeal();
+  const save = (saveAsRecipe: boolean) => {
+    savePendingMeal(saveAsRecipe);
     router.back();
   };
 
