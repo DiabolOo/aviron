@@ -1,11 +1,11 @@
 import { toISODate, weekDates } from '@/lib/dates';
 import type {
-  Meal,
-  Recipe,
-  StravaActivity,
-  UserProfile,
-  Weather,
-  WorkoutSession,
+    Meal,
+    Recipe,
+    StravaActivity,
+    UserProfile,
+    Weather,
+    WorkoutSession,
 } from '@/lib/types';
 
 export const MOCK_RECIPES: Recipe[] = [
@@ -169,6 +169,10 @@ export const MOCK_RECIPES: Recipe[] = [
 
 export const MOCK_PROFILE: UserProfile = {
   firstName: 'Alex',
+  sex: 'male',
+  ageYears: 28,
+  heightCm: 178,
+  activityLevel: 'active',
   goalLabel: 'Prépa semi-marathon · 1h45',
   calorieTarget: 2650,
   macrosTarget: {

@@ -84,11 +84,11 @@
 ### Jalon 2 — Onboarding & calculs nutritionnels (local) ⏳
 - [ ] Parcours d'onboarding (3–5 écrans) : prénom, sexe, âge, taille, poids, niveau d'activité
 - [ ] Choix de l'objectif : perte / maintien / prise de masse + objectif sportif
-- [ ] Calcul du métabolisme de base (Mifflin-St Jeor) et de la dépense journalière (TDEE)
-- [ ] Calcul automatique de l'objectif calorique et de la répartition des macros
-- [ ] Recalcul quand le poids ou l'objectif change dans Profil
+- [x] Calcul du métabolisme de base (Mifflin-St Jeor) et de la dépense journalière (TDEE)
+- [x] Calcul automatique de l'objectif calorique et de la répartition des macros
+- [x] Recalcul quand le poids ou l'objectif change dans Profil
 - [ ] Afficher l'onboarding seulement au premier lancement
-- [ ] Tests unitaires des fonctions de calcul (`lib/`)
+- [x] Tests unitaires des fonctions de calcul (`lib/`)
 
 ### Jalon 3 — Backend & comptes utilisateurs ⏳
 - [ ] Choisir le backend (recommandé : Supabase = Auth + Postgres + Storage + Edge Functions)
@@ -207,6 +207,7 @@
 | 2026-10-18 | Nutrition : navigation entre les jours (DateSelector + week strip, ajout/édition de repas sur une date passée) |
 | 2026-10-18 | États vides & erreurs : composants EmptyState / ErrorState sur les 4 onglets, écrans détail et scan |
 | 2026-10-19 | Nutrition : « Mes recettes » (accès rapide, création de recette perso, ajout en un tap au journal) |
+| 2026-10-22 | Jalon 2 : `nutritionCalculator.ts` (BMR Mifflin-St Jeor, TDEE, ajustement objectif, macros) + recalcul auto du profil (`recalculateNutritionGoals`) |
 
 ## ▶️ Prochaine étape conseillée
 Terminer le **Jalon 1** (modifier / supprimer un repas, ajout manuel, états vides), puis

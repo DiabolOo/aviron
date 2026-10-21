@@ -48,6 +48,8 @@ export type Sex = 'male' | 'female' | 'other';
 
 export type ActivityLevel = 'sedentary' | 'light' | 'active' | 'athlete';
 
+export type NutritionGoal = 'weight_loss' | 'maintenance' | 'muscle_gain';
+
 export type MainSport = 'running' | 'strength' | 'cycling' | 'triathlon' | 'fitness';
 
 export type UserProfile = {
@@ -57,6 +59,7 @@ export type UserProfile = {
   ageYears?: number;
   heightCm?: number;
   activityLevel?: ActivityLevel;
+  goal?: NutritionGoal;
   goalLabel: string;
   calorieTarget: number;
   macrosTarget: Omit<Macros, 'calories'> & { calories: number };

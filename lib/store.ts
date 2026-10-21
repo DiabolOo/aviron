@@ -14,6 +14,7 @@ import {
   mockAdaptWeek,
   mockAnalyzePlate
 } from '@/lib/mock';
+import { calculateNutritionTargets } from '@/lib/nutritionCalculator';
 import type {
   FatigueLevel,
   Meal,
@@ -37,6 +38,7 @@ type PulseFitState = {
   completeOnboarding: (profileData: Partial<UserProfile>) => void;
   updateProfile: (patch: Partial<UserProfile>) => void;
   setCalorieTarget: (calories: number) => void;
+  recalculateNutritionGoals: () => void;
   stravaConnected: boolean;
   watchConnected: boolean;
   toggleStrava: () => void;
@@ -114,6 +116,16 @@ const MOMENT_TO_MEAL_TYPE: Record<MealMoment, RecipeMealType> = {
   evening: 'dinner',
 };
 
+const NUTRITION_RECALC_KEYS: readonly (keyof UserProfile)[] = [
+  'sex',
+  'ageYears',
+  'heightCm',
+  'weightKg',
+  'targetWeightKg',
+  'activityLevel',
+  'goal',
+];
+
 export const usePulseFitStore = create<PulseFitState>()(
   persist(
     (set, get) => ({
@@ -121,9 +133,16 @@ export const usePulseFitStore = create<PulseFitState>()(
       setThemePreference: (value) => set({ themePreference: value }),
       profile: MOCK_PROFILE,
       hasCompletedOnboarding: false,
-      completeOnboarding: (profileData) =>
-        set({ profile: { ...get().profile, ...profileData }, hasCompletedOnboarding: true }),
-      updateProfile: (patch) => set({ profile: { ...get().profile, ...patch } }),
+      completeOnboarding: (profileData) => {
+        set({ profile: { ...get().profile, ...profileData }, hasCompletedOnboarding: true });
+        get().recalculateNutritionGoals();
+      },
+      updateProfile: (patch) => {
+        set({ profile: { ...get().profile, ...patch } });
+        if (NUTRITION_RECALC_KEYS.some((key) => key in patch)) {
+          get().recalculateNutritionGoals();
+        }
+      },
       setCalorieTarget: (calories) => {
         const profile = get().profile;
         set({
@@ -131,6 +150,23 @@ export const usePulseFitStore = create<PulseFitState>()(
             ...profile,
             calorieTarget: calories,
             macrosTarget: { ...profile.macrosTarget, calories },
+          },
+        });
+      },
+      recalculateNutritionGoals: () => {
+        const profile = get().profile;
+        const targets = calculateNutritionTargets(profile);
+        if (!targets) return;
+        set({
+          profile: {
+            ...profile,
+            calorieTarget: targets.calories,
+            macrosTarget: {
+              calories: targets.calories,
+              protein: targets.protein,
+              carbs: targets.carbs,
+              fat: targets.fat,
+            },
           },
         });
       },
@@ -247,7 +283,7 @@ export const usePulseFitStore = create<PulseFitState>()(
       },
     }),
     {
-      name: 'pulsefit-mvp2',
+      name: 'pulsefit-mvp3',
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (state): PersistedState => ({
         themePreference: state.themePreference,
