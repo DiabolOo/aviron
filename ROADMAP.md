@@ -19,7 +19,7 @@
 |---|---|---|
 | 0 | Fondations techniques | ✅ |
 | 1 | UI du MVP en données mockées (4 onglets) | 🚧 |
-| 2 | Onboarding & calculs nutritionnels (local) | ⏳ |
+| 2 | Onboarding & calculs nutritionnels (local) | ✅ |
 | 3 | Backend & comptes utilisateurs | ⏳ |
 | 4 | Scan d'assiette IA réel | ⏳ |
 | 5 | Intégration Strava | ⏳ |
@@ -81,13 +81,16 @@
 - [x] États vides et états d'erreur sur chaque écran
 - [ ] Test complet sur iPhone et Android (Expo Go)
 
-### Jalon 2 — Onboarding & calculs nutritionnels (local) ⏳
-- [ ] Parcours d'onboarding (3–5 écrans) : prénom, sexe, âge, taille, poids, niveau d'activité
-- [ ] Choix de l'objectif : perte / maintien / prise de masse + objectif sportif
+### Jalon 2 — Onboarding & calculs nutritionnels (local) ✅
+- [x] Parcours d'onboarding (3–5 écrans) : prénom, sexe, âge, taille, poids, niveau d'activité
+- [x] Choix de l'objectif : perte / maintien / prise de masse + objectif sportif
 - [x] Calcul du métabolisme de base (Mifflin-St Jeor) et de la dépense journalière (TDEE)
 - [x] Calcul automatique de l'objectif calorique et de la répartition des macros
 - [x] Recalcul quand le poids ou l'objectif change dans Profil
-- [ ] Afficher l'onboarding seulement au premier lancement
+- [x] Déficit / surplus basé sur le rythme visé (kg/semaine → kcal/jour via 7700 kcal/kg)
+- [x] Plancher de sécurité calorique (1200 kcal F / 1500 kcal H)
+- [x] Réglage du rythme dans Profil (stepper « Rythme de perte / prise »)
+- [x] Afficher l'onboarding seulement au premier lancement
 - [x] Tests unitaires des fonctions de calcul (`lib/`)
 
 ### Jalon 3 — Backend & comptes utilisateurs ⏳
@@ -208,7 +211,10 @@
 | 2026-10-18 | États vides & erreurs : composants EmptyState / ErrorState sur les 4 onglets, écrans détail et scan |
 | 2026-10-19 | Nutrition : « Mes recettes » (accès rapide, création de recette perso, ajout en un tap au journal) |
 | 2026-10-22 | Jalon 2 : `nutritionCalculator.ts` (BMR Mifflin-St Jeor, TDEE, ajustement objectif, macros) + recalcul auto du profil (`recalculateNutritionGoals`) |
+| 2026-10-22 | Jalon 2 : déficit/surplus déduit du rythme visé (kg/sem) + plancher de sécurité 1200/1500 kcal ; réglage du rythme dans Profil |
+| 2026-10-22 | Jalon 2 : étape « Objectif » dans l'onboarding (perte / maintien / prise + poids cible + rythme) ; onboarding déjà gaté au 1er lancement |
 
 ## ▶️ Prochaine étape conseillée
-Terminer le **Jalon 1** (modifier / supprimer un repas, ajout manuel, états vides), puis
-attaquer le **Jalon 2** : l'onboarding rend l'app utilisable par quelqu'un d'autre que toi.
+Clôturer le **Jalon 1** avec le test complet sur iPhone et Android (Expo Go), puis
+attaquer le **Jalon 3** : le choix du backend (Supabase recommandé) débloque comptes,
+sync des données et les jalons 4–5 (scan IA réel, Strava).

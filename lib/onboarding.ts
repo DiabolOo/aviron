@@ -5,7 +5,13 @@ import {
     calculateTDEE,
     roundToNearest10,
 } from '@/lib/nutritionCalculator';
-import type { ActivityLevel, MainSport, Sex, UserProfile } from '@/lib/types';
+import type {
+    ActivityLevel,
+    MainSport,
+    NutritionGoal,
+    Sex,
+    UserProfile,
+} from '@/lib/types';
 
 export const SPORT_OPTIONS: readonly { id: MainSport; label: string; emoji: string }[] = [
   { id: 'running', label: 'Running', emoji: '🏃' },
@@ -53,6 +59,28 @@ export const SEX_OPTIONS: readonly { id: Sex; label: string }[] = [
   { id: 'other', label: 'Autre' },
 ];
 
+export const GOAL_OPTIONS: readonly {
+  id: NutritionGoal;
+  label: string;
+  description: string;
+}[] = [
+  {
+    id: 'weight_loss',
+    label: 'Perte de poids',
+    description: 'Déficit calorique adapté à ton rythme',
+  },
+  {
+    id: 'maintenance',
+    label: 'Maintien',
+    description: 'Équilibre entre apports et dépenses',
+  },
+  {
+    id: 'muscle_gain',
+    label: 'Prise de masse',
+    description: 'Surplus calorique contrôlé',
+  },
+];
+
 type BodyData = {
   sex: Sex;
   ageYears: number;
@@ -61,7 +89,12 @@ type BodyData = {
   activityLevel: ActivityLevel;
 };
 
-type OnboardingData = BodyData & { mainSport: MainSport };
+type OnboardingData = BodyData & {
+  mainSport: MainSport;
+  goal: NutritionGoal;
+  targetWeightKg: number;
+  weeklyPaceKg?: number;
+};
 
 export function computeCalorieTarget(data: BodyData): number {
   return roundToNearest10(
@@ -73,15 +106,14 @@ export function buildProfileFromOnboarding(
   firstName: string,
   data: OnboardingData,
 ): Partial<UserProfile> {
-  const targets = calculateNutritionTargets({
-    ...data,
-    targetWeightKg: data.weightKg,
-  });
+  const targets = calculateNutritionTargets(data);
   const calories = targets?.calories ?? computeCalorieTarget(data);
+  const sportLabel = SPORT_OPTIONS.find((sport) => sport.id === data.mainSport)?.label;
   return {
     firstName,
     ...data,
-    targetWeightKg: data.weightKg,
+    weeklyPaceKg: data.goal === 'maintenance' ? undefined : data.weeklyPaceKg,
+    goalLabel: sportLabel ?? 'Remise en forme',
     calorieTarget: calories,
     macrosTarget: {
       calories,

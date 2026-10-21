@@ -13,15 +13,16 @@ import { Screen } from '@/components/ui/Screen';
 import { Stepper } from '@/components/ui/Stepper';
 import {
     ACTIVITY_LEVELS,
+    GOAL_OPTIONS,
     SEX_OPTIONS,
     SPORT_OPTIONS,
-    buildProfileFromOnboarding,
+    buildProfileFromOnboarding
 } from '@/lib/onboarding';
 import { usePulseFitStore } from '@/lib/store';
-import type { ActivityLevel, MainSport, Sex } from '@/lib/types';
+import type { ActivityLevel, MainSport, NutritionGoal, Sex } from '@/lib/types';
 import { useTheme } from '@/lib/useTheme';
 
-const TOTAL_STEPS = 5;
+const TOTAL_STEPS = 6;
 const CALCULATING_STEP = TOTAL_STEPS - 1;
 
 export default function OnboardingScreen() {
@@ -36,19 +37,24 @@ export default function OnboardingScreen() {
   const [weightKg, setWeightKg] = useState(70);
   const [activityLevel, setActivityLevel] = useState<ActivityLevel | null>(null);
   const [mainSport, setMainSport] = useState<MainSport | null>(null);
+  const [goal, setGoal] = useState<NutritionGoal | null>(null);
+  const [targetWeightKg, setTargetWeightKg] = useState<number | null>(null);
+  const [weeklyPaceKg, setWeeklyPaceKg] = useState(0.5);
 
   const name = firstName.trim();
   const canContinue =
     step === 0
       ? name.length > 0 && sex !== null
       : step === 2
-        ? activityLevel !== null
+        ? goal !== null
         : step === 3
-          ? mainSport !== null
-          : true;
+          ? activityLevel !== null
+          : step === 4
+            ? mainSport !== null
+            : true;
 
   const finish = useCallback(() => {
-    if (!sex || !activityLevel || !mainSport) return;
+    if (!sex || !activityLevel || !mainSport || !goal) return;
     completeOnboarding(
       buildProfileFromOnboarding(name, {
         sex,
@@ -57,10 +63,25 @@ export default function OnboardingScreen() {
         weightKg,
         activityLevel,
         mainSport,
+        goal,
+        targetWeightKg: targetWeightKg ?? weightKg,
+        weeklyPaceKg,
       }),
     );
     router.replace('/(tabs)');
-  }, [sex, activityLevel, mainSport, name, ageYears, heightCm, weightKg, completeOnboarding]);
+  }, [
+    sex,
+    activityLevel,
+    mainSport,
+    goal,
+    targetWeightKg,
+    weeklyPaceKg,
+    name,
+    ageYears,
+    heightCm,
+    weightKg,
+    completeOnboarding,
+  ]);
 
   const select = <T,>(setter: (value: T) => void, value: T) => {
     void Haptics.selectionAsync();
@@ -157,6 +178,58 @@ export default function OnboardingScreen() {
         {step === 2 && (
           <View className="gap-8">
             <Text className="text-3xl font-semibold tracking-tight text-fg">
+              Quel est votre objectif ?
+            </Text>
+            <View className="gap-3">
+              {GOAL_OPTIONS.map((option) => {
+                const selected = goal === option.id;
+                return (
+                  <Pressable
+                    key={option.id}
+                    onPress={() => select(setGoal, option.id)}
+                    className={`rounded-3xl border-2 p-5 ${
+                      selected ? 'border-accent bg-accent/10' : 'border-fg/5 bg-surface'
+                    }`}>
+                    <Text className="text-lg font-semibold text-fg">{option.label}</Text>
+                    <Text className="mt-1 text-sm text-muted">{option.description}</Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+            {goal === 'weight_loss' || goal === 'muscle_gain' ? (
+              <Card>
+                <View className="flex-row items-center justify-between py-3">
+                  <Label>Poids cible</Label>
+                  <Stepper
+                    value={targetWeightKg ?? weightKg}
+                    step={0.5}
+                    min={35}
+                    max={200}
+                    unit="kg"
+                    decimals={1}
+                    onChange={setTargetWeightKg}
+                  />
+                </View>
+                <View className="flex-row items-center justify-between border-t border-fg/5 py-3">
+                  <Label>Rythme</Label>
+                  <Stepper
+                    value={weeklyPaceKg}
+                    step={0.1}
+                    min={0.1}
+                    max={1}
+                    unit="kg/sem"
+                    decimals={1}
+                    onChange={setWeeklyPaceKg}
+                  />
+                </View>
+              </Card>
+            ) : null}
+          </View>
+        )}
+
+        {step === 3 && (
+          <View className="gap-8">
+            <Text className="text-3xl font-semibold tracking-tight text-fg">
               Quel est votre niveau d’activité ?
             </Text>
             <View className="gap-3">
@@ -178,7 +251,7 @@ export default function OnboardingScreen() {
           </View>
         )}
 
-        {step === 3 && (
+        {step === 4 && (
           <View className="gap-8">
             <Text className="text-3xl font-semibold tracking-tight text-fg">
               Quelle est votre pratique principale ?
