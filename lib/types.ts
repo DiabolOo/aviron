@@ -62,6 +62,7 @@ export type UserProfile = {
   goal?: NutritionGoal;
   weeklyPaceKg?: number;
   goalLabel: string;
+  athleticGoal?: AthleticGoal;
   calorieTarget: number;
   macrosTarget: Omit<Macros, 'calories'> & { calories: number };
   weightKg: number;
@@ -130,3 +131,30 @@ export type FatigueLevel = 'fresh' | 'ok' | 'tired';
 export type TimeBudget = '30' | '45' | '60' | '90';
 
 export type ThemePreference = 'system' | 'light' | 'dark';
+
+export type AthleticGoalType = 'race_prep' | 'muscle_strength' | 'endurance' | 'fitness';
+
+export type AthleticGoal = {
+  type: AthleticGoalType;
+  targetName: string;
+  targetValue?: string;
+  targetDate?: string;
+  weeklySessionsCount: number;
+};
+
+export type ProgramMilestone = {
+  id: string;
+  title: string;
+  date: string;
+  weekIndex: number;
+};
+
+export type WorkoutProgram = {
+  id: string;
+  createdAt: string;
+  goal: AthleticGoal;
+  startDate: string;
+  endDate: string;
+  totalWeeks: number;
+  milestones: ProgramMilestone[];
+};

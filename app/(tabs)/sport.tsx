@@ -1,18 +1,17 @@
-import { CalendarOff, Sparkles } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import { Text } from 'react-native';
 
 import { ActivityHistory } from '@/components/sport/ActivityHistory';
+import { ProgramTimeline } from '@/components/sport/ProgramTimeline';
+import { ProgramWizard } from '@/components/sport/ProgramWizard';
 import { SessionDetail } from '@/components/sport/SessionDetail';
 import { WeekStrip } from '@/components/sport/WeekStrip';
-import { EmptyState } from '@/components/ui/EmptyState';
 import { Screen } from '@/components/ui/Screen';
 import { TabHeader } from '@/components/ui/TabHeader';
 import { TAB_ICONS } from '@/components/ui/tabIcons';
 import { toISODate, weekDates } from '@/lib/dates';
 import { usePulseFitStore } from '@/lib/store';
 import type { WorkoutSession } from '@/lib/types';
-import { useTheme } from '@/lib/useTheme';
 
 export default function SportScreen() {
   const sessions = usePulseFitStore((s) => s.sessions);
@@ -20,8 +19,8 @@ export default function SportScreen() {
   const activities = usePulseFitStore((s) => s.activities);
   const stravaConnected = usePulseFitStore((s) => s.stravaConnected);
   const completeSession = usePulseFitStore((s) => s.completeSession);
-  const resetWeek = usePulseFitStore((s) => s.resetWeek);
-  const { colors } = useTheme();
+  const program = usePulseFitStore((s) => s.activeWorkoutProgram);
+  const resetWorkoutProgram = usePulseFitStore((s) => s.resetWorkoutProgram);
   const [selectedDate, setSelectedDate] = useState(toISODate(new Date()));
 
   const week = useMemo(() => {
@@ -39,41 +38,37 @@ export default function SportScreen() {
       <TabHeader
         icon={TAB_ICONS.sport}
         tint="aqua"
-        eyebrow="Programme en cours"
+        eyebrow={program ? 'Programme en cours' : 'Nouveau programme'}
         title="Sport"
         subtitle={goalLabel}
         right={
-          week.length > 0 ? (
+          program && week.length > 0 ? (
             <Text className="text-base text-muted">
               <Text className="font-semibold text-aqua">{done}</Text> / {week.length}
             </Text>
           ) : null
         }
       />
-      {week.length === 0 ? (
-        <EmptyState
-          className="mt-8"
-          icon={CalendarOff}
-          title="Aucun programme actif"
-          description="Choisis un plan d'entraînement pour lancer ta semaine."
-          action={{
-            label: 'Générer un plan',
-            onPress: resetWeek,
-            variant: 'primary',
-            icon: <Sparkles color={colors.accentFg} size={16} strokeWidth={2} />,
-          }}
-        />
+      {!program ? (
+        <ProgramWizard />
       ) : (
         <>
-          <WeekStrip
-            sessions={week}
-            selectedDate={selected?.date ?? selectedDate}
-            onSelect={setSelectedDate}
+          <ProgramTimeline
+            program={program}
+            onEdit={() => resetWorkoutProgram(true)}
+            onReset={() => resetWorkoutProgram()}
           />
+          {week.length > 0 ? (
+            <WeekStrip
+              sessions={week}
+              selectedDate={selected?.date ?? selectedDate}
+              onSelect={setSelectedDate}
+            />
+          ) : null}
           {selected ? <SessionDetail session={selected} onComplete={completeSession} /> : null}
+          <ActivityHistory activities={activities} connected={stravaConnected} />
         </>
       )}
-      <ActivityHistory activities={activities} connected={stravaConnected} />
     </Screen>
   );
 }

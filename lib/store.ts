@@ -15,7 +15,9 @@ import {
   mockAnalyzePlate
 } from '@/lib/mock';
 import { calculateNutritionTargets } from '@/lib/nutritionCalculator';
+import { buildProgram, buildProgramSessions } from '@/lib/program';
 import type {
+  AthleticGoal,
   FatigueLevel,
   Meal,
   MealMoment,
@@ -27,6 +29,7 @@ import type {
   TimeBudget,
   UserProfile,
   Weather,
+  WorkoutProgram,
   WorkoutSession
 } from '@/lib/types';
 
@@ -68,6 +71,10 @@ type PulseFitState = {
   deleteRecipe: (id: string) => void;
   logRecipeToJournal: (recipeId: string, mealType: RecipeMealType) => void;
   adaptWeek: (fatigue: FatigueLevel, timeBudget: TimeBudget) => Promise<void>;
+  activeWorkoutProgram?: WorkoutProgram;
+  setAthleticGoal: (goal: AthleticGoal) => void;
+  generateWorkoutProgram: () => void;
+  resetWorkoutProgram: (keepGoal?: boolean) => void;
 };
 
 type PersistedState = Pick<
@@ -80,6 +87,7 @@ type PersistedState = Pick<
   | 'sessions'
   | 'meals'
   | 'savedRecipes'
+  | 'activeWorkoutProgram'
 >;
 
 export function currentMealType(date: Date = new Date()): RecipeMealType {
@@ -269,6 +277,26 @@ export const usePulseFitStore = create<PulseFitState>()(
           ],
         });
       },
+      activeWorkoutProgram: undefined,
+      setAthleticGoal: (goal) => {
+        set({ profile: { ...get().profile, athleticGoal: goal } });
+      },
+      generateWorkoutProgram: () => {
+        const goal = get().profile.athleticGoal;
+        if (!goal) return;
+        set({
+          activeWorkoutProgram: buildProgram(goal),
+          sessions: buildProgramSessions(goal),
+          profile: { ...get().profile, goalLabel: goal.targetName },
+        });
+      },
+      resetWorkoutProgram: (keepGoal = false) => {
+        const { athleticGoal, ...rest } = get().profile;
+        set({
+          activeWorkoutProgram: undefined,
+          profile: keepGoal && athleticGoal ? { ...rest, athleticGoal } : rest,
+        });
+      },
       adaptWeek: async (fatigue, timeBudget) => {
         set({ isAdapting: true });
         try {
@@ -295,6 +323,7 @@ export const usePulseFitStore = create<PulseFitState>()(
         sessions: state.sessions,
         meals: state.meals,
         savedRecipes: state.savedRecipes,
+        activeWorkoutProgram: state.activeWorkoutProgram,
       }),
       merge: (persisted, current) => {
         const saved = (persisted ?? {}) as Partial<PersistedState>;
