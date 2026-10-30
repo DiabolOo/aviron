@@ -45,13 +45,20 @@ export default function RootLayout() {
   }, [scheme, colors]);
 
   const hasCompletedOnboarding = usePulseFitStore((s) => s.hasCompletedOnboarding);
+  const dataReady = usePulseFitStore((s) => s.dataReady);
   const [hydrated, setHydrated] = useState(usePulseFitStore.persist.hasHydrated());
 
   useEffect(() => {
     return usePulseFitStore.persist.onFinishHydration(() => setHydrated(true));
   }, []);
 
-  if (!fontsLoaded || !hydrated) return null;
+  useEffect(() => {
+    if (hydrated && !dataReady) {
+      void usePulseFitStore.getState().hydrate();
+    }
+  }, [hydrated, dataReady]);
+
+  if (!fontsLoaded || !hydrated || !dataReady) return null;
 
   return (
     <ThemeProvider value={navigationTheme}>

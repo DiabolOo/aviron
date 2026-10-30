@@ -25,7 +25,15 @@ export class LocalMealRepository implements IMealRepository {
     return all.filter((m) => m.loggedAt.startsWith(date));
   }
 
+  async listAll(): Promise<Meal[]> {
+    return this.loadAll();
+  }
+
   async add(meal: Meal): Promise<void> {
+    await this.upsert(meal);
+  }
+
+  async upsert(meal: Meal): Promise<void> {
     const all = await this.loadAll();
     const idx = all.findIndex((m) => m.id === meal.id);
     if (idx >= 0) {

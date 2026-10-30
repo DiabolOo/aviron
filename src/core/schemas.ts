@@ -11,6 +11,14 @@ export const MacrosSchema = z.object({
 
 // ─── Profile ─────────────────────────────────────────────────────────────────
 
+export const AthleticGoalSchema = z.object({
+  type: z.enum(['race_prep', 'muscle_strength', 'endurance', 'fitness']),
+  targetName: z.string(),
+  targetValue: z.string().optional(),
+  targetDate: z.string().optional(),
+  weeklySessionsCount: z.number().int().min(1).max(14),
+});
+
 export const ProfileSchema = z.object({
   firstName: z.string().min(1),
   sex: z.enum(['male', 'female', 'other']).optional(),
@@ -23,6 +31,7 @@ export const ProfileSchema = z.object({
   mainSport: z.enum(['running', 'strength', 'cycling', 'triathlon', 'fitness']).optional(),
   goal: z.enum(['weight_loss', 'maintenance', 'muscle_gain']).optional(),
   goalLabel: z.string(),
+  athleticGoal: AthleticGoalSchema.optional(),
   calorieTarget: z.number().positive(),
   macrosTarget: MacrosSchema,
 });
@@ -67,6 +76,15 @@ export const ActivitySchema = z.object({
   avgHr: z.number().nonnegative().optional(),
   maxHr: z.number().nonnegative().optional(),
   source: z.enum(['apple_health', 'garmin', 'coros', 'fit_import', 'manual', 'strava']).optional(),
+  splits: z.array(z.object({
+    km: z.number().nonnegative(),
+    pace: z.string(),
+    paceSec: z.number().nonnegative(),
+    elevationGain: z.number(),
+    avgHr: z.number().nonnegative(),
+  })).optional(),
+  hrStream: z.array(z.number()).optional(),
+  polyline: z.array(z.object({ x: z.number(), y: z.number() })).optional(),
 });
 
 export type Activity = z.infer<typeof ActivitySchema>;
@@ -83,6 +101,19 @@ export const PlannedWorkoutSchema = z.object({
   targetCaloriesBurn: z.number().nonnegative(),
   completed: z.boolean(),
   linkedActivityId: z.string().optional(),
+  blocks: z.array(z.object({
+    id: z.string(),
+    title: z.string(),
+    detail: z.string(),
+    durationMin: z.number().nonnegative().optional(),
+  })).optional(),
+  exercises: z.array(z.object({
+    id: z.string(),
+    name: z.string(),
+    sets: z.number().int().nonnegative(),
+    reps: z.string(),
+    restSec: z.number().nonnegative(),
+  })).optional(),
 });
 
 export type PlannedWorkout = z.infer<typeof PlannedWorkoutSchema>;
@@ -206,3 +237,30 @@ export const DailyBriefSchema = z.object({
 });
 
 export type DailyBrief = z.infer<typeof DailyBriefSchema>;
+
+// ─── Recipe ───────────────────────────────────────────────────────────────────
+
+export const RecipeSchema = z.object({
+  id: z.string(),
+  title: z.string().min(1),
+  calories: z.number().nonnegative(),
+  protein: z.number().nonnegative(),
+  carbs: z.number().nonnegative(),
+  fat: z.number().nonnegative(),
+  prepTimeMinutes: z.number().nonnegative().optional(),
+  category: z.enum(['weight_loss', 'muscle_gain', 'quick', 'recovery', 'custom']),
+  ingredients: z.array(z.object({ name: z.string(), quantity: z.string() })).optional(),
+  isFavorite: z.boolean().optional(),
+});
+
+export type Recipe = z.infer<typeof RecipeSchema>;
+
+// ─── Weather ─────────────────────────────────────────────────────────────────
+
+export const WeatherSchema = z.object({
+  city: z.string(),
+  tempC: z.number(),
+  condition: z.enum(['sunny', 'cloudy', 'partly', 'rain']),
+});
+
+export type Weather = z.infer<typeof WeatherSchema>;

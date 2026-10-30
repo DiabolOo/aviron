@@ -7,7 +7,7 @@ import type { Weather, WorkoutSession } from '@/src/core/types';
 type HomeHeaderProps = {
   firstName: string;
   streak: number;
-  weather: Weather;
+  weather: Weather | null;
   session?: WorkoutSession;
 };
 

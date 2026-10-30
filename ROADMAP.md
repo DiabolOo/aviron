@@ -362,6 +362,7 @@ Les modules s'ajoutent dans *Aujourd'hui* (cartes), *Plan* (événements), *Suiv
 | 2026-10-30 | T2 — `lib/` → `src/core/`, `src/ui/`, `src/data/mock/` ; upgrade Expo SDK 57→58 |
 | 2026-10-30 | T3 — Schémas Zod (10 entités) + 19 tests unitaires |
 | 2026-10-30 | T4 — Repositories (4 interfaces) + adaptateurs mock + local |
+| 2026-10-30 | T5 — store branché sur les repositories (local seedé + migration de la sauvegarde mvp3) |
 
 ## ▶️ Prochaine étape
 Lancer le **Jalon 3** (socle modulaire & contrats de données), en commençant par l'ADR-001 et la source unique du bilan du jour.

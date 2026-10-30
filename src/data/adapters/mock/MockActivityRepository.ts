@@ -1,8 +1,10 @@
 import type { Activity } from '@/src/core/schemas';
+import { stravaToActivity } from '@/src/data/mappers';
+import { buildStravaActivities } from '@/src/data/mock';
 import type { IActivityRepository } from '@/src/data/repositories/IActivityRepository';
 
 export class MockActivityRepository implements IActivityRepository {
-  private activities: Activity[] = [];
+  private activities: Activity[] = buildStravaActivities().map(stravaToActivity);
 
   async listRecent(n: number): Promise<Activity[]> {
     return [...this.activities]

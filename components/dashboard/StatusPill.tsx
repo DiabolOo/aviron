@@ -6,7 +6,7 @@ import { useTheme } from '@/src/ui/useTheme';
 
 type StatusPillProps = {
   streak: number;
-  weather: Weather;
+  weather: Weather | null;
   session?: WorkoutSession;
 };
 
@@ -25,7 +25,7 @@ function shortStatus(session?: WorkoutSession): string {
 
 export function StatusPill({ streak, weather, session }: StatusPillProps) {
   const { colors } = useTheme();
-  const WeatherIcon = WEATHER_ICONS[weather.condition];
+  const WeatherIcon = weather ? WEATHER_ICONS[weather.condition] : null;
 
   return (
     <View className="flex-row items-center justify-center gap-2 rounded-full border border-fg/10 bg-surface/70 px-4 py-2 shadow-sm">
@@ -34,14 +34,16 @@ export function StatusPill({ streak, weather, session }: StatusPillProps) {
         className="text-xs font-semibold text-fg">
         🔥 {streak} {streak > 1 ? 'jours' : 'jour'}
       </Text>
-      <View
-        accessibilityLabel={`Météo ${weather.city}, ${weather.tempC} degrés`}
-        className="flex-row items-center gap-1">
-        <WeatherIcon color={colors.aqua} size={13} strokeWidth={1.9} />
-        <Text className="text-xs text-fg">
-          {weather.tempC}°<Text className="text-muted"> · {weather.city}</Text>
-        </Text>
-      </View>
+      {weather && WeatherIcon ? (
+        <View
+          accessibilityLabel={`Météo ${weather.city}, ${weather.tempC} degrés`}
+          className="flex-row items-center gap-1">
+          <WeatherIcon color={colors.aqua} size={13} strokeWidth={1.9} />
+          <Text className="text-xs text-fg">
+            {weather.tempC}°<Text className="text-muted"> · {weather.city}</Text>
+          </Text>
+        </View>
+      ) : null}
       <View className="mx-1 h-3 w-[1px] bg-fg/15" />
       <Text className="text-xs font-semibold text-fg/80">{shortStatus(session)}</Text>
     </View>

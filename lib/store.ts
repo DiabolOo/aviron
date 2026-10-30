@@ -2,18 +2,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
+import { agent } from '@/src/agent';
 import { addDaysISO, mealMomentForHour, toISODate } from '@/src/core/dates';
+import { DEFAULT_PROFILE } from '@/src/core/defaults';
 import { remainingCalories, sumMacros, uid } from '@/src/core/format';
-import {
-  MOCK_MEALS,
-  MOCK_PROFILE,
-  MOCK_RECIPES,
-  MOCK_WEATHER,
-  buildStravaActivities,
-  buildWeekSessions,
-  mockAdaptWeek,
-  mockAnalyzePlate
-} from '@/src/data/mock';
 import { calculateNutritionTargets } from '@/src/core/nutritionCalculator';
 import { buildProgram, buildProgramSessions } from '@/src/core/program';
 import type {
@@ -32,8 +24,15 @@ import type {
   WorkoutProgram,
   WorkoutSession
 } from '@/src/core/types';
+import { repositories } from '@/src/data/instance';
+import { activityToStrava, plannedToSession, sessionToPlanned } from '@/src/data/mappers';
+import { seedLocalIfNeeded, type LegacySnapshot } from '@/src/data/seed';
+
+let legacySnapshot: LegacySnapshot | null = null;
 
 type PulseFitState = {
+  dataReady: boolean;
+  hydrate: () => Promise<void>;
   themePreference: ThemePreference;
   setThemePreference: (value: ThemePreference) => void;
   profile: UserProfile;
@@ -47,7 +46,7 @@ type PulseFitState = {
   toggleStrava: () => void;
   toggleWatch: () => void;
   activities: StravaActivity[];
-  weather: Weather;
+  weather: Weather | null;
   sessions: WorkoutSession[];
   meals: Meal[];
   selectedDate: string;
@@ -80,15 +79,18 @@ type PulseFitState = {
 type PersistedState = Pick<
   PulseFitState,
   | 'themePreference'
-  | 'profile'
   | 'hasCompletedOnboarding'
   | 'stravaConnected'
   | 'watchConnected'
-  | 'sessions'
-  | 'meals'
-  | 'savedRecipes'
   | 'activeWorkoutProgram'
 >;
+
+type LegacyPersistedState = Partial<PersistedState> & {
+  profile?: UserProfile;
+  meals?: Meal[];
+  sessions?: WorkoutSession[];
+  savedRecipes?: Recipe[];
+};
 
 export function currentMealType(date: Date = new Date()): RecipeMealType {
   return MOMENT_TO_MEAL_TYPE[mealMomentForHour(date.getHours())];
@@ -137,37 +139,73 @@ const NUTRITION_RECALC_KEYS: readonly (keyof UserProfile)[] = [
 
 export const usePulseFitStore = create<PulseFitState>()(
   persist(
-    (set, get) => ({
-      themePreference: 'light',
-      setThemePreference: (value) => set({ themePreference: value }),
-      profile: MOCK_PROFILE,
-      hasCompletedOnboarding: false,
-      completeOnboarding: (profileData) => {
-        set({ profile: { ...get().profile, ...profileData }, hasCompletedOnboarding: true });
-        get().recalculateNutritionGoals();
-      },
-      updateProfile: (patch) => {
-        set({ profile: { ...get().profile, ...patch } });
-        if (NUTRITION_RECALC_KEYS.some((key) => key in patch)) {
+    (set, get) => {
+      const setProfile = (next: UserProfile) => {
+        set({ profile: next });
+        void repositories.profile.save(next);
+      };
+
+      const persistMeals = (meals: Meal[]) => {
+        set({ meals });
+      };
+
+      const persistSessions = (sessions: WorkoutSession[]) => {
+        set({ sessions });
+        void repositories.workouts.replaceAll(sessions.map(sessionToPlanned));
+      };
+
+      return {
+        dataReady: false,
+        hydrate: async () => {
+          if (get().dataReady) return;
+          await seedLocalIfNeeded(repositories, legacySnapshot ?? undefined);
+          const [profile, meals, workouts, recipes, activities, weather] =
+            await Promise.all([
+              repositories.profile.get(),
+              repositories.meals.listAll(),
+              repositories.workouts.listAll(),
+              repositories.recipes.list(),
+              repositories.activities.listRecent(50),
+              repositories.weather.getCurrent(),
+            ]);
+          set({
+            profile: profile ? { ...get().profile, ...profile } : get().profile,
+            meals,
+            sessions: workouts.map(plannedToSession),
+            savedRecipes: recipes,
+            activities: activities.map(activityToStrava),
+            weather,
+            dataReady: true,
+          });
+        },
+        themePreference: 'light',
+        setThemePreference: (value) => set({ themePreference: value }),
+        profile: DEFAULT_PROFILE,
+        hasCompletedOnboarding: false,
+        completeOnboarding: (profileData) => {
+          setProfile({ ...get().profile, ...profileData });
+          set({ hasCompletedOnboarding: true });
           get().recalculateNutritionGoals();
-        }
-      },
-      setCalorieTarget: (calories) => {
-        const profile = get().profile;
-        set({
-          profile: {
+        },
+        updateProfile: (patch) => {
+          setProfile({ ...get().profile, ...patch });
+          if (NUTRITION_RECALC_KEYS.some((key) => key in patch)) {
+            get().recalculateNutritionGoals();
+          }
+        },
+        setCalorieTarget: (calories) => {
+          const profile = get().profile;
+          setProfile({
             ...profile,
             calorieTarget: calories,
             macrosTarget: { ...profile.macrosTarget, calories },
-          },
-        });
-      },
-      recalculateNutritionGoals: () => {
-        const profile = get().profile;
-        const targets = calculateNutritionTargets(profile);
-        if (!targets) return;
-        set({
-          profile: {
+          });
+        },
+        recalculateNutritionGoals: () => {
+          const profile = get().profile;
+          const targets = calculateNutritionTargets(profile);
+          if (!targets) return;
+          setProfile({
             ...profile,
             calorieTarget: targets.calories,
             macrosTarget: {
@@ -176,162 +214,166 @@ export const usePulseFitStore = create<PulseFitState>()(
               carbs: targets.carbs,
               fat: targets.fat,
             },
-          },
-        });
-      },
-      stravaConnected: true,
-      watchConnected: false,
-      toggleStrava: () => set({ stravaConnected: !get().stravaConnected }),
-      toggleWatch: () => set({ watchConnected: !get().watchConnected }),
-      activities: buildStravaActivities(),
-      weather: MOCK_WEATHER,
-      sessions: buildWeekSessions(),
-      meals: MOCK_MEALS,
-      selectedDate: todayKey(),
-      setSelectedDate: (date) => set({ selectedDate: date }),
-      goToPreviousDay: () => set({ selectedDate: addDaysISO(get().selectedDate, -1) }),
-      goToNextDay: () => {
-        const next = addDaysISO(get().selectedDate, 1);
-        if (next <= todayKey()) set({ selectedDate: next });
-      },
-      goToToday: () => set({ selectedDate: todayKey() }),
-      scanStep: 'idle',
-      pendingMeal: null,
-      isAdapting: false,
-      completeSession: (id) => {
-        set({
-          sessions: get().sessions.map((session) =>
-            session.id === id ? { ...session, completed: true } : session,
-          ),
-        });
-      },
-      resetWeek: () => set({ sessions: buildWeekSessions() }),
-      analyzePhoto: async (uri) => {
-        set({ scanStep: 'analyzing', pendingMeal: null });
-        try {
-          const meal = await mockAnalyzePlate(uri);
-          set({ scanStep: 'result', pendingMeal: meal });
-        } catch {
-          set({ scanStep: 'error', pendingMeal: null });
-        }
-      },
-      savePendingMeal: (saveAsRecipe = false) => {
-        const pending = get().pendingMeal;
-        if (!pending) return;
-        const time = pending.loggedAt.split('T')[1] ?? '12:00:00';
-        set({
-          meals: [
-            { ...pending, id: uid('meal'), loggedAt: `${get().selectedDate}T${time}` },
-            ...get().meals,
-          ],
-          pendingMeal: null,
-          scanStep: 'idle',
-        });
-        if (saveAsRecipe) get().addRecipe(recipeFromMeal(pending));
-      },
-      discardPendingMeal: () => {
-        set({ pendingMeal: null, scanStep: 'idle' });
-      },
-      addMeal: (meal, saveAsRecipe = false) => {
-        set({ meals: [{ ...meal, id: uid('meal') }, ...get().meals] });
-        if (saveAsRecipe) get().addRecipe(recipeFromMeal(meal));
-      },
-      deleteMeal: (mealId) => {
-        set({ meals: get().meals.filter((meal) => meal.id !== mealId) });
-      },
-      updateMeal: (mealId, updatedMeal) => {
-        set({
-          meals: get().meals.map((meal) =>
-            meal.id === mealId ? { ...meal, ...updatedMeal } : meal,
-          ),
-        });
-      },
-      savedRecipes: MOCK_RECIPES,
-      addRecipe: (recipe) => set({ savedRecipes: [recipe, ...get().savedRecipes] }),
-      deleteRecipe: (id) =>
-        set({ savedRecipes: get().savedRecipes.filter((recipe) => recipe.id !== id) }),
-      logRecipeToJournal: (recipeId, mealType) => {
-        const recipe = get().savedRecipes.find((item) => item.id === recipeId);
-        if (!recipe) return;
-        const { selectedDate } = get();
-        const now = new Date();
-        const time =
-          selectedDate === todayKey() && mealType === currentMealType(now)
-            ? now.toTimeString().slice(0, 8)
-            : `${RECIPE_MEAL_HOURS[mealType]}:00:00`;
-        set({
-          meals: [
-            {
-              id: uid('meal'),
-              name: recipe.title,
-              loggedAt: `${selectedDate}T${time}`,
-              macros: {
-                calories: recipe.calories,
-                protein: recipe.protein,
-                carbs: recipe.carbs,
-                fat: recipe.fat,
-              },
-              confidence: 1,
-            },
-            ...get().meals,
-          ],
-        });
-      },
-      activeWorkoutProgram: undefined,
-      setAthleticGoal: (goal) => {
-        set({ profile: { ...get().profile, athleticGoal: goal } });
-      },
-      generateWorkoutProgram: () => {
-        const goal = get().profile.athleticGoal;
-        if (!goal) return;
-        set({
-          activeWorkoutProgram: buildProgram(goal),
-          sessions: buildProgramSessions(goal),
-          profile: { ...get().profile, goalLabel: goal.targetName },
-        });
-      },
-      resetWorkoutProgram: (keepGoal = false) => {
-        const { athleticGoal, ...rest } = get().profile;
-        set({
-          activeWorkoutProgram: undefined,
-          profile: keepGoal && athleticGoal ? { ...rest, athleticGoal } : rest,
-        });
-      },
-      adaptWeek: async (fatigue, timeBudget) => {
-        set({ isAdapting: true });
-        try {
-          const next = await mockAdaptWeek({
-            fatigue,
-            timeBudget,
-            sessions: get().sessions,
           });
-          set({ sessions: next });
-        } finally {
-          set({ isAdapting: false });
-        }
-      },
-    }),
+        },
+        stravaConnected: true,
+        watchConnected: false,
+        toggleStrava: () => set({ stravaConnected: !get().stravaConnected }),
+        toggleWatch: () => set({ watchConnected: !get().watchConnected }),
+        activities: [],
+        weather: null,
+        sessions: [],
+        meals: [],
+        selectedDate: todayKey(),
+        setSelectedDate: (date) => set({ selectedDate: date }),
+        goToPreviousDay: () => set({ selectedDate: addDaysISO(get().selectedDate, -1) }),
+        goToNextDay: () => {
+          const next = addDaysISO(get().selectedDate, 1);
+          if (next <= todayKey()) set({ selectedDate: next });
+        },
+        goToToday: () => set({ selectedDate: todayKey() }),
+        scanStep: 'idle',
+        pendingMeal: null,
+        isAdapting: false,
+        completeSession: (id) => {
+          persistSessions(
+            get().sessions.map((session) =>
+              session.id === id ? { ...session, completed: true } : session,
+            ),
+          );
+        },
+        resetWeek: async () => {
+          const sessions = await agent.generateDefaultWeek();
+          persistSessions(sessions);
+        },
+        analyzePhoto: async (uri) => {
+          set({ scanStep: 'analyzing', pendingMeal: null });
+          try {
+            const meal = await agent.analyzePlate(uri);
+            set({ scanStep: 'result', pendingMeal: meal });
+          } catch {
+            set({ scanStep: 'error', pendingMeal: null });
+          }
+        },
+        savePendingMeal: (saveAsRecipe = false) => {
+          const pending = get().pendingMeal;
+          if (!pending) return;
+          const time = pending.loggedAt.split('T')[1] ?? '12:00:00';
+          const meal = { ...pending, id: uid('meal'), loggedAt: `${get().selectedDate}T${time}` };
+          persistMeals([meal, ...get().meals]);
+          void repositories.meals.upsert(meal);
+          set({ pendingMeal: null, scanStep: 'idle' });
+          if (saveAsRecipe) get().addRecipe(recipeFromMeal(pending));
+        },
+        discardPendingMeal: () => {
+          set({ pendingMeal: null, scanStep: 'idle' });
+        },
+        addMeal: (meal, saveAsRecipe = false) => {
+          const withId = { ...meal, id: uid('meal') };
+          persistMeals([withId, ...get().meals]);
+          void repositories.meals.upsert(withId);
+          if (saveAsRecipe) get().addRecipe(recipeFromMeal(meal));
+        },
+        deleteMeal: (mealId) => {
+          persistMeals(get().meals.filter((meal) => meal.id !== mealId));
+          void repositories.meals.remove(mealId);
+        },
+        updateMeal: (mealId, updatedMeal) => {
+          const meals = get().meals.map((meal) =>
+            meal.id === mealId ? { ...meal, ...updatedMeal } : meal,
+          );
+          persistMeals(meals);
+          const updated = meals.find((meal) => meal.id === mealId);
+          if (updated) void repositories.meals.upsert(updated);
+        },
+        savedRecipes: [],
+        addRecipe: (recipe) => {
+          set({ savedRecipes: [recipe, ...get().savedRecipes] });
+          void repositories.recipes.upsert(recipe);
+        },
+        deleteRecipe: (id) => {
+          set({ savedRecipes: get().savedRecipes.filter((recipe) => recipe.id !== id) });
+          void repositories.recipes.remove(id);
+        },
+        logRecipeToJournal: (recipeId, mealType) => {
+          const recipe = get().savedRecipes.find((item) => item.id === recipeId);
+          if (!recipe) return;
+          const { selectedDate } = get();
+          const now = new Date();
+          const time =
+            selectedDate === todayKey() && mealType === currentMealType(now)
+              ? now.toTimeString().slice(0, 8)
+              : `${RECIPE_MEAL_HOURS[mealType]}:00:00`;
+          const meal: Meal = {
+            id: uid('meal'),
+            name: recipe.title,
+            loggedAt: `${selectedDate}T${time}`,
+            macros: {
+              calories: recipe.calories,
+              protein: recipe.protein,
+              carbs: recipe.carbs,
+              fat: recipe.fat,
+            },
+            confidence: 1,
+          };
+          persistMeals([meal, ...get().meals]);
+          void repositories.meals.upsert(meal);
+        },
+        activeWorkoutProgram: undefined,
+        setAthleticGoal: (goal) => {
+          setProfile({ ...get().profile, athleticGoal: goal });
+        },
+        generateWorkoutProgram: () => {
+          const goal = get().profile.athleticGoal;
+          if (!goal) return;
+          setProfile({ ...get().profile, goalLabel: goal.targetName });
+          set({ activeWorkoutProgram: buildProgram(goal) });
+          persistSessions(buildProgramSessions(goal));
+        },
+        resetWorkoutProgram: (keepGoal = false) => {
+          const { athleticGoal, ...rest } = get().profile;
+          setProfile(keepGoal && athleticGoal ? { ...rest, athleticGoal } : rest);
+          set({ activeWorkoutProgram: undefined });
+        },
+        adaptWeek: async (fatigue, timeBudget) => {
+          set({ isAdapting: true });
+          try {
+            const next = await agent.adaptWeek({
+              fatigue,
+              timeBudget,
+              sessions: get().sessions,
+            });
+            persistSessions(next);
+          } finally {
+            set({ isAdapting: false });
+          }
+        },
+      };
+    },
     {
       name: 'pulsefit-mvp3',
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (state): PersistedState => ({
         themePreference: state.themePreference,
-        profile: state.profile,
         hasCompletedOnboarding: state.hasCompletedOnboarding,
         stravaConnected: state.stravaConnected,
         watchConnected: state.watchConnected,
-        sessions: state.sessions,
-        meals: state.meals,
-        savedRecipes: state.savedRecipes,
         activeWorkoutProgram: state.activeWorkoutProgram,
       }),
       merge: (persisted, current) => {
-        const saved = (persisted ?? {}) as Partial<PersistedState>;
-        return {
-          ...current,
-          ...saved,
-          profile: { ...current.profile, ...saved.profile },
+        const saved = (persisted ?? {}) as LegacyPersistedState;
+        legacySnapshot = {
+          profile: saved.profile,
+          meals: saved.meals,
+          sessions: saved.sessions,
+          savedRecipes: saved.savedRecipes,
         };
+        const rest = { ...saved };
+        delete rest.profile;
+        delete rest.meals;
+        delete rest.sessions;
+        delete rest.savedRecipes;
+        return { ...current, ...rest };
       },
     },
   ),
