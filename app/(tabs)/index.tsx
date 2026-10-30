@@ -1,16 +1,14 @@
-import { EnergyBatteryWidget } from '@/components/dashboard/EnergyBatteryWidget';
 import { HomeHeader } from '@/components/dashboard/HomeHeader';
-import { MealTimeline } from '@/components/dashboard/MealTimeline';
-import { NutritionWidget } from '@/components/dashboard/NutritionWidget';
-import { WorkoutWidget } from '@/components/dashboard/WorkoutWidget';
 import { Screen } from '@/components/ui/Screen';
 import { usePulseFitStore, useStreak, useTodayStats } from '@/lib/store';
+import { MODULES } from '@/src/modules';
+import { collectTodayWidgets } from '@/src/modules/registry';
 
 export default function TodayScreen() {
-  const { profile, remaining, consumed, todaysMeals, todaysSession } = useTodayStats();
-  const completeSession = usePulseFitStore((s) => s.completeSession);
+  const { profile, todaysSession } = useTodayStats();
   const weather = usePulseFitStore((s) => s.weather);
   const streak = useStreak();
+  const widgets = collectTodayWidgets(MODULES, (m) => m.enabledByDefault);
 
   return (
     <Screen>
@@ -20,14 +18,9 @@ export default function TodayScreen() {
         weather={weather}
         session={todaysSession}
       />
-      <NutritionWidget consumed={consumed} target={profile.macrosTarget} remaining={remaining} />
-      <EnergyBatteryWidget
-        session={todaysSession}
-        consumedKcal={consumed.calories}
-        targetKcal={profile.macrosTarget.calories}
-      />
-      <WorkoutWidget session={todaysSession} onComplete={completeSession} />
-      <MealTimeline meals={todaysMeals} />
+      {widgets.map((widget) => (
+        <widget.Component key={widget.id} />
+      ))}
     </Screen>
   );
 }

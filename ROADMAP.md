@@ -146,7 +146,7 @@ Les modules s'ajoutent dans *Aujourd'hui* (cartes), *Plan* (événements), *Suiv
 - [x] Réorganiser le dépôt selon l'arborescence cible (déplacer `lib/` vers `src/core/`, sans changer le comportement)
 - [x] Schémas Zod : `Profile`, `Meal`, `FoodItem`, `PlannedWorkout`, `Activity`, `TrainingPlan`, `Goal`, `Insight`, `Proposal`, `DailyBrief`
 - [x] Interfaces de repositories + adaptateur **mock** + adaptateur **local** ; l'UI n'importe plus les mocks
-- [ ] `LifeModule` + registre de modules ; migrer Sport, Nutrition et Profil comme premiers modules
+- [x] `LifeModule` + registre de modules ; migrer Sport, Nutrition et Profil comme premiers modules
 - [ ] Composant `ProposalCard` + store des propositions (Valider / Modifier / Refuser / Annuler)
 - [x] **Source unique du bilan du jour** : sélecteur `getDailyBalance(date)` utilisé par *Aujourd'hui* et *Nutrition* (corriger l'écart actuel : 2250 kcal restantes vs objectif 2270 affiché)
 - [x] Test d'invariant : la somme kcal des macros (P×4 + G×4 + L×9) = objectif ±1 % (aujourd'hui 140 P / 255 G / 63 L → 2147 kcal pour 2270)
