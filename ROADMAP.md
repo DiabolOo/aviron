@@ -142,7 +142,7 @@ Les modules s'ajoutent dans *Aujourd'hui* (cartes), *Plan* (événements), *Suiv
 
 ## Jalon 3 — Socle modulaire & contrats de données ⏳
 > Pourquoi maintenant : l'UI est construite sur des mocks. Fixer les contrats avant d'ajouter des écrans évite de tout reprendre au backend.
-- [ ] ADR-001 : architecture modulaire (`core / modules / agent / data / ui`)
+- [x] ADR-001 : architecture modulaire (`core / modules / agent / data / ui`)
 - [ ] Réorganiser le dépôt selon l'arborescence cible (déplacer `lib/` vers `src/core/`, sans changer le comportement)
 - [ ] Schémas Zod : `Profile`, `Meal`, `FoodItem`, `PlannedWorkout`, `Activity`, `TrainingPlan`, `Goal`, `Insight`, `Proposal`, `DailyBrief`
 - [ ] Interfaces de repositories + adaptateur **mock** + adaptateur **local** ; l'UI n'importe plus les mocks
@@ -358,6 +358,7 @@ Les modules s'ajoutent dans *Aujourd'hui* (cartes), *Plan* (événements), *Suiv
 | 2026-10-22 | Jalon 2 : calculs nutritionnels, rythme kg/sem, plancher de sécurité, onboarding « Objectif » |
 | 2026-10-30 | **Roadmap v2** : architecture modulaire, UX « zéro cliquodrome », Agent Core, gate légal Strava, phase Life OS en modules |
 | 2026-10-30 | ADR-002 validé : navigation `Aujourd'hui · Plan · Agent · Suivi · Moi` |
+| 2026-10-30 | Jalon 3 démarré : ADR-001 créé, zod + jest-expo ajoutés, branche `jalon-3-socle` |
 
 ## ▶️ Prochaine étape
 Lancer le **Jalon 3** (socle modulaire & contrats de données), en commençant par l'ADR-001 et la source unique du bilan du jour.
