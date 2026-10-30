@@ -1,41 +1,55 @@
-This is an Expo/React Native mobile application. Prioritize mobile-first patterns, performance, and cross-platform compatibility.
+# AGENTS.md — PulseFit
 
-## Expo has changed — do not trust your training data
+> Instructions pour tous les agents de code (Claude Code, Devin Desktop / Cascade…).
+> Source de vérité du plan : `ROADMAP.md` (jalons, DoD, ADR). **Lis-le avant toute tâche.**
 
-Expo ships breaking changes every SDK release. APIs you remember are likely renamed, moved, or removed. Before writing any code that touches an Expo, EAS, or React Native API:
+## Projet
+PulseFit est une app mobile « agent-first » : l'utilisateur exprime une intention (texte ou voix), les agents préparent, il valide en 1 tap. Vision : un Life OS (sport, nutrition, puis agenda, objectifs, habitudes).
+Stack : Expo SDK 57, Expo Router, TypeScript strict, NativeWind, Zustand. Backend prévu : Supabase (UE) — pas avant le jalon 5.
 
-1. Read the major version of the `expo` package in `package.json`.
-2. Fetch the matching versioned docs: `https://docs.expo.dev/versions/v<major>.0.0/`
-3. For anything else, fetch https://docs.expo.dev/llms.txt — an index of all Expo docs with corrections to common LLM misconceptions. Follow its links to the specific page you need; never answer from memory.
+## Commandes
+- `npm run typecheck` · `npm run lint` · `npm test` — **les trois doivent passer avant chaque commit.**
+- `npx expo start` — lancer l'app en développement.
 
-## Commands
-
-Use `bunx` instead of `npx` if the project uses bun (`bun.lock` present).
-
-```bash
-npx expo install <package>  # ALWAYS use instead of npm/yarn/pnpm/bun add — resolves SDK-compatible versions
-npx expo start              # start the dev server
-npx expo lint               # lint
-npx tsc --noEmit            # typecheck
-npx expo-doctor             # diagnose dependency and config issues
-npx expo install --fix      # fix incompatible package versions
+## Architecture (cible, voir ROADMAP.md)
+```
+src/core/     domaine pur testé (nutrition, charge d'entraînement, validation de plans) — sans React ni réseau
+src/modules/  un dossier par module de vie (sport, nutrition, profile…), chacun avec un manifeste `LifeModule`
+src/agent/    client de la passerelle LLM, routeur de modèles, prompts versionnés, outils
+src/data/     repositories (interfaces) + adaptateurs mock / local / Supabase
+src/ui/       design system (tokens, Card, ProposalCard, CommandBar…)
+app/          routes Expo Router (fines : elles assemblent les modules)
+evals/        jeux de cas pour mesurer les sorties d'IA
+docs/adr/     décisions d'architecture
 ```
 
-Run lint and typecheck before declaring any task done.
+## Règles non négociables
+1. **Logique déterministe dans `src/core/`**, testée. Jamais de calcul nutritionnel ou de charge dans un composant.
+2. **Toute sortie d'IA est validée par un schéma Zod** avant usage ; sinon 1 retry puis repli propre.
+3. **L'IA ne modifie jamais les données directement** : elle crée une `Proposal` validée par l'utilisateur (sauf actions à faible risque marquées `autoApply`, avec bouton Annuler).
+4. **L'UI n'importe jamais les mocks** : elle passe par les repositories de `src/data/`.
+5. **Aucune clé secrète dans l'app ni dans le dépôt.** Seules les variables `EXPO_PUBLIC_…` publiques. Tout appel LLM passe par la passerelle serveur.
+6. Ne jamais envoyer à un LLM plus de données que nécessaire : résumés agrégés, jamais nom, e-mail ni identifiants.
+7. Ne jamais logger le contenu des prompts ni des données de santé.
+8. Une donnée = un endroit : pas d'information affichée deux fois sur le même écran. Tout score ou conseil est explicable (« Pourquoi ? »).
+9. **Source d'activité pour l'IA : pas de données Strava dans les prompts** tant que l'ADR-004 ne l'autorise pas (voir ROADMAP.md, jalon 8).
 
-## Navigation & Routing
+## Méthode de travail
+- Un jalon = une branche `jalon-N-nom`. Une tâche = un commit petit et relisible.
+- Dans le même commit : cocher la tâche dans `ROADMAP.md` et ajouter une ligne au Journal.
+- Ne démarre jamais un jalon qui n'a pas été demandé. Ne modifie pas les jalons non démarrés.
+- **Si tu es bloqué ou face à une décision** : écris la question dans `docs/questions.md` (format dans `docs/AGENT-WORKFLOW.md`) et passe à la tâche indépendante suivante. Ne devine jamais sur : secrets, choix légal, dépenses, suppression de données, décision d'architecture (→ ADR).
+- Fin de jalon : vérifie la DoD, puis écris le résumé de revue (modèle dans `docs/AGENT-WORKFLOW.md`).
 
-- Use **Expo Router** for all navigation. Routes live in `src/app/` — every file there is a screen, `_layout.tsx` files define navigators. Keep non-route code (components, hooks, utils) outside `src/app/`.
-- Import `Link`, `router`, and `useLocalSearchParams` from `expo-router`.
-- Docs: https://docs.expo.dev/router/introduction.md
+## Style
+- TypeScript strict, pas de `any`, composants fonctionnels.
+- Tokens du design system uniquement (aucune couleur en dur).
+- Textes d'interface en français ; noms de code en anglais.
+- Tests à côté du code (`*.test.ts`).
 
-## Building with EAS
-
-Use EAS to build, sign, and submit the app in the cloud (`eas build`, `eas submit`) and to ship over-the-air updates (`eas update`) — no local Xcode or Android Studio required. Run EAS CLI as `bunx eas-cli <command>` in Bun projects, or `npx eas-cli@latest <command>` otherwise; substitute that for bare `eas` in docs examples.
-Docs: https://docs.expo.dev/eas/index.md
-
-## Rules
-
-- If `ios/` and `android/` directories do not exist, they are generated (Continuous Native Generation). Never create or edit them by hand — configure native behavior in `app.json` and config plugins.
-- Expo Go only includes its bundled native modules. After adding a library with native code, the app needs a development build: `npx expo run:ios|android` locally, or `eas build --profile development`.
-- Prefer recommended Expo modules over third-party libraries, and check your available skills before adding dependencies. Docs: https://docs.expo.dev/versions/latest/index.md
+## Ne jamais
+- Committer des clés, des fichiers `.env` ou des données personnelles.
+- Fusionner sur `main` (c'est l'humain qui fusionne après revue).
+- Supprimer ou affaiblir un test pour faire passer la CI.
+- Ajouter une dépendance lourde sans en discuter (ADR).
+- Cocher une tâche ou un jalon dont la DoD n'est pas vérifiée.
