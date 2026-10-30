@@ -78,12 +78,13 @@ export function calculateMacros(
 ): Omit<NutritionTargets, 'calories'> {
   const protein = Math.round(weightKg * PROTEIN_G_PER_KG);
   const fat = Math.round(weightKg * FAT_G_PER_KG);
-  const carbs = Math.max(
-    0,
-    Math.round(
-      (calories - protein * PROTEIN_KCAL_PER_G - fat * FAT_KCAL_PER_G) / CARBS_KCAL_PER_G,
-    ),
-  );
+  const proteinKcal = protein * PROTEIN_KCAL_PER_G;
+  const fatKcal = fat * FAT_KCAL_PER_G;
+  if (proteinKcal + fatKcal > calories) {
+    const factor = calories / (proteinKcal + fatKcal);
+    return { protein: Math.round(protein * factor), carbs: 0, fat: Math.round(fat * factor) };
+  }
+  const carbs = Math.round((calories - proteinKcal - fatKcal) / CARBS_KCAL_PER_G);
   return { protein, carbs, fat };
 }
 

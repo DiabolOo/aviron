@@ -7,7 +7,7 @@ import { getDailyBalance, type DailyBalance } from '@/src/core/balance';
 import { addDaysISO, mealMomentForHour, toISODate } from '@/src/core/dates';
 import { DEFAULT_PROFILE } from '@/src/core/defaults';
 import { uid } from '@/src/core/format';
-import { calculateNutritionTargets } from '@/src/core/nutritionCalculator';
+import { calculateMacros, calculateNutritionTargets } from '@/src/core/nutritionCalculator';
 import { buildProgram, buildProgramSessions } from '@/src/core/program';
 import type {
   AthleticGoal,
@@ -200,7 +200,10 @@ export const usePulseFitStore = create<PulseFitState>()(
           setProfile({
             ...profile,
             calorieTarget: calories,
-            macrosTarget: { ...profile.macrosTarget, calories },
+            macrosTarget: {
+              calories,
+              ...calculateMacros(profile.weightKg, calories),
+            },
           });
         },
         recalculateNutritionGoals: () => {

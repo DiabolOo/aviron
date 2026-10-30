@@ -177,8 +177,8 @@ export const MOCK_PROFILE: UserProfile = {
   calorieTarget: 2650,
   macrosTarget: {
     calories: 2650,
-    protein: 160,
-    carbs: 320,
+    protein: 149,
+    carbs: 345,
     fat: 75,
   },
   weightKg: 74.5,
