@@ -104,19 +104,33 @@ describe('InsightSchema', () => {
 });
 
 describe('ProposalSchema', () => {
+  const validProposal = {
+    id: 'p1', createdAt: '2026-10-30T08:00:00Z',
+    title: 'Décaler la sortie longue',
+    action: 'adjust_plan' as const,
+    payload: { sessionId: 's1', toDate: '2026-11-01' },
+    status: 'pending' as const, rationale: 'Pluie prévue samedi.',
+    confidence: 0.9,
+  };
   it('accepte une proposition pending', () => {
+    const r = ProposalSchema.safeParse(validProposal);
+    expect(r.success).toBe(true);
+    if (r.success) expect(r.data.source).toBe('agent');
+  });
+  it('accepte source et preview', () => {
     expect(ProposalSchema.safeParse({
-      id: 'p1', createdAt: '2026-10-30T08:00:00Z',
-      action: 'create_plan', payload: { goalId: 'g1' },
-      status: 'pending', rationale: 'Objectif semi détecté.',
-      confidence: 0.9,
+      ...validProposal, source: 'coach',
+      preview: { before: 'Sam.', after: 'Dim.' },
     }).success).toBe(true);
+  });
+  it('refuse une action inconnue', () => {
+    expect(ProposalSchema.safeParse({
+      ...validProposal, action: 'create_plan',
+    }).success).toBe(false);
   });
   it('refuse un statut inconnu', () => {
     expect(ProposalSchema.safeParse({
-      id: 'p1', createdAt: '2026-10-30T08:00:00Z',
-      action: 'x', payload: {}, status: 'unknown',
-      rationale: '', confidence: 0.5,
+      ...validProposal, status: 'unknown',
     }).success).toBe(false);
   });
 });

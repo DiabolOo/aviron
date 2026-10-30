@@ -3,6 +3,7 @@ import { profileModule } from '@/src/modules/profile';
 import { sportModule } from '@/src/modules/sport';
 import { testModule } from '@/src/modules/test';
 import type { LifeModule, TodayWidget } from '@/src/modules/types';
+import { ProposalStack } from '@/src/ui/proposals/ProposalStack';
 
 export const MODULES: LifeModule[] = [
   nutritionModule,
@@ -11,4 +12,6 @@ export const MODULES: LifeModule[] = [
   testModule,
 ];
 
-export const CORE_TODAY_WIDGETS: TodayWidget[] = [];
+export const CORE_TODAY_WIDGETS: TodayWidget[] = [
+  { id: 'proposals', order: 20, Component: ProposalStack },
+];

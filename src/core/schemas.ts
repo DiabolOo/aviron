@@ -205,16 +205,26 @@ export const ProposalStatusSchema = z.enum([
   'undone',
 ]);
 
+export const ProposalActionSchema = z.enum([
+  'adjust_plan',
+  'log_meal',
+  'adjust_nutrition_targets',
+]);
+
 export const ProposalSchema = z.object({
   id: z.string(),
   createdAt: z.string(),
-  action: z.string(),
+  title: z.string().min(1),
+  source: z.enum(['coach', 'nutrition', 'agent']).default('agent'),
+  action: ProposalActionSchema,
   payload: z.record(z.string(), z.unknown()),
   status: ProposalStatusSchema,
   rationale: z.string(),
   confidence: z.number().min(0).max(1),
   autoApply: z.boolean().default(false),
+  preview: z.object({ before: z.string().optional(), after: z.string() }).optional(),
   editedPayload: z.record(z.string(), z.unknown()).optional(),
+  resolvedAt: z.string().optional(),
 });
 
 export type Proposal = z.infer<typeof ProposalSchema>;

@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
+import { useProposalStore } from '@/lib/proposalStore';
 import { agent } from '@/src/agent';
 import { getDailyBalance, type DailyBalance } from '@/src/core/balance';
 import { addDaysISO, mealMomentForHour, toISODate } from '@/src/core/dates';
@@ -59,11 +60,12 @@ type PulseFitState = {
   pendingMeal: Meal | null;
   isAdapting: boolean;
   completeSession: (id: string) => void;
+  moveSession: (id: string, toDate: string) => void;
   resetWeek: () => void;
   analyzePhoto: (uri: string) => Promise<void>;
   savePendingMeal: (saveAsRecipe?: boolean) => void;
   discardPendingMeal: () => void;
-  addMeal: (meal: Omit<Meal, 'id'>, saveAsRecipe?: boolean) => void;
+  addMeal: (meal: Omit<Meal, 'id'>, saveAsRecipe?: boolean) => string;
   deleteMeal: (mealId: string) => void;
   updateMeal: (mealId: string, updatedMeal: Partial<Meal>) => void;
   savedRecipes: Recipe[];
@@ -183,6 +185,7 @@ export const usePulseFitStore = create<PulseFitState>()(
             // garde les valeurs en mémoire plutôt qu'un écran blanc
           }
           set({ dataReady: true });
+          void useProposalStore.getState().load();
         },
         themePreference: 'light',
         setThemePreference: (value) => set({ themePreference: value }),
@@ -251,6 +254,13 @@ export const usePulseFitStore = create<PulseFitState>()(
             ),
           );
         },
+        moveSession: (id, toDate) => {
+          persistSessions(
+            get().sessions.map((session) =>
+              session.id === id ? { ...session, date: toDate } : session,
+            ),
+          );
+        },
         resetWeek: async () => {
           const sessions = await agent.generateDefaultWeek();
           persistSessions(sessions);
@@ -282,6 +292,7 @@ export const usePulseFitStore = create<PulseFitState>()(
           persistMeals([withId, ...get().meals]);
           void repositories.meals.upsert(withId);
           if (saveAsRecipe) get().addRecipe(recipeFromMeal(meal));
+          return withId.id;
         },
         deleteMeal: (mealId) => {
           persistMeals(get().meals.filter((meal) => meal.id !== mealId));
