@@ -41,7 +41,7 @@ export function MemberCard({
       </View>
       <View className="mt-3 flex-row items-center gap-4">
         <View className="h-16 w-16 items-center justify-center rounded-full bg-black">
-          <TAB_ICONS.profil color={colors.accent} size={28} strokeWidth={1.9} />
+          <TAB_ICONS.moi color={colors.accent} size={28} strokeWidth={1.9} />
         </View>
         <View className="flex-1">
           <Text className="text-3xl font-semibold tracking-tight text-fg">{firstName}</Text>

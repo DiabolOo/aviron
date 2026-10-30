@@ -1,10 +1,17 @@
-import type { LifeModule, TodayWidget } from '@/src/modules/types';
+import type { Dashboard, LifeModule, TodayWidget } from '@/src/modules/types';
 
 export function getEnabledModules(
   modules: LifeModule[],
   isEnabled: (module: LifeModule) => boolean,
 ): LifeModule[] {
   return modules.filter(isEnabled);
+}
+
+export function collectDashboards(
+  modules: LifeModule[],
+  isEnabled: (module: LifeModule) => boolean,
+): Dashboard[] {
+  return getEnabledModules(modules, isEnabled).flatMap((module) => module.dashboards);
 }
 
 export function collectTodayWidgets(

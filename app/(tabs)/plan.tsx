@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Text } from 'react-native';
 
-import { ActivityHistory } from '@/components/sport/ActivityHistory';
 import { ProgramTimeline } from '@/components/sport/ProgramTimeline';
 import { ProgramWizard } from '@/components/sport/ProgramWizard';
 import { SessionDetail } from '@/components/sport/SessionDetail';
@@ -9,15 +8,13 @@ import { WeekStrip } from '@/components/sport/WeekStrip';
 import { Screen } from '@/components/ui/Screen';
 import { TabHeader } from '@/components/ui/TabHeader';
 import { TAB_ICONS } from '@/components/ui/tabIcons';
-import { toISODate, weekDates } from '@/src/core/dates';
 import { usePulseFitStore } from '@/lib/store';
+import { toISODate, weekDates } from '@/src/core/dates';
 import type { WorkoutSession } from '@/src/core/types';
 
-export default function SportScreen() {
+export default function PlanScreen() {
   const sessions = usePulseFitStore((s) => s.sessions);
   const goalLabel = usePulseFitStore((s) => s.profile.goalLabel);
-  const activities = usePulseFitStore((s) => s.activities);
-  const stravaConnected = usePulseFitStore((s) => s.stravaConnected);
   const completeSession = usePulseFitStore((s) => s.completeSession);
   const program = usePulseFitStore((s) => s.activeWorkoutProgram);
   const resetWorkoutProgram = usePulseFitStore((s) => s.resetWorkoutProgram);
@@ -36,10 +33,10 @@ export default function SportScreen() {
   return (
     <Screen>
       <TabHeader
-        icon={TAB_ICONS.sport}
+        icon={TAB_ICONS.plan}
         tint="aqua"
         eyebrow={program ? 'Programme en cours' : 'Nouveau programme'}
-        title="Sport"
+        title="Plan"
         subtitle={goalLabel}
         right={
           program && week.length > 0 ? (
@@ -66,7 +63,6 @@ export default function SportScreen() {
             />
           ) : null}
           {selected ? <SessionDetail session={selected} onComplete={completeSession} /> : null}
-          <ActivityHistory activities={activities} connected={stravaConnected} />
         </>
       )}
     </Screen>

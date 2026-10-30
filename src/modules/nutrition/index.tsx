@@ -2,6 +2,7 @@ import { MealTimeline } from '@/components/dashboard/MealTimeline';
 import { NutritionWidget } from '@/components/dashboard/NutritionWidget';
 import { useTodayStats } from '@/lib/store';
 import { FoodItemSchema, MealSchema } from '@/src/core/schemas';
+import { NutritionDashboard } from '@/src/modules/nutrition/NutritionDashboard';
 import type { LifeModule } from '@/src/modules/types';
 
 function CalorieRing() {
@@ -25,7 +26,7 @@ export const nutritionModule: LifeModule = {
     { id: 'calorie-ring', order: 10, Component: CalorieRing },
     { id: 'meal-timeline', order: 50, Component: TodayMeals },
   ],
-  dashboards: [],
+  dashboards: [{ id: 'nutrition', title: 'Nutrition', Component: NutritionDashboard }],
   agentTools: [
     {
       name: 'get_nutrition_summary',

@@ -1,8 +1,9 @@
-import { CircleUser, Dumbbell, House, Salad } from 'lucide-react-native';
+import { Activity, CalendarDays, CircleUser, House, Sparkles } from 'lucide-react-native';
 
 export const TAB_ICONS = {
   index: House,
-  sport: Dumbbell,
-  nutrition: Salad,
-  profil: CircleUser,
+  plan: CalendarDays,
+  agent: Sparkles,
+  suivi: Activity,
+  moi: CircleUser,
 } as const;

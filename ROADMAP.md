@@ -64,7 +64,7 @@ export interface LifeModule {
 
 **Objets transverses** : `Proposal` (action proposée : `pending | accepted | edited | rejected | undone`, avec `rationale` et `confidence`), `Insight` (constat/conseil), `DailyBrief`, `AgentRun` (modèle, tokens, coût, latence), `Consent`.
 
-**Navigation cible (à valider, ADR-002)** : `Aujourd'hui · Plan · ⊕ Agent · Suivi · Moi`.
+**Navigation cible (validée, ADR-002)** : `Aujourd'hui · Plan · ⊕ Agent · Suivi · Moi`.
 Les modules s'ajoutent dans *Aujourd'hui* (cartes), *Plan* (événements), *Suivi* (sélecteur de module) et *Agent* (outils), sans créer d'onglet.
 
 ## Vue d'ensemble
@@ -75,7 +75,7 @@ Les modules s'ajoutent dans *Aujourd'hui* (cartes), *Plan* (événements), *Suiv
 | 1 | UI v1 en données mockées (4 onglets) | ✅ |
 | 2 | Onboarding & calculs nutritionnels (local) | ✅ |
 | 3 | Socle modulaire & contrats de données | ⏳ |
-| 4 | UX v2 « zéro cliquodrome » (sur mocks) | ⏳ |
+| 4 | UX v2 « zéro cliquodrome » (sur mocks) | 🔧 |
 | 5 | Backend, comptes & conformité de base | ⏳ |
 | 6 | Agent Core (passerelle LLM, propositions, évals) | ⏳ |
 | 7 | Nutrition IA réelle (photo, langage naturel, code-barres) | ⏳ |
@@ -153,12 +153,12 @@ Les modules s'ajoutent dans *Aujourd'hui* (cartes), *Plan* (événements), *Suiv
 - [x] Feature flags par module
 - **DoD** : l'app tourne à l'identique avec la nouvelle structure ; ajouter un module factice « test » ne demande aucune modification de la navigation.
 
-## Jalon 4 — UX v2 « zéro cliquodrome » ⏳
+## Jalon 4 — UX v2 « zéro cliquodrome » 🔧
 > Refonte ergonomique sur les mocks, avant de brancher la vraie IA.
-- [ ] ADR-002 : acter la navigation **validée** `Aujourd'hui · Plan · Agent · Suivi · Moi` (les onglets Sport et Nutrition disparaissent ; leurs écrans migrent dans *Suivi* via un sélecteur de module, la saisie passe par *Aujourd'hui* et la CommandBar)
+- [x] ADR-002 : acter la navigation **validée** `Aujourd'hui · Plan · Agent · Suivi · Moi` (les onglets Sport et Nutrition disparaissent ; leurs écrans migrent dans *Suivi* via un sélecteur de module, la saisie passe par *Aujourd'hui* et la CommandBar)
 - [ ] **CommandBar** : champ texte + dictée vocale ; au début, `MockAgent` qui renvoie des `Proposal` conformes au schéma
-- [ ] **Aujourd'hui = flux d'actions** : carte « Maintenant » (prochaine action) → bilan kcal → séance du jour validable en 1 tap → propositions en attente → brief IA (placeholder)
-- [ ] Supprimer les doublons d'affichage (macros en-tête vs carte « Apports du jour » dans Nutrition)
+- [x] **Aujourd'hui = flux d'actions** : carte « Maintenant » (prochaine action) → bilan kcal → séance du jour validable en 1 tap → propositions en attente → brief IA (placeholder)
+- [x] Supprimer les doublons d'affichage (macros en-tête vs carte « Apports du jour » dans Nutrition)
 - [ ] Remplacer le formulaire « Forme / Temps max / Régénérer » par : valeurs **inférées** + phrase libre dans la CommandBar (« claqué, 45 min max ») ; garder des chips rapides facultatives
 - [ ] Saisie repas : appareil photo direct (appui long sur le bouton scan), **repas habituels suggérés selon l'heure** (1 tap), « comme hier », saisie en langage naturel
 - [ ] Séance du jour : validation automatique quand l'activité correspondante arrive (prévoir l'UI d'annulation)
@@ -369,6 +369,7 @@ Les modules s'ajoutent dans *Aujourd'hui* (cartes), *Plan* (événements), *Suiv
 | 2026-10-30 | T8 — `LifeModule` + registre ; Aujourd'hui rendu via les widgets des modules |
 | 2026-10-30 | T9 — feature flags par module (`isModuleEnabled` + overrides) |
 | 2026-10-30 | T10 — `ProposalCard` + store des propositions (appliquer / éditer / refuser / annuler, toast) |
+| 2026-10-30 | J4 — ADR-002, navigation 5 onglets, Suivi par module, CommandBar (MockAgent), carte « Maintenant » ; fix bouton Accueil |
 
 ## ▶️ Prochaine étape
 Lancer le **Jalon 3** (socle modulaire & contrats de données), en commençant par l'ADR-001 et la source unique du bilan du jour.

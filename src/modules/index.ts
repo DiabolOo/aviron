@@ -1,3 +1,5 @@
+import { BriefPlaceholder } from '@/components/dashboard/BriefPlaceholder';
+import { NowCard } from '@/components/dashboard/NowCard';
 import { nutritionModule } from '@/src/modules/nutrition';
 import { profileModule } from '@/src/modules/profile';
 import { sportModule } from '@/src/modules/sport';
@@ -13,5 +15,7 @@ export const MODULES: LifeModule[] = [
 ];
 
 export const CORE_TODAY_WIDGETS: TodayWidget[] = [
-  { id: 'proposals', order: 20, Component: ProposalStack },
+  { id: 'now', order: 5, Component: NowCard },
+  { id: 'proposals', order: 30, Component: ProposalStack },
+  { id: 'brief', order: 60, Component: BriefPlaceholder },
 ];

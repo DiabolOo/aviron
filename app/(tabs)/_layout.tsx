@@ -9,9 +9,10 @@ export default function TabLayout() {
     <View className="flex-1">
       <Tabs tabBar={(props) => <TabBar {...props} />} screenOptions={{ headerShown: false }}>
         <Tabs.Screen name="index" options={{ title: 'Aujourd’hui' }} />
-        <Tabs.Screen name="sport" options={{ title: 'Sport' }} />
-        <Tabs.Screen name="nutrition" options={{ title: 'Nutrition' }} />
-        <Tabs.Screen name="profil" options={{ title: 'Profil' }} />
+        <Tabs.Screen name="plan" options={{ title: 'Plan' }} />
+        <Tabs.Screen name="agent" options={{ title: 'Agent' }} />
+        <Tabs.Screen name="suivi" options={{ title: 'Suivi' }} />
+        <Tabs.Screen name="moi" options={{ title: 'Moi' }} />
       </Tabs>
       <UndoToast />
     </View>

@@ -19,7 +19,10 @@ export type ProposalContext = {
   today: string;
 };
 
+export type IntentResult = { reply: string; proposals: Proposal[] };
+
 export interface IAgent {
+  interpretIntent(text: string, context: ProposalContext): Promise<IntentResult>;
   analyzePlate(photoUri: string): Promise<Meal>;
   adaptWeek(params: AdaptWeekParams): Promise<WorkoutSession[]>;
   generateDefaultWeek(): Promise<WorkoutSession[]>;

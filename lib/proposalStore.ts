@@ -16,6 +16,7 @@ type ProposalState = {
   loaded: boolean;
   lastResolved: { id: string; label: string } | null;
   load: () => Promise<void>;
+  ask: (text: string) => Promise<string>;
   accept: (id: string) => Promise<void>;
   edit: (id: string, payload: Record<string, unknown>) => Promise<void>;
   reject: (id: string) => Promise<void>;
@@ -56,6 +57,17 @@ export const useProposalStore = create<ProposalState>()((set, get) => {
         }
       }
       set({ proposals, loaded: true });
+    },
+    ask: async (text) => {
+      const main = usePulseFitStore.getState();
+      const { reply, proposals } = await agent.interpretIntent(text, {
+        sessions: main.sessions,
+        profile: main.profile,
+        today: toISODate(new Date()),
+      });
+      for (const proposal of proposals) await repositories.proposals.upsert(proposal);
+      set({ proposals: [...proposals, ...get().proposals] });
+      return reply;
     },
     accept: async (id) => {
       const proposal = get().proposals.find((p) => p.id === id);

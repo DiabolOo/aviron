@@ -39,7 +39,7 @@ export function NutritionWidget({ consumed, target, remaining }: NutritionWidget
           accessibilityLabel="Scanner ou ajouter un repas"
           onPress={() => {
             void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            router.navigate('/nutrition');
+            router.push('/scan');
           }}
           className="mt-6 flex-row items-center gap-1.5 active:opacity-70">
           <Text className="text-sm text-muted">Scanne ou ajoute ton premier repas</Text>

@@ -1,6 +1,7 @@
 import { EnergyBatteryWidget } from '@/components/dashboard/EnergyBatteryWidget';
 import { WorkoutWidget } from '@/components/dashboard/WorkoutWidget';
 import { usePulseFitStore, useTodayStats } from '@/lib/store';
+import { SportDashboard } from '@/src/modules/sport/SportDashboard';
 import {
   ActivitySchema,
   GoalSchema,
@@ -32,10 +33,10 @@ export const sportModule: LifeModule = {
   enabledByDefault: true,
   entities: [PlannedWorkoutSchema, ActivitySchema, TrainingPlanSchema, GoalSchema],
   todayWidgets: [
-    { id: 'energy', order: 30, Component: Energy },
-    { id: 'workout', order: 40, Component: Workout },
+    { id: 'workout', order: 20, Component: Workout },
+    { id: 'energy', order: 40, Component: Energy },
   ],
-  dashboards: [],
+  dashboards: [{ id: 'sport', title: 'Sport', Component: SportDashboard }],
   agentTools: [
     {
       name: 'get_recent_activities',

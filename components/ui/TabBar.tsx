@@ -1,5 +1,5 @@
 import * as Haptics from 'expo-haptics';
-import { router, Tabs } from 'expo-router';
+import { Tabs } from 'expo-router';
 import { House } from 'lucide-react-native';
 import { type ComponentProps } from 'react';
 import { Pressable, Text, View } from 'react-native';
@@ -9,14 +9,7 @@ import { useTheme } from '@/src/ui/useTheme';
 
 type TabBarProps = Parameters<NonNullable<ComponentProps<typeof Tabs>['tabBar']>>[0];
 
-const HAPTICS = {
-  index: () => Haptics.selectionAsync(),
-  sport: () => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium),
-  nutrition: () => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light),
-  profil: () => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success),
-} as const;
-
-export function TabBar({ state, descriptors, insets }: TabBarProps) {
+export function TabBar({ state, descriptors, emitter, navigateToTab, insets }: TabBarProps) {
   const { colors } = useTheme();
 
   return (
@@ -26,13 +19,36 @@ export function TabBar({ state, descriptors, insets }: TabBarProps) {
           const focused = state.index === index;
           const Icon = ICONS[route.name as keyof typeof ICONS] ?? House;
           const title = descriptors[route.key].options.title ?? route.name;
+          const isAgent = route.name === 'agent';
 
           const onPress = () => {
-            if (!focused) {
-              void HAPTICS[route.name as keyof typeof HAPTICS]?.();
-              router.navigate(route.name as never);
-            }
+            const event = emitter.emit({
+              type: 'tabPress',
+              target: route.key,
+              canPreventDefault: true,
+            });
+            if (focused || event.defaultPrevented) return;
+            void (isAgent
+              ? Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
+              : Haptics.selectionAsync());
+            navigateToTab(route.key);
           };
+
+          if (isAgent) {
+            return (
+              <Pressable
+                key={route.key}
+                onPress={onPress}
+                accessibilityRole="button"
+                accessibilityLabel={title}
+                accessibilityState={{ selected: focused }}
+                className={`mx-1 h-12 w-12 items-center justify-center rounded-full bg-accent active:opacity-80 ${
+                  focused ? 'border-2 border-fg' : ''
+                }`}>
+                <Icon color={colors.accentFg} size={22} strokeWidth={2.2} />
+              </Pressable>
+            );
+          }
 
           return (
             <Pressable
@@ -42,7 +58,7 @@ export function TabBar({ state, descriptors, insets }: TabBarProps) {
               accessibilityLabel={title}
               accessibilityState={{ selected: focused }}
               className={`h-12 flex-row items-center justify-center gap-2 rounded-full active:opacity-70 ${
-                focused ? 'flex-[1.8] bg-fg' : 'flex-1'
+                focused ? 'flex-[2] bg-fg' : 'flex-1'
               }`}>
               <Icon
                 color={focused ? colors.canvas : colors.muted}

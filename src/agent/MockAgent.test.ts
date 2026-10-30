@@ -23,6 +23,32 @@ const longRun: WorkoutSession = {
   completed: false,
 };
 
+describe('MockAgent.interpretIntent', () => {
+  const ctx = { sessions: [longRun], profile, today: '2026-10-30' };
+
+  it.each([
+    ['claqué, 45 min max', 'adjust_plan'],
+    ['décale la sortie longue au dimanche', 'adjust_plan'],
+    ['j’ai mangé des pâtes au déjeuner', 'log_meal'],
+  ])('« %s » produit une proposition valide', async (text, action) => {
+    const { proposals } = await new MockAgent().interpretIntent(text, ctx);
+    expect(proposals).toHaveLength(1);
+    expect(proposals[0].action).toBe(action);
+    expect(() => ProposalSchema.parse(proposals[0])).not.toThrow();
+  });
+
+  it('répond sans proposition quand rien n’est compris', async () => {
+    const { proposals, reply } = await new MockAgent().interpretIntent('blabla', ctx);
+    expect(proposals).toHaveLength(0);
+    expect(reply.length).toBeGreaterThan(0);
+  });
+
+  it('n’invente pas de séance à reporter', async () => {
+    const { proposals } = await new MockAgent().interpretIntent('claqué', { ...ctx, sessions: [] });
+    expect(proposals).toHaveLength(0);
+  });
+});
+
 describe('MockAgent.getPendingProposals', () => {
   it('renvoie des propositions conformes au schéma', async () => {
     const proposals = await new MockAgent().getPendingProposals({
