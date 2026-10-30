@@ -160,25 +160,29 @@ export const usePulseFitStore = create<PulseFitState>()(
         dataReady: false,
         hydrate: async () => {
           if (get().dataReady) return;
-          await seedLocalIfNeeded(repositories, legacySnapshot ?? undefined);
-          const [profile, meals, workouts, recipes, activities, weather] =
-            await Promise.all([
-              repositories.profile.get(),
-              repositories.meals.listAll(),
-              repositories.workouts.listAll(),
-              repositories.recipes.list(),
-              repositories.activities.listRecent(50),
-              repositories.weather.getCurrent(),
-            ]);
-          set({
-            profile: profile ? { ...get().profile, ...profile } : get().profile,
-            meals,
-            sessions: workouts.map(plannedToSession),
-            savedRecipes: recipes,
-            activities: activities.map(activityToStrava),
-            weather,
-            dataReady: true,
-          });
+          try {
+            await seedLocalIfNeeded(repositories, legacySnapshot ?? undefined);
+            const [profile, meals, workouts, recipes, activities, weather] =
+              await Promise.all([
+                repositories.profile.get(),
+                repositories.meals.listAll(),
+                repositories.workouts.listAll(),
+                repositories.recipes.list(),
+                repositories.activities.listRecent(50),
+                repositories.weather.getCurrent(),
+              ]);
+            set({
+              profile: profile ? { ...get().profile, ...profile } : get().profile,
+              meals,
+              sessions: workouts.map(plannedToSession),
+              savedRecipes: recipes,
+              activities: activities.map(activityToStrava),
+              weather,
+            });
+          } catch {
+            // garde les valeurs en mémoire plutôt qu'un écran blanc
+          }
+          set({ dataReady: true });
         },
         themePreference: 'light',
         setThemePreference: (value) => set({ themePreference: value }),

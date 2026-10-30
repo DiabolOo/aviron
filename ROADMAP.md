@@ -365,6 +365,7 @@ Les modules s'ajoutent dans *Aujourd'hui* (cartes), *Plan* (événements), *Suiv
 | 2026-10-30 | T5 — store branché sur les repositories (local seedé + migration de la sauvegarde mvp3) |
 | 2026-10-30 | T6 — source unique du bilan du jour (budget = objectif + calories brûlées) |
 | 2026-10-30 | T7 — invariant macros : calculateMacros au plancher + setCalorieTarget recalcule P/G/L |
+| 2026-10-30 | fix(T5) — filet de sécurité `pf:legacy-mvp3` + `hydrate()` tolérant aux erreurs |
 
 ## ▶️ Prochaine étape
 Lancer le **Jalon 3** (socle modulaire & contrats de données), en commençant par l'ADR-001 et la source unique du bilan du jour.

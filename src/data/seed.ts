@@ -14,6 +14,7 @@ import {
 } from '@/src/data/mock';
 
 const SEEDED_KEY = 'pf:seeded';
+const LEGACY_BACKUP_KEY = 'pf:legacy-mvp3';
 
 export type LegacySnapshot = {
   profile?: Profile;
@@ -27,6 +28,17 @@ export async function seedLocalIfNeeded(
   legacy?: LegacySnapshot,
 ): Promise<void> {
   if (!(repos.profile instanceof LocalProfileRepository)) return;
+
+  const hasLegacyData =
+    legacy != null &&
+    (legacy.profile != null ||
+      (legacy.meals?.length ?? 0) > 0 ||
+      (legacy.sessions?.length ?? 0) > 0 ||
+      (legacy.savedRecipes?.length ?? 0) > 0);
+  if (hasLegacyData && (await AsyncStorage.getItem(LEGACY_BACKUP_KEY)) == null) {
+    await AsyncStorage.setItem(LEGACY_BACKUP_KEY, JSON.stringify(legacy));
+  }
+
   const already = await AsyncStorage.getItem(SEEDED_KEY);
   if (already) return;
 

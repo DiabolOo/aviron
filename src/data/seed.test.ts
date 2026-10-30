@@ -53,6 +53,38 @@ describe('seedLocalIfNeeded', () => {
     expect(meals[0].id).toBe('legacy-meal');
   });
 
+  it('sauvegarde la sauvegarde legacy brute dans pf:legacy-mvp3', async () => {
+    const repos = createRepositories('local');
+    const legacy = {
+      profile: {
+        firstName: 'Julie',
+        weightKg: 60,
+        targetWeightKg: 58,
+        goalLabel: 'Test',
+        calorieTarget: 1900,
+        macrosTarget: { calories: 1900, protein: 120, carbs: 200, fat: 60 },
+      },
+    };
+    await seedLocalIfNeeded(repos, legacy);
+    expect(JSON.parse((await AsyncStorage.getItem('pf:legacy-mvp3')) ?? '')).toEqual(legacy);
+  });
+
+  it('n’écrase pas une sauvegarde legacy existante', async () => {
+    await AsyncStorage.setItem('pf:legacy-mvp3', '{"sentinel":true}');
+    const repos = createRepositories('local');
+    await seedLocalIfNeeded(repos, {
+      profile: {
+        firstName: 'Julie',
+        weightKg: 60,
+        targetWeightKg: 58,
+        goalLabel: 'Test',
+        calorieTarget: 1900,
+        macrosTarget: { calories: 1900, protein: 120, carbs: 200, fat: 60 },
+      },
+    });
+    expect(await AsyncStorage.getItem('pf:legacy-mvp3')).toBe('{"sentinel":true}');
+  });
+
   it('est idempotent : un second appel ne réécrit pas', async () => {
     const repos = createRepositories('local');
     await seedLocalIfNeeded(repos);
