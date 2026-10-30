@@ -3,7 +3,7 @@ import { Animated, Easing, Text, View } from 'react-native';
 
 import { Label } from '@/components/ui/Label';
 import { ProgressRing } from '@/components/ui/ProgressRing';
-import { useTheme } from '@/lib/useTheme';
+import { useTheme } from '@/src/ui/useTheme';
 
 export function AnalyzingState() {
   const { colors } = useTheme();

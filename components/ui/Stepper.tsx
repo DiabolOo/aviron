@@ -2,7 +2,7 @@ import * as Haptics from 'expo-haptics';
 import { Minus, Plus } from 'lucide-react-native';
 import { Pressable, Text, View } from 'react-native';
 
-import { useTheme } from '@/lib/useTheme';
+import { useTheme } from '@/src/ui/useTheme';
 
 type StepperProps = {
   value: number;

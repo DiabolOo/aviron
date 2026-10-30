@@ -8,7 +8,7 @@ import { useEffect, useMemo, useState } from 'react';
 import 'react-native-reanimated';
 
 import { usePulseFitStore } from '@/lib/store';
-import { useTheme } from '@/lib/useTheme';
+import { useTheme } from '@/src/ui/useTheme';
 
 export {
     ErrorBoundary

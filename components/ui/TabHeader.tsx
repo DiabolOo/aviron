@@ -3,7 +3,7 @@ import { type ReactNode } from 'react';
 import { Text, View } from 'react-native';
 
 import { Label } from '@/components/ui/Label';
-import { useTheme } from '@/lib/useTheme';
+import { useTheme } from '@/src/ui/useTheme';
 
 export type TabTint = 'accent' | 'aqua' | 'iris';
 

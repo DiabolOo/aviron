@@ -9,7 +9,7 @@ import { ErrorState } from '@/components/ui/ErrorState';
 import { IconButton } from '@/components/ui/IconButton';
 import { Screen } from '@/components/ui/Screen';
 import { usePulseFitStore } from '@/lib/store';
-import { useTheme } from '@/lib/useTheme';
+import { useTheme } from '@/src/ui/useTheme';
 
 export default function ScanScreen() {
   const { colors } = useTheme();

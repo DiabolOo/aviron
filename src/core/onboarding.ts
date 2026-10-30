@@ -4,14 +4,14 @@ import {
     calculateNutritionTargets,
     calculateTDEE,
     roundToNearest10,
-} from '@/lib/nutritionCalculator';
+} from '@/src/core/nutritionCalculator';
 import type {
     ActivityLevel,
     MainSport,
     NutritionGoal,
     Sex,
     UserProfile,
-} from '@/lib/types';
+} from '@/src/core/types';
 
 export const SPORT_OPTIONS: readonly { id: MainSport; label: string; emoji: string }[] = [
   { id: 'running', label: 'Running', emoji: '🏃' },

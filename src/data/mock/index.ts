@@ -1,4 +1,4 @@
-import { toISODate, weekDates } from '@/lib/dates';
+import { toISODate, weekDates } from '@/src/core/dates';
 import type {
     Meal,
     Recipe,
@@ -6,7 +6,7 @@ import type {
     UserProfile,
     Weather,
     WorkoutSession,
-} from '@/lib/types';
+} from '@/src/core/types';
 
 export const MOCK_RECIPES: Recipe[] = [
   {
@@ -37,7 +37,7 @@ export const MOCK_RECIPES: Recipe[] = [
     category: 'quick',
     ingredients: [
       { name: 'Oeufs', quantity: '3' },
-      { name: 'Blancs d’oeuf', quantity: '2' },
+      { name: 'Blancs d\u2019oeuf', quantity: '2' },
       { name: 'Épinards', quantity: '50 g' },
       { name: 'Fromage frais', quantity: '30 g' },
     ],
@@ -459,7 +459,7 @@ export async function mockAdaptWeek(params: {
     const caloriesBurn = Math.round(session.caloriesBurn * (durationMin / session.durationMin));
     const subtitle =
       params.fatigue === 'tired'
-        ? `${session.subtitle.split('·')[0].trim()} · volume réduit`
+        ? `${session.subtitle.split('\u00b7')[0].trim()} · volume réduit`
         : session.subtitle;
 
     return {

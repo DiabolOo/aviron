@@ -1,8 +1,8 @@
 import { Cloud, CloudRain, CloudSun, Sun } from 'lucide-react-native';
 import { Text, View } from 'react-native';
 
-import type { Weather, WeatherCondition, WorkoutSession } from '@/lib/types';
-import { useTheme } from '@/lib/useTheme';
+import type { Weather, WeatherCondition, WorkoutSession } from '@/src/core/types';
+import { useTheme } from '@/src/ui/useTheme';
 
 type StatusPillProps = {
   streak: number;

@@ -2,8 +2,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
-import { addDaysISO, mealMomentForHour, toISODate } from '@/lib/dates';
-import { remainingCalories, sumMacros, uid } from '@/lib/format';
+import { addDaysISO, mealMomentForHour, toISODate } from '@/src/core/dates';
+import { remainingCalories, sumMacros, uid } from '@/src/core/format';
 import {
   MOCK_MEALS,
   MOCK_PROFILE,
@@ -13,9 +13,9 @@ import {
   buildWeekSessions,
   mockAdaptWeek,
   mockAnalyzePlate
-} from '@/lib/mock';
-import { calculateNutritionTargets } from '@/lib/nutritionCalculator';
-import { buildProgram, buildProgramSessions } from '@/lib/program';
+} from '@/src/data/mock';
+import { calculateNutritionTargets } from '@/src/core/nutritionCalculator';
+import { buildProgram, buildProgramSessions } from '@/src/core/program';
 import type {
   AthleticGoal,
   FatigueLevel,
@@ -31,7 +31,7 @@ import type {
   Weather,
   WorkoutProgram,
   WorkoutSession
-} from '@/lib/types';
+} from '@/src/core/types';
 
 type PulseFitState = {
   themePreference: ThemePreference;

@@ -16,8 +16,8 @@ import { IconButton } from '@/components/ui/IconButton';
 import { Label } from '@/components/ui/Label';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
 import { Stepper } from '@/components/ui/Stepper';
-import type { Macros, Meal } from '@/lib/types';
-import { useTheme } from '@/lib/useTheme';
+import type { Macros, Meal } from '@/src/core/types';
+import { useTheme } from '@/src/ui/useTheme';
 
 type MealEditSheetProps = {
   meal: Meal | null;

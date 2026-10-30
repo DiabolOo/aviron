@@ -1,6 +1,6 @@
 import { Text } from 'react-native';
 
-import type { WorkoutSession } from '@/lib/types';
+import type { WorkoutSession } from '@/src/core/types';
 
 type DayStatusProps = {
   session?: WorkoutSession;

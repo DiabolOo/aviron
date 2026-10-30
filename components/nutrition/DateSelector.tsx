@@ -11,9 +11,9 @@ import {
   toISODate,
   weekDates,
   weekdayLabel,
-} from '@/lib/dates';
+} from '@/src/core/dates';
 import { usePulseFitStore } from '@/lib/store';
-import { useTheme } from '@/lib/useTheme';
+import { useTheme } from '@/src/ui/useTheme';
 
 export function DateSelector() {
   const { colors } = useTheme();

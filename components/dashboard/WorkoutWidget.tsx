@@ -8,8 +8,8 @@ import { WorkoutMetrics } from '@/components/sport/WorkoutCard';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { IconButton } from '@/components/ui/IconButton';
 import { Label } from '@/components/ui/Label';
-import type { WorkoutSession } from '@/lib/types';
-import { useTheme } from '@/lib/useTheme';
+import type { WorkoutSession } from '@/src/core/types';
+import { useTheme } from '@/src/ui/useTheme';
 
 type WorkoutWidgetProps = {
   session?: WorkoutSession;

@@ -1,7 +1,7 @@
 import * as Haptics from 'expo-haptics';
 import { Switch } from 'react-native';
 
-import { useTheme } from '@/lib/useTheme';
+import { useTheme } from '@/src/ui/useTheme';
 
 type ConnectionSwitchProps = {
   value: boolean;

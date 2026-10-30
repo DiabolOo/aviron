@@ -17,9 +17,9 @@ import { IconButton } from '@/components/ui/IconButton';
 import { Label } from '@/components/ui/Label';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
 import { Segmented } from '@/components/ui/Segmented';
-import { mealMomentForHour, toISODate } from '@/lib/dates';
-import type { Macros, Meal, MealMoment } from '@/lib/types';
-import { useTheme } from '@/lib/useTheme';
+import { mealMomentForHour, toISODate } from '@/src/core/dates';
+import type { Macros, Meal, MealMoment } from '@/src/core/types';
+import { useTheme } from '@/src/ui/useTheme';
 
 type AddMealSheetProps = {
   visible: boolean;

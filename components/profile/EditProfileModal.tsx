@@ -15,8 +15,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconButton } from '@/components/ui/IconButton';
 import { Label } from '@/components/ui/Label';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
-import type { UserProfile } from '@/lib/types';
-import { useTheme } from '@/lib/useTheme';
+import type { UserProfile } from '@/src/core/types';
+import { useTheme } from '@/src/ui/useTheme';
 
 export type ProfileEdit = Pick<UserProfile, 'firstName' | 'weightKg' | 'heightCm' | 'goalLabel'>;
 

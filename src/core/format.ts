@@ -1,4 +1,4 @@
-import type { Macros } from '@/lib/types';
+import type { Macros } from '@/src/core/types';
 
 export function formatKcal(value: number): string {
   return `${Math.round(value)}`;

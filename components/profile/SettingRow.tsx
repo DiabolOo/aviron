@@ -3,7 +3,7 @@ import { ChevronRight } from 'lucide-react-native';
 import { type ReactNode } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
-import { useTheme } from '@/lib/useTheme';
+import { useTheme } from '@/src/ui/useTheme';
 
 type SettingRowProps = {
   label: string;

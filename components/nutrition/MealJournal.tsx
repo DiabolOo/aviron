@@ -7,11 +7,11 @@ import { MealEditSheet } from '@/components/nutrition/MealEditSheet';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Label } from '@/components/ui/Label';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
-import { mealMomentForHour } from '@/lib/dates';
-import { formatKcal, sumMacros } from '@/lib/format';
+import { mealMomentForHour } from '@/src/core/dates';
+import { formatKcal, sumMacros } from '@/src/core/format';
 import { usePulseFitStore } from '@/lib/store';
-import type { Meal, MealMoment } from '@/lib/types';
-import { useTheme } from '@/lib/useTheme';
+import type { Meal, MealMoment } from '@/src/core/types';
+import { useTheme } from '@/src/ui/useTheme';
 
 type MealJournalProps = {
   meals: Meal[];

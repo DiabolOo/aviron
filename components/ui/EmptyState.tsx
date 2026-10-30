@@ -3,7 +3,7 @@ import { type ReactNode } from 'react';
 import { Text, View } from 'react-native';
 
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
-import { useTheme } from '@/lib/useTheme';
+import { useTheme } from '@/src/ui/useTheme';
 
 type EmptyStateAction = {
   label: string;

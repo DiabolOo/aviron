@@ -2,8 +2,8 @@ import { Text, View } from 'react-native';
 
 import { Label } from '@/components/ui/Label';
 import { ProgressRing } from '@/components/ui/ProgressRing';
-import { clampRatio, formatKcal } from '@/lib/format';
-import { useTheme } from '@/lib/useTheme';
+import { clampRatio, formatKcal } from '@/src/core/format';
+import { useTheme } from '@/src/ui/useTheme';
 
 type CalorieGaugeProps = {
   consumed: number;

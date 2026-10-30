@@ -5,8 +5,8 @@ import { Text, View } from 'react-native';
 import { Card } from '@/components/ui/Card';
 import { Label } from '@/components/ui/Label';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
-import type { WorkoutKind, WorkoutSession } from '@/lib/types';
-import { useTheme } from '@/lib/useTheme';
+import type { WorkoutKind, WorkoutSession } from '@/src/core/types';
+import { useTheme } from '@/src/ui/useTheme';
 
 type SessionDetailProps = {
   session: WorkoutSession;

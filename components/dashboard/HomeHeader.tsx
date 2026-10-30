@@ -1,8 +1,8 @@
 import { Text, View } from 'react-native';
 
 import { StatusPill } from '@/components/dashboard/StatusPill';
-import { greetingForHour } from '@/lib/dates';
-import type { Weather, WorkoutSession } from '@/lib/types';
+import { greetingForHour } from '@/src/core/dates';
+import type { Weather, WorkoutSession } from '@/src/core/types';
 
 type HomeHeaderProps = {
   firstName: string;

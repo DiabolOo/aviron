@@ -4,7 +4,7 @@ import { Text, View } from 'react-native';
 import { IconButton } from '@/components/ui/IconButton';
 import { Label } from '@/components/ui/Label';
 import { TAB_ICONS } from '@/components/ui/tabIcons';
-import { useTheme } from '@/lib/useTheme';
+import { useTheme } from '@/src/ui/useTheme';
 
 type MemberCardProps = {
   firstName: string;

@@ -5,9 +5,9 @@ import { Pressable, Text, View } from 'react-native';
 
 import { Label } from '@/components/ui/Label';
 import { ProgressRing } from '@/components/ui/ProgressRing';
-import { clampRatio, formatKcal } from '@/lib/format';
-import type { Macros } from '@/lib/types';
-import { useTheme } from '@/lib/useTheme';
+import { clampRatio, formatKcal } from '@/src/core/format';
+import type { Macros } from '@/src/core/types';
+import { useTheme } from '@/src/ui/useTheme';
 
 type NutritionWidgetProps = {
   consumed: Macros;

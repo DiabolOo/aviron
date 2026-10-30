@@ -10,10 +10,10 @@ import { ScanButton } from '@/components/nutrition/ScanButton';
 import { Screen } from '@/components/ui/Screen';
 import { TabHeader } from '@/components/ui/TabHeader';
 import { TAB_ICONS } from '@/components/ui/tabIcons';
-import { formatKcal } from '@/lib/format';
+import { formatKcal } from '@/src/core/format';
 import { usePulseFitStore, useStatsForDate } from '@/lib/store';
-import type { Macros } from '@/lib/types';
-import { useTheme } from '@/lib/useTheme';
+import type { Macros } from '@/src/core/types';
+import { useTheme } from '@/src/ui/useTheme';
 
 const MACRO_CHIPS: { key: Exclude<keyof Macros, 'calories'>; label: string; dot: string }[] = [
   { key: 'protein', label: 'P', dot: 'bg-accent' },

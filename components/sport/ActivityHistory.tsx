@@ -4,10 +4,10 @@ import { Pressable, Text, View } from 'react-native';
 
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Label } from '@/components/ui/Label';
-import { formatDayMonth } from '@/lib/dates';
-import { formatDuration, formatPace, formatSpeed } from '@/lib/format';
-import type { ActivityType, StravaActivity } from '@/lib/types';
-import { useTheme } from '@/lib/useTheme';
+import { formatDayMonth } from '@/src/core/dates';
+import { formatDuration, formatPace, formatSpeed } from '@/src/core/format';
+import type { ActivityType, StravaActivity } from '@/src/core/types';
+import { useTheme } from '@/src/ui/useTheme';
 
 type ActivityHistoryProps = {
   activities: StravaActivity[];

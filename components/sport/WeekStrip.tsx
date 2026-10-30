@@ -1,8 +1,8 @@
 import * as Haptics from 'expo-haptics';
 import { Pressable, Text, View } from 'react-native';
 
-import { toISODate, weekdayLabel } from '@/lib/dates';
-import type { WorkoutSession } from '@/lib/types';
+import { toISODate, weekdayLabel } from '@/src/core/dates';
+import type { WorkoutSession } from '@/src/core/types';
 
 type WeekStripProps = {
   sessions: WorkoutSession[];

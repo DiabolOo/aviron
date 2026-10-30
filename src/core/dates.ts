@@ -1,4 +1,4 @@
-import type { MealMoment } from '@/lib/types';
+import type { MealMoment } from '@/src/core/types';
 
 const WEEKDAY_LABELS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'] as const;
 
@@ -76,7 +76,7 @@ export function formatFullDay(iso: string): string {
 
 export function relativeDayLabel(iso: string): string {
   const today = toISODate(new Date());
-  if (iso === today) return 'Aujourd’hui';
+  if (iso === today) return 'Aujourd\u2019hui';
   if (iso === addDaysISO(today, -1)) return 'Hier';
   if (iso === addDaysISO(today, -2)) return 'Avant-hier';
   return formatFullDay(iso);

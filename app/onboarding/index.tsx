@@ -17,10 +17,10 @@ import {
     SEX_OPTIONS,
     SPORT_OPTIONS,
     buildProfileFromOnboarding
-} from '@/lib/onboarding';
+} from '@/src/core/onboarding';
 import { usePulseFitStore } from '@/lib/store';
-import type { ActivityLevel, MainSport, NutritionGoal, Sex } from '@/lib/types';
-import { useTheme } from '@/lib/useTheme';
+import type { ActivityLevel, MainSport, NutritionGoal, Sex } from '@/src/core/types';
+import { useTheme } from '@/src/ui/useTheme';
 
 const TOTAL_STEPS = 6;
 const CALCULATING_STEP = TOTAL_STEPS - 1;

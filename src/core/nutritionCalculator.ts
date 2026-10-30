@@ -1,4 +1,4 @@
-import type { ActivityLevel, NutritionGoal, Sex, UserProfile } from '@/lib/types';
+import type { ActivityLevel, NutritionGoal, Sex, UserProfile } from '@/src/core/types';
 
 export const ACTIVITY_FACTORS: Record<ActivityLevel, number> = {
   sedentary: 1.2,

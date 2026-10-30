@@ -3,7 +3,7 @@ import Svg, { Defs, Line, LinearGradient, Path, Stop } from 'react-native-svg';
 
 import { smoothPath } from '@/components/sport/SmoothPath';
 import { Card } from '@/components/ui/Card';
-import { useTheme } from '@/lib/useTheme';
+import { useTheme } from '@/src/ui/useTheme';
 
 const WIDTH = 320;
 const HEIGHT = 140;

@@ -1,8 +1,8 @@
 import { Zap } from 'lucide-react-native';
 import { Text, View } from 'react-native';
 
-import type { WorkoutSession } from '@/lib/types';
-import { useTheme } from '@/lib/useTheme';
+import type { WorkoutSession } from '@/src/core/types';
+import { useTheme } from '@/src/ui/useTheme';
 
 export function getIntensity(session: Pick<WorkoutSession, 'durationMin' | 'caloriesBurn'>): number {
   const kcalPerMin = session.caloriesBurn / Math.max(session.durationMin, 1);

@@ -13,9 +13,9 @@ import { Label } from '@/components/ui/Label';
 import { Screen } from '@/components/ui/Screen';
 import { Segmented } from '@/components/ui/Segmented';
 import { Stepper } from '@/components/ui/Stepper';
-import { inferGoal } from '@/lib/nutritionCalculator';
+import { inferGoal } from '@/src/core/nutritionCalculator';
 import { usePulseFitStore, useStreak } from '@/lib/store';
-import type { ThemePreference } from '@/lib/types';
+import type { ThemePreference } from '@/src/core/types';
 
 const THEMES = [
   { id: 'system', label: 'Auto' },

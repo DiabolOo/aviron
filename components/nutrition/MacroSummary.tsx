@@ -3,8 +3,8 @@ import { Text, View } from 'react-native';
 import { Card } from '@/components/ui/Card';
 import { Label } from '@/components/ui/Label';
 import { MacroBar } from '@/components/ui/MacroBar';
-import { clampRatio, formatKcal } from '@/lib/format';
-import type { Macros } from '@/lib/types';
+import { clampRatio, formatKcal } from '@/src/core/format';
+import type { Macros } from '@/src/core/types';
 
 type MacroSummaryProps = {
   consumed: Macros;

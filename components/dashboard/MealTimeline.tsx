@@ -3,8 +3,8 @@ import { Text, View } from 'react-native';
 
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Label } from '@/components/ui/Label';
-import { formatKcal } from '@/lib/format';
-import type { Meal } from '@/lib/types';
+import { formatKcal } from '@/src/core/format';
+import type { Meal } from '@/src/core/types';
 
 type MealTimelineProps = {
   meals: Meal[];

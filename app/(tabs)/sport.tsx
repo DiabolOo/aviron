@@ -9,9 +9,9 @@ import { WeekStrip } from '@/components/sport/WeekStrip';
 import { Screen } from '@/components/ui/Screen';
 import { TabHeader } from '@/components/ui/TabHeader';
 import { TAB_ICONS } from '@/components/ui/tabIcons';
-import { toISODate, weekDates } from '@/lib/dates';
+import { toISODate, weekDates } from '@/src/core/dates';
 import { usePulseFitStore } from '@/lib/store';
-import type { WorkoutSession } from '@/lib/types';
+import type { WorkoutSession } from '@/src/core/types';
 
 export default function SportScreen() {
   const sessions = usePulseFitStore((s) => s.sessions);

@@ -4,9 +4,9 @@ import { Image, Switch, Text, View } from 'react-native';
 import { Label } from '@/components/ui/Label';
 import { MacroBar } from '@/components/ui/MacroBar';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
-import { formatKcal } from '@/lib/format';
-import type { Meal } from '@/lib/types';
-import { useTheme } from '@/lib/useTheme';
+import { formatKcal } from '@/src/core/format';
+import type { Meal } from '@/src/core/types';
+import { useTheme } from '@/src/ui/useTheme';
 
 type MealResultCardProps = {
   meal: Meal;

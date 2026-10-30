@@ -1,7 +1,7 @@
 import { Text, View } from 'react-native';
 
 import { Label } from '@/components/ui/Label';
-import { clampRatio } from '@/lib/format';
+import { clampRatio } from '@/src/core/format';
 
 type MacroBarProps = {
   label: string;

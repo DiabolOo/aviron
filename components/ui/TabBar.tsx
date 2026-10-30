@@ -1,11 +1,11 @@
 import * as Haptics from 'expo-haptics';
-import { Tabs } from 'expo-router';
+import { router, Tabs } from 'expo-router';
 import { House } from 'lucide-react-native';
 import { type ComponentProps } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
 import { TAB_ICONS as ICONS } from '@/components/ui/tabIcons';
-import { useTheme } from '@/lib/useTheme';
+import { useTheme } from '@/src/ui/useTheme';
 
 type TabBarProps = Parameters<NonNullable<ComponentProps<typeof Tabs>['tabBar']>>[0];
 
@@ -16,7 +16,7 @@ const HAPTICS = {
   profil: () => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success),
 } as const;
 
-export function TabBar({ state, descriptors, navigation, insets }: TabBarProps) {
+export function TabBar({ state, descriptors, insets }: TabBarProps) {
   const { colors } = useTheme();
 
   return (
@@ -28,14 +28,9 @@ export function TabBar({ state, descriptors, navigation, insets }: TabBarProps) 
           const title = descriptors[route.key].options.title ?? route.name;
 
           const onPress = () => {
-            const event = navigation.emit({
-              type: 'tabPress',
-              target: route.key,
-              canPreventDefault: true,
-            });
-            if (!focused && !event.defaultPrevented) {
+            if (!focused) {
               void HAPTICS[route.name as keyof typeof HAPTICS]?.();
-              navigation.navigate(route.name, route.params);
+              router.navigate(route.name as never);
             }
           };
 

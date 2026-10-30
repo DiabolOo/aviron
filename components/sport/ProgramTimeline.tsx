@@ -4,9 +4,9 @@ import { Pressable, Text, View } from 'react-native';
 
 import { Card } from '@/components/ui/Card';
 import { Label } from '@/components/ui/Label';
-import { formatDayMonth, toISODate } from '@/lib/dates';
-import type { WorkoutProgram } from '@/lib/types';
-import { useTheme } from '@/lib/useTheme';
+import { formatDayMonth, toISODate } from '@/src/core/dates';
+import type { WorkoutProgram } from '@/src/core/types';
+import { useTheme } from '@/src/ui/useTheme';
 
 type ProgramTimelineProps = {
   program: WorkoutProgram;

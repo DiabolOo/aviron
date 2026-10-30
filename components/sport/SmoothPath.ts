@@ -1,4 +1,4 @@
-import type { RoutePoint } from '@/lib/types';
+import type { RoutePoint } from '@/src/core/types';
 
 export function smoothPath(points: RoutePoint[], closed = false): string {
   if (points.length < 2) return '';

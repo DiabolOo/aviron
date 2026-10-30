@@ -2,8 +2,8 @@ import { Zap } from 'lucide-react-native';
 import { Text, View } from 'react-native';
 
 import { Card } from '@/components/ui/Card';
-import type { ActivitySplit } from '@/lib/types';
-import { useTheme } from '@/lib/useTheme';
+import type { ActivitySplit } from '@/src/core/types';
+import { useTheme } from '@/src/ui/useTheme';
 
 export function SplitsList({ splits }: { splits: ActivitySplit[] }) {
   const { colors } = useTheme();

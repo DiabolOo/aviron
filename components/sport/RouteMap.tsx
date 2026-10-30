@@ -2,8 +2,8 @@ import { View } from 'react-native';
 import Svg, { Circle, Defs, Line, LinearGradient, Path, Stop } from 'react-native-svg';
 
 import { smoothPath } from '@/components/sport/SmoothPath';
-import type { RoutePoint } from '@/lib/types';
-import { useTheme } from '@/lib/useTheme';
+import type { RoutePoint } from '@/src/core/types';
+import { useTheme } from '@/src/ui/useTheme';
 
 const WIDTH = 320;
 const HEIGHT = 220;

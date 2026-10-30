@@ -3,7 +3,7 @@ import { router } from 'expo-router';
 import { ScanLine } from 'lucide-react-native';
 import { Pressable, Text, View } from 'react-native';
 
-import { useTheme } from '@/lib/useTheme';
+import { useTheme } from '@/src/ui/useTheme';
 
 export function ScanButton() {
   const { colors } = useTheme();

@@ -8,10 +8,10 @@ import { SplitsList } from '@/components/sport/SplitsList';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { Label } from '@/components/ui/Label';
 import { Screen } from '@/components/ui/Screen';
-import { parseISODate } from '@/lib/dates';
-import { formatDuration, formatPace, formatSpeed } from '@/lib/format';
+import { parseISODate } from '@/src/core/dates';
+import { formatDuration, formatPace, formatSpeed } from '@/src/core/format';
 import { usePulseFitStore } from '@/lib/store';
-import { useTheme } from '@/lib/useTheme';
+import { useTheme } from '@/src/ui/useTheme';
 
 const STRAVA_COLOR = '#FC4C02';
 

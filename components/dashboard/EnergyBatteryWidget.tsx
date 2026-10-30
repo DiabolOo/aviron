@@ -2,9 +2,9 @@ import { Zap } from 'lucide-react-native';
 import { Text, View } from 'react-native';
 
 import { Label } from '@/components/ui/Label';
-import { clampRatio } from '@/lib/format';
-import type { WorkoutSession } from '@/lib/types';
-import { useTheme } from '@/lib/useTheme';
+import { clampRatio } from '@/src/core/format';
+import type { WorkoutSession } from '@/src/core/types';
+import { useTheme } from '@/src/ui/useTheme';
 
 type EnergyBatteryWidgetProps = {
   session?: WorkoutSession;

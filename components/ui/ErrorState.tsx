@@ -1,7 +1,7 @@
 import { RotateCcw, TriangleAlert } from 'lucide-react-native';
 
 import { EmptyState } from '@/components/ui/EmptyState';
-import { useTheme } from '@/lib/useTheme';
+import { useTheme } from '@/src/ui/useTheme';
 
 type ErrorStateProps = {
   title?: string;

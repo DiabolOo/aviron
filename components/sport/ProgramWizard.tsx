@@ -8,10 +8,10 @@ import { Label } from '@/components/ui/Label';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
 import { Segmented } from '@/components/ui/Segmented';
 import { Stepper } from '@/components/ui/Stepper';
-import { addDaysISO, toISODate } from '@/lib/dates';
+import { addDaysISO, toISODate } from '@/src/core/dates';
 import { usePulseFitStore } from '@/lib/store';
-import type { AthleticGoal, AthleticGoalType } from '@/lib/types';
-import { useTheme } from '@/lib/useTheme';
+import type { AthleticGoal, AthleticGoalType } from '@/src/core/types';
+import { useTheme } from '@/src/ui/useTheme';
 
 const GOAL_TYPES: { id: AthleticGoalType; title: string; hint: string }[] = [
   { id: 'race_prep', title: 'Prépa course / événement', hint: '5 km, semi, marathon…' },

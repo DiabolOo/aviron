@@ -1,11 +1,11 @@
-import { addDaysISO, parseISODate, startOfWeek, toISODate, weekDates } from '@/lib/dates';
-import { uid } from '@/lib/format';
+import { addDaysISO, parseISODate, startOfWeek, toISODate, weekDates } from '@/src/core/dates';
+import { uid } from '@/src/core/format';
 import type {
   AthleticGoal,
   ProgramMilestone,
   WorkoutProgram,
   WorkoutSession,
-} from '@/lib/types';
+} from '@/src/core/types';
 
 const DAY_SLOTS: Record<number, number[]> = {
   2: [1, 4],
