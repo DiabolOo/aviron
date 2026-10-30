@@ -148,7 +148,7 @@ Les modules s'ajoutent dans *Aujourd'hui* (cartes), *Plan* (événements), *Suiv
 - [x] Interfaces de repositories + adaptateur **mock** + adaptateur **local** ; l'UI n'importe plus les mocks
 - [ ] `LifeModule` + registre de modules ; migrer Sport, Nutrition et Profil comme premiers modules
 - [ ] Composant `ProposalCard` + store des propositions (Valider / Modifier / Refuser / Annuler)
-- [ ] **Source unique du bilan du jour** : sélecteur `getDailyBalance(date)` utilisé par *Aujourd'hui* et *Nutrition* (corriger l'écart actuel : 2250 kcal restantes vs objectif 2270 affiché)
+- [x] **Source unique du bilan du jour** : sélecteur `getDailyBalance(date)` utilisé par *Aujourd'hui* et *Nutrition* (corriger l'écart actuel : 2250 kcal restantes vs objectif 2270 affiché)
 - [ ] Test d'invariant : la somme kcal des macros (P×4 + G×4 + L×9) = objectif ±1 % (aujourd'hui 140 P / 255 G / 63 L → 2147 kcal pour 2270)
 - [ ] Feature flags par module
 - **DoD** : l'app tourne à l'identique avec la nouvelle structure ; ajouter un module factice « test » ne demande aucune modification de la navigation.
@@ -363,6 +363,7 @@ Les modules s'ajoutent dans *Aujourd'hui* (cartes), *Plan* (événements), *Suiv
 | 2026-10-30 | T3 — Schémas Zod (10 entités) + 19 tests unitaires |
 | 2026-10-30 | T4 — Repositories (4 interfaces) + adaptateurs mock + local |
 | 2026-10-30 | T5 — store branché sur les repositories (local seedé + migration de la sauvegarde mvp3) |
+| 2026-10-30 | T6 — source unique du bilan du jour (budget = objectif + calories brûlées) |
 
 ## ▶️ Prochaine étape
 Lancer le **Jalon 3** (socle modulaire & contrats de données), en commençant par l'ADR-001 et la source unique du bilan du jour.

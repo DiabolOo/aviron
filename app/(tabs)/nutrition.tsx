@@ -24,7 +24,7 @@ const MACRO_CHIPS: { key: Exclude<keyof Macros, 'calories'>; label: string; dot:
 export default function NutritionScreen() {
   const { colors } = useTheme();
   const selectedDate = usePulseFitStore((s) => s.selectedDate);
-  const { profile, consumed, dayMeals } = useStatsForDate(selectedDate);
+  const { profile, consumed, dayMeals, budget } = useStatsForDate(selectedDate);
   const addMeal = usePulseFitStore((s) => s.addMeal);
   const [adding, setAdding] = useState(false);
 
@@ -35,7 +35,7 @@ export default function NutritionScreen() {
         tint="accent"
         eyebrow="Assiette du jour"
         title="Nutrition"
-        subtitle={`${formatKcal(consumed.calories)} / ${formatKcal(profile.macrosTarget.calories)} kcal`}>
+        subtitle={`${formatKcal(consumed.calories)} / ${formatKcal(budget)} kcal`}>
         <View className="mt-4 flex-row gap-2">
           {MACRO_CHIPS.map(({ key, label, dot }) => (
             <View

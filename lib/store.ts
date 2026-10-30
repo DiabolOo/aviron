@@ -3,9 +3,10 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
 import { agent } from '@/src/agent';
+import { getDailyBalance, type DailyBalance } from '@/src/core/balance';
 import { addDaysISO, mealMomentForHour, toISODate } from '@/src/core/dates';
 import { DEFAULT_PROFILE } from '@/src/core/defaults';
-import { remainingCalories, sumMacros, uid } from '@/src/core/format';
+import { uid } from '@/src/core/format';
 import { calculateNutritionTargets } from '@/src/core/nutritionCalculator';
 import { buildProgram, buildProgramSessions } from '@/src/core/program';
 import type {
@@ -141,8 +142,9 @@ export const usePulseFitStore = create<PulseFitState>()(
   persist(
     (set, get) => {
       const setProfile = (next: UserProfile) => {
-        set({ profile: next });
-        void repositories.profile.save(next);
+        const normalized = { ...next, calorieTarget: next.macrosTarget.calories };
+        set({ profile: normalized });
+        void repositories.profile.save(normalized);
       };
 
       const persistMeals = (meals: Meal[]) => {
@@ -379,26 +381,27 @@ export const usePulseFitStore = create<PulseFitState>()(
   ),
 );
 
-export function useStatsForDate(date: string) {
+export function useDailyBalance(date: string): DailyBalance {
   const profile = usePulseFitStore((s) => s.profile);
   const meals = usePulseFitStore((s) => s.meals);
   const sessions = usePulseFitStore((s) => s.sessions);
 
-  const dayMeals = meals.filter((meal) => meal.loggedAt.startsWith(date));
-  const consumed = sumMacros(dayMeals.map((meal) => meal.macros));
-  const daySession = sessions.find((session) => session.date === date);
-  const burned = sessions
-    .filter((session) => session.date === date && session.completed)
-    .reduce((sum, session) => sum + session.caloriesBurn, 0);
+  return getDailyBalance({ date, profile, meals, sessions });
+}
+
+export function useStatsForDate(date: string) {
+  const balance = useDailyBalance(date);
+  const profile = usePulseFitStore((s) => s.profile);
 
   return {
     profile,
     date,
-    dayMeals,
-    consumed,
-    burned,
-    remaining: remainingCalories(consumed.calories, burned, profile.calorieTarget),
-    daySession,
+    dayMeals: balance.meals,
+    consumed: balance.consumed,
+    burned: balance.burned,
+    budget: balance.budget,
+    remaining: balance.remaining,
+    daySession: balance.session,
   };
 }
 
