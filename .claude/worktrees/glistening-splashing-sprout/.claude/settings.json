@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(sed -i 's/- \\\\[ \\\\] Réorganiser le dépôt selon l'\\\\''arborescence cible/- [x] Réorganiser le dépôt selon l'\\\\''arborescence cible/' ROADMAP.md)",
+      "Bash(sed -i 's/| 2026-10-30 | Jalon 3 démarré : ADR-001 créé, zod + jest-expo ajoutés, branche `jalon-3-socle` |/| 2026-10-30 | Jalon 3 démarré : ADR-001 créé, zod + jest-expo ajoutés, branche `jalon-3-socle` |\\\\n| 2026-10-30 | T2 — `lib\\\\/` → `src\\\\/core\\\\/`, `src\\\\/ui\\\\/`, `src\\\\/data\\\\/mock\\\\/` ; upgrade Expo SDK 57→58 |/' ROADMAP.md)"
+    ]
+  }
+}

@@ -143,9 +143,9 @@ Les modules s'ajoutent dans *Aujourd'hui* (cartes), *Plan* (événements), *Suiv
 ## Jalon 3 — Socle modulaire & contrats de données ⏳
 > Pourquoi maintenant : l'UI est construite sur des mocks. Fixer les contrats avant d'ajouter des écrans évite de tout reprendre au backend.
 - [x] ADR-001 : architecture modulaire (`core / modules / agent / data / ui`)
-- [ ] Réorganiser le dépôt selon l'arborescence cible (déplacer `lib/` vers `src/core/`, sans changer le comportement)
-- [ ] Schémas Zod : `Profile`, `Meal`, `FoodItem`, `PlannedWorkout`, `Activity`, `TrainingPlan`, `Goal`, `Insight`, `Proposal`, `DailyBrief`
-- [ ] Interfaces de repositories + adaptateur **mock** + adaptateur **local** ; l'UI n'importe plus les mocks
+- [x] Réorganiser le dépôt selon l'arborescence cible (déplacer `lib/` vers `src/core/`, sans changer le comportement)
+- [x] Schémas Zod : `Profile`, `Meal`, `FoodItem`, `PlannedWorkout`, `Activity`, `TrainingPlan`, `Goal`, `Insight`, `Proposal`, `DailyBrief`
+- [x] Interfaces de repositories + adaptateur **mock** + adaptateur **local** ; l'UI n'importe plus les mocks
 - [ ] `LifeModule` + registre de modules ; migrer Sport, Nutrition et Profil comme premiers modules
 - [ ] Composant `ProposalCard` + store des propositions (Valider / Modifier / Refuser / Annuler)
 - [ ] **Source unique du bilan du jour** : sélecteur `getDailyBalance(date)` utilisé par *Aujourd'hui* et *Nutrition* (corriger l'écart actuel : 2250 kcal restantes vs objectif 2270 affiché)
@@ -359,6 +359,9 @@ Les modules s'ajoutent dans *Aujourd'hui* (cartes), *Plan* (événements), *Suiv
 | 2026-10-30 | **Roadmap v2** : architecture modulaire, UX « zéro cliquodrome », Agent Core, gate légal Strava, phase Life OS en modules |
 | 2026-10-30 | ADR-002 validé : navigation `Aujourd'hui · Plan · Agent · Suivi · Moi` |
 | 2026-10-30 | Jalon 3 démarré : ADR-001 créé, zod + jest-expo ajoutés, branche `jalon-3-socle` |
+| 2026-10-30 | T2 — `lib/` → `src/core/`, `src/ui/`, `src/data/mock/` ; upgrade Expo SDK 57→58 |
+| 2026-10-30 | T3 — Schémas Zod (10 entités) + 19 tests unitaires |
+| 2026-10-30 | T4 — Repositories (4 interfaces) + adaptateurs mock + local |
 
 ## ▶️ Prochaine étape
 Lancer le **Jalon 3** (socle modulaire & contrats de données), en commençant par l'ADR-001 et la source unique du bilan du jour.
