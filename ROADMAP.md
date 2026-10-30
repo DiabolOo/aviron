@@ -150,7 +150,7 @@ Les modules s'ajoutent dans *Aujourd'hui* (cartes), *Plan* (événements), *Suiv
 - [ ] Composant `ProposalCard` + store des propositions (Valider / Modifier / Refuser / Annuler)
 - [x] **Source unique du bilan du jour** : sélecteur `getDailyBalance(date)` utilisé par *Aujourd'hui* et *Nutrition* (corriger l'écart actuel : 2250 kcal restantes vs objectif 2270 affiché)
 - [x] Test d'invariant : la somme kcal des macros (P×4 + G×4 + L×9) = objectif ±1 % (aujourd'hui 140 P / 255 G / 63 L → 2147 kcal pour 2270)
-- [ ] Feature flags par module
+- [x] Feature flags par module
 - **DoD** : l'app tourne à l'identique avec la nouvelle structure ; ajouter un module factice « test » ne demande aucune modification de la navigation.
 
 ## Jalon 4 — UX v2 « zéro cliquodrome » ⏳
@@ -366,6 +366,8 @@ Les modules s'ajoutent dans *Aujourd'hui* (cartes), *Plan* (événements), *Suiv
 | 2026-10-30 | T6 — source unique du bilan du jour (budget = objectif + calories brûlées) |
 | 2026-10-30 | T7 — invariant macros : calculateMacros au plancher + setCalorieTarget recalcule P/G/L |
 | 2026-10-30 | fix(T5) — filet de sécurité `pf:legacy-mvp3` + `hydrate()` tolérant aux erreurs |
+| 2026-10-30 | T8 — `LifeModule` + registre ; Aujourd'hui rendu via les widgets des modules |
+| 2026-10-30 | T9 — feature flags par module (`isModuleEnabled` + overrides) |
 
 ## ▶️ Prochaine étape
 Lancer le **Jalon 3** (socle modulaire & contrats de données), en commençant par l'ADR-001 et la source unique du bilan du jour.
