@@ -4,7 +4,6 @@ import { View } from 'react-native';
 import { GradientName } from '@/components/dashboard/GradientName';
 import { Gradient } from '@/components/ui/Gradient';
 import { Text } from '@/components/ui/Text';
-import { greetingForHour } from '@/src/core/dates';
 import { FLAME_GRADIENT } from '@/src/ui/theme/tokens';
 import { useTheme } from '@/src/ui/useTheme';
 
@@ -26,9 +25,9 @@ export function HomeHeader({ firstName, streak }: HomeHeaderProps) {
     <View className="mb-2 flex-row items-end justify-between">
       <View className="flex-1 gap-1.5 pr-3">
         <Text className="text-[16px] font-medium capitalize text-muted">{dateLabel}</Text>
-        <View className="flex-row flex-wrap items-center">
-          <Text className="text-[34px] font-bold leading-[42px] tracking-tight text-fg">
-            {greetingForHour(now.getHours())},{' '}
+        <View className="flex-row items-center">
+          <Text numberOfLines={1} className="text-[34px] font-bold leading-[42px] tracking-tight text-fg">
+            {now.getHours() < 18 ? 'Bonjour' : 'Bonsoir'},{' '}
           </Text>
           <GradientName name={firstName} />
         </View>

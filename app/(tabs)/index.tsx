@@ -33,9 +33,7 @@ export default function HomeScreen() {
 
   return (
     <Screen tone="home">
-      <Rise index={0}>
-        <HomeHeader firstName={firstName} streak={streak} />
-      </Rise>
+      <HomeHeader firstName={firstName} streak={streak} />
       <View className="mt-3.5 gap-3.5">
         {entries.map((entry, i) => (
           <Rise key={entry.key} index={i + 1}>

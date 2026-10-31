@@ -13,9 +13,9 @@ export default function TabLayout() {
         <Tabs.Screen name="agent" options={{ title: 'Agent' }} />
         <Tabs.Screen name="suivi" options={{ title: 'Suivi' }} />
         <Tabs.Screen name="stats" options={{ title: 'Stats' }} />
-        <Tabs.Screen name="profile" options={{ title: 'Profil', href: null }} />
-        <Tabs.Screen name="profile-modules" options={{ title: 'Modules', href: null }} />
-        <Tabs.Screen name="profile-section" options={{ title: 'Profil', href: null }} />
+        <Tabs.Screen name="profile" options={{ title: 'Profil' }} />
+        <Tabs.Screen name="profile-modules" options={{ title: 'Modules' }} />
+        <Tabs.Screen name="profile-section" options={{ title: 'Profil' }} />
       </Tabs>
       <UndoToast />
     </View>
