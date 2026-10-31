@@ -88,17 +88,6 @@ export default function RootLayout() {
             name="scan"
             options={{ presentation: 'fullScreenModal', animation: 'slide_from_bottom' }}
           />
-          <Stack.Screen
-            name="session/[id]"
-            options={{
-              headerShown: true,
-              headerTitle: '',
-              headerTintColor: colors.fg,
-              headerStyle: { backgroundColor: colors.canvas },
-              headerShadowVisible: false,
-              animation: 'slide_from_right',
-            }}
-          />
           <Stack.Screen name="gallery" options={{ animation: 'slide_from_right' }} />
           <Stack.Screen name="activity/[id]" options={{ animation: 'slide_from_right' }} />
         </Stack.Protected>

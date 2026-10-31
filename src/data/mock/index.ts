@@ -443,31 +443,3 @@ export async function mockAnalyzePlate(photoUri: string): Promise<Meal> {
   };
 }
 
-export async function mockAdaptWeek(params: {
-  fatigue: 'fresh' | 'ok' | 'tired';
-  timeBudget: '30' | '45' | '60' | '90';
-  sessions: WorkoutSession[];
-}): Promise<WorkoutSession[]> {
-  await new Promise((resolve) => setTimeout(resolve, 1400));
-  const volumeFactor =
-    params.fatigue === 'tired' ? 0.72 : params.fatigue === 'ok' ? 0.9 : 1;
-  const timeCap = Number(params.timeBudget);
-
-  return params.sessions.map((session) => {
-    if (session.kind === 'rest' || session.completed) return session;
-    const durationMin = Math.max(25, Math.round(Math.min(session.durationMin, timeCap) * volumeFactor));
-    const caloriesBurn = Math.round(session.caloriesBurn * (durationMin / session.durationMin));
-    const subtitle =
-      params.fatigue === 'tired'
-        ? `${session.subtitle.split('\u00b7')[0].trim()} · volume réduit`
-        : session.subtitle;
-
-    return {
-      ...session,
-      durationMin,
-      caloriesBurn,
-      subtitle,
-      title: params.fatigue === 'tired' && session.kind === 'run' ? `${session.title} (adapté)` : session.title,
-    };
-  });
-}

@@ -1,17 +1,5 @@
 import type { Proposal } from '@/src/core/schemas';
-import type {
-  FatigueLevel,
-  Meal,
-  TimeBudget,
-  UserProfile,
-  WorkoutSession,
-} from '@/src/core/types';
-
-export type AdaptWeekParams = {
-  fatigue: FatigueLevel;
-  timeBudget: TimeBudget;
-  sessions: WorkoutSession[];
-};
+import type { Meal, UserProfile, WorkoutSession } from '@/src/core/types';
 
 export type ProposalContext = {
   sessions: WorkoutSession[];
@@ -30,7 +18,5 @@ export type IntentContext = ProposalContext & { mealPlanSeed?: number };
 export interface IAgent {
   interpretIntent(text: string, context: IntentContext): Promise<IntentResult>;
   analyzePlate(photoUri: string): Promise<Meal>;
-  adaptWeek(params: AdaptWeekParams): Promise<WorkoutSession[]>;
-  generateDefaultWeek(): Promise<WorkoutSession[]>;
   getPendingProposals(context: ProposalContext): Promise<Proposal[]>;
 }

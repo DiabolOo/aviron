@@ -5,22 +5,18 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 import { useProposalStore } from '@/lib/proposalStore';
 import { agent } from '@/src/agent';
 import { getDailyBalance, type DailyBalance } from '@/src/core/balance';
-import { addDaysISO, mealMomentForHour, toISODate } from '@/src/core/dates';
+import { addDaysISO, toISODate } from '@/src/core/dates';
 import { DEFAULT_PROFILE } from '@/src/core/defaults';
 import { uid } from '@/src/core/format';
 import { calculateMacros, calculateNutritionTargets } from '@/src/core/nutritionCalculator';
 import { buildProgram, buildProgramSessions } from '@/src/core/program';
 import type {
   AthleticGoal,
-  FatigueLevel,
   Meal,
-  MealMoment,
   Recipe,
-  RecipeMealType,
   ScanStep,
   StravaActivity,
   ThemePreference,
-  TimeBudget,
   UserProfile,
   Weather,
   WorkoutProgram,
@@ -62,11 +58,9 @@ type PulseFitState = {
   goToToday: () => void;
   scanStep: ScanStep;
   pendingMeal: Meal | null;
-  isAdapting: boolean;
   completeSession: (id: string) => void;
   uncompleteSession: (id: string) => void;
   moveSession: (id: string, toDate: string) => void;
-  resetWeek: () => void;
   analyzePhoto: (uri: string) => Promise<void>;
   savePendingMeal: (saveAsRecipe?: boolean) => void;
   discardPendingMeal: () => void;
@@ -75,9 +69,6 @@ type PulseFitState = {
   updateMeal: (mealId: string, updatedMeal: Partial<Meal>) => void;
   savedRecipes: Recipe[];
   addRecipe: (recipe: Recipe) => void;
-  deleteRecipe: (id: string) => void;
-  logRecipeToJournal: (recipeId: string, mealType: RecipeMealType) => void;
-  adaptWeek: (fatigue: FatigueLevel, timeBudget: TimeBudget) => Promise<void>;
   activeWorkoutProgram?: WorkoutProgram;
   setAthleticGoal: (goal: AthleticGoal) => void;
   generateWorkoutProgram: () => void;
@@ -86,7 +77,6 @@ type PulseFitState = {
     program: WorkoutProgram | undefined;
     sessions: WorkoutSession[];
   }) => void;
-  resetWorkoutProgram: (keepGoal?: boolean) => void;
 };
 
 type PersistedState = Pick<
@@ -107,10 +97,6 @@ type LegacyPersistedState = Partial<PersistedState> & {
   savedRecipes?: Recipe[];
 };
 
-export function currentMealType(date: Date = new Date()): RecipeMealType {
-  return MOMENT_TO_MEAL_TYPE[mealMomentForHour(date.getHours())];
-}
-
 function recipeFromMeal(meal: Omit<Meal, 'id'>): Recipe {
   return {
     id: uid('recipe'),
@@ -126,20 +112,6 @@ function recipeFromMeal(meal: Omit<Meal, 'id'>): Recipe {
 function todayKey(): string {
   return toISODate(new Date());
 }
-
-const RECIPE_MEAL_HOURS: Record<RecipeMealType, string> = {
-  breakfast: '08',
-  lunch: '12',
-  snack: '16',
-  dinner: '20',
-};
-
-const MOMENT_TO_MEAL_TYPE: Record<MealMoment, RecipeMealType> = {
-  morning: 'breakfast',
-  noon: 'lunch',
-  snack: 'snack',
-  evening: 'dinner',
-};
 
 const NUTRITION_RECALC_KEYS: readonly (keyof UserProfile)[] = [
   'sex',
@@ -262,7 +234,6 @@ export const usePulseFitStore = create<PulseFitState>()(
         goToToday: () => set({ selectedDate: todayKey() }),
         scanStep: 'idle',
         pendingMeal: null,
-        isAdapting: false,
         completeSession: (id) => {
           persistSessions(
             get().sessions.map((session) =>
@@ -283,10 +254,6 @@ export const usePulseFitStore = create<PulseFitState>()(
               session.id === id ? { ...session, date: toDate } : session,
             ),
           );
-        },
-        resetWeek: async () => {
-          const sessions = await agent.generateDefaultWeek();
-          persistSessions(sessions);
         },
         analyzePhoto: async (uri) => {
           set({ scanStep: 'analyzing', pendingMeal: null });
@@ -334,34 +301,6 @@ export const usePulseFitStore = create<PulseFitState>()(
           set({ savedRecipes: [recipe, ...get().savedRecipes] });
           void repositories.recipes.upsert(recipe);
         },
-        deleteRecipe: (id) => {
-          set({ savedRecipes: get().savedRecipes.filter((recipe) => recipe.id !== id) });
-          void repositories.recipes.remove(id);
-        },
-        logRecipeToJournal: (recipeId, mealType) => {
-          const recipe = get().savedRecipes.find((item) => item.id === recipeId);
-          if (!recipe) return;
-          const { selectedDate } = get();
-          const now = new Date();
-          const time =
-            selectedDate === todayKey() && mealType === currentMealType(now)
-              ? now.toTimeString().slice(0, 8)
-              : `${RECIPE_MEAL_HOURS[mealType]}:00:00`;
-          const meal: Meal = {
-            id: uid('meal'),
-            name: recipe.title,
-            loggedAt: `${selectedDate}T${time}`,
-            macros: {
-              calories: recipe.calories,
-              protein: recipe.protein,
-              carbs: recipe.carbs,
-              fat: recipe.fat,
-            },
-            confidence: 1,
-          };
-          persistMeals([meal, ...get().meals]);
-          void repositories.meals.upsert(meal);
-        },
         activeWorkoutProgram: undefined,
         setAthleticGoal: (goal) => {
           setProfile({ ...get().profile, athleticGoal: goal });
@@ -377,24 +316,6 @@ export const usePulseFitStore = create<PulseFitState>()(
           setProfile(profile);
           set({ activeWorkoutProgram: program });
           persistSessions(sessions);
-        },
-        resetWorkoutProgram: (keepGoal = false) => {
-          const { athleticGoal, ...rest } = get().profile;
-          setProfile(keepGoal && athleticGoal ? { ...rest, athleticGoal } : rest);
-          set({ activeWorkoutProgram: undefined });
-        },
-        adaptWeek: async (fatigue, timeBudget) => {
-          set({ isAdapting: true });
-          try {
-            const next = await agent.adaptWeek({
-              fatigue,
-              timeBudget,
-              sessions: get().sessions,
-            });
-            persistSessions(next);
-          } finally {
-            set({ isAdapting: false });
-          }
         },
       };
     },

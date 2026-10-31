@@ -1,15 +1,14 @@
 import { addDaysISO } from '@/src/core/dates';
 import { parseObjective } from '@/src/core/objective';
 import type { Proposal } from '@/src/core/schemas';
-import type { Meal, WorkoutSession } from '@/src/core/types';
+import type { Meal } from '@/src/core/types';
 import type {
-  AdaptWeekParams,
   IAgent,
   IntentContext,
   IntentResult,
   ProposalContext,
 } from '@/src/agent/types';
-import { buildWeekSessions, mockAdaptWeek, mockAnalyzePlate } from '@/src/data/mock';
+import { mockAnalyzePlate } from '@/src/data/mock';
 
 function nextSunday(date: string): string {
   const dow = new Date(`${date}T00:00:00`).getDay();
@@ -171,14 +170,6 @@ export class MockAgent implements IAgent {
 
   analyzePlate(photoUri: string): Promise<Meal> {
     return mockAnalyzePlate(photoUri);
-  }
-
-  adaptWeek(params: AdaptWeekParams): Promise<WorkoutSession[]> {
-    return mockAdaptWeek(params);
-  }
-
-  async generateDefaultWeek(): Promise<WorkoutSession[]> {
-    return buildWeekSessions();
   }
 
   async getPendingProposals({ sessions, profile, today }: ProposalContext): Promise<Proposal[]> {
