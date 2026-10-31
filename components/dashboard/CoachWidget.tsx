@@ -17,7 +17,8 @@ const TOPIC: Record<string, string> = {
 
 export function CoachWidget() {
   const { colors } = useTheme();
-  const pending = useProposalStore((s) => s.proposals.filter((p) => p.status === 'pending'));
+  const proposals = useProposalStore((s) => s.proposals);
+  const pending = proposals.filter((p) => p.status === 'pending');
 
   if (pending.length === 0) return null;
 
