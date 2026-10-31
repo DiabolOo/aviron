@@ -26,9 +26,9 @@
 ## Principes produit « anti-cliquodrome »
 1. **Confirmer plutôt que saisir** : l'app propose, l'utilisateur valide.
 2. **Inférer avant de demander** : forme, temps disponible, repas habituels sont déduits des données ; on ne pose pas la question.
-3. **Une entrée universelle** : la barre de commande (texte ou dictée) accepte toute intention.
+3. **Une seule porte vers l'IA** : la barre de commande de l'onglet Agent (texte ou dictée) est le **seul** champ de saisie libre ; les autres écrans ont des boutons contextuels (« Modifier avec l'Agent ») qui l'ouvrent avec le contexte.
 4. **Budget de taps** : valider une séance ≤ 1 · logger un repas habituel ≤ 2 · logger par photo ≤ 3 · planifier une semaine = 1 phrase.
-5. **Chaque écran répond à « que dois-je faire maintenant ? »** avant de montrer des chiffres.
+5. **Chaque écran répond à « que dois-je faire maintenant ? »** avant de montrer des chiffres, et **annonce son rôle en une phrase** sous son titre (Ma semaine : ce que tu vas faire · Mon journal : ce que tu as fait · Ma progression : où tu en es).
 6. **Une donnée = un endroit** : pas d'information affichée deux fois sur le même écran.
 7. **Tout score ou conseil est explicable** (« Pourquoi ? » en un tap) ; pas de nombre magique.
 8. **Notifications actionnables** (valider, reporter) plutôt que « ouvre l'app ».
@@ -55,8 +55,11 @@ docs/adr/      # décisions d'architecture
 export interface LifeModule {
   id: string;                      // 'sport' | 'nutrition' | 'sleep' | 'calendar' | 'goals' …
   entities: ZodTypeAny[];          // schémas des données du module
-  todayWidgets: TodayWidget[];     // cartes proposées dans « Aujourd'hui »
-  dashboards: Dashboard[];         // écrans du « Suivi »
+  todayWidgets: TodayWidget[];     // cartes proposées dans « Accueil »
+  planSection?: PlanSection;       // section du « Plan » (Sport : semaine ; Nutrition : cibles + repas)
+  trackSection?: TrackSection;     // vue du « Suivi » (journal, historique)
+  statsCards: StatsCard[];         // cartes de l'onglet « Stats » (tendances)
+  settings?: ModuleSettings;       // réglages dans Profil › Modules
   agentTools: AgentTool[];         // outils que l'agent peut appeler (lecture libre, écriture via Proposal)
   analyzers: Analyzer[];           // jobs quotidiens / hebdo qui produisent des Insights
 }
@@ -64,8 +67,9 @@ export interface LifeModule {
 
 **Objets transverses** : `Proposal` (action proposée : `pending | accepted | edited | rejected | undone`, avec `rationale` et `confidence`), `Insight` (constat/conseil), `DailyBrief`, `AgentRun` (modèle, tokens, coût, latence), `Consent`.
 
-**Navigation cible (validée, ADR-002)** : `Aujourd'hui · Plan · ⊕ Agent · Suivi · Moi`.
-Les modules s'ajoutent dans *Aujourd'hui* (cartes), *Plan* (événements), *Suivi* (sélecteur de module) et *Agent* (outils), sans créer d'onglet.
+**Navigation cible (ADR-002, amendée par l'ADR-009 le 2026-10-31)** : `Accueil · Plan · ⊕ Agent · Suivi · Stats`. L'onglet « Moi » disparaît : le **profil** s'ouvre en touchant le prénom du titre d'Accueil (« Bonsoir, Jul › »).
+- Rôles : Accueil = présent · Plan = futur (« Ma semaine ») · Suivi = passé détaillé (« Mon journal ») · Stats = tendances (« Ma progression ») · Agent = aide (« Ton agent »).
+- **Modules activables** (Profil › Modules) : Sport, Nutrition, Objectifs, Forme & sommeil. Plan et Suivi ont un **sélecteur à icônes** généré depuis les modules actifs (masqué s'il n'y en a qu'un), avec navigation glissée ; Stats est une page unique avec une carte par module. Les modules s'ajoutent sans créer d'onglet.
 
 ## Vue d'ensemble
 
@@ -74,7 +78,7 @@ Les modules s'ajoutent dans *Aujourd'hui* (cartes), *Plan* (événements), *Suiv
 | 0 | Fondations techniques | ✅ |
 | 1 | UI v1 en données mockées (4 onglets) | ✅ |
 | 2 | Onboarding & calculs nutritionnels (local) | ✅ |
-| 3 | Socle modulaire & contrats de données | ⏳ |
+| 3 | Socle modulaire & contrats de données | ✅ |
 | 4 | UX v2 « zéro cliquodrome » (sur mocks) | 🔧 |
 | 5 | Backend, comptes & conformité de base | ⏳ |
 | 6 | Agent Core (passerelle LLM, propositions, évals) | ⏳ |
@@ -85,7 +89,7 @@ Les modules s'ajoutent dans *Aujourd'hui* (cartes), *Plan* (événements), *Suiv
 | 11 | Monétisation : paywall & essai 7 jours | ⏳ |
 | 12 | Qualité, béta & lancement v1.0 | ⏳ |
 | 13 | Planning & agenda | ⏳ |
-| 14 | Objectifs court / long terme | ⏳ |
+| 14 | Objectifs court / long terme (onglet Objectifs de Plan / Suivi) | ⏳ |
 | 15 | Habitudes & streaks | ⏳ |
 | 16 | Sommeil & énergie v2 | ⏳ |
 | 17 | Productivité (tâches, Pomodoro, dictée de journée) | ⏳ |
@@ -110,7 +114,7 @@ Les modules s'ajoutent dans *Aujourd'hui* (cartes), *Plan* (événements), *Suiv
 | Étape | Contenu | Jalons réutilisés |
 |---|---|---|
 | A1 | Socle léger : schémas Zod, repositories, bilan du jour unique, `ProposalCard` | J3 (sans registre complet) |
-| A2 | UX v2 : nouvelle navigation, CommandBar (agent mock), flux Aujourd'hui | J4 |
+| A2 | UX v2 : navigation `Accueil · Plan · Agent · Suivi · Stats`, Agent en 3 zones (agent mock), modules activables, flux Accueil | J4 |
 | A3 | Proxy IA, sorties structurées validées, journal de coût | J6 (version minimale) |
 | A4 | Scan d'assiette + saisie en langage naturel | J7 |
 | A5 | Import FIT COROS + Apple Health + calcul de charge | J8 (sans Strava) |
@@ -140,7 +144,7 @@ Les modules s'ajoutent dans *Aujourd'hui* (cartes), *Plan* (événements), *Suiv
 - [x] Onboarding, BMR Mifflin-St Jeor, TDEE, macros, rythme kg/semaine (7700 kcal/kg), plancher 1200 / 1500 kcal
 - [x] Recalcul automatique, tests unitaires de `lib/`
 
-## Jalon 3 — Socle modulaire & contrats de données ⏳
+## Jalon 3 — Socle modulaire & contrats de données ✅
 > Pourquoi maintenant : l'UI est construite sur des mocks. Fixer les contrats avant d'ajouter des écrans évite de tout reprendre au backend.
 - [x] ADR-001 : architecture modulaire (`core / modules / agent / data / ui`)
 - [x] Réorganiser le dépôt selon l'arborescence cible (déplacer `lib/` vers `src/core/`, sans changer le comportement)
@@ -165,8 +169,20 @@ Les modules s'ajoutent dans *Aujourd'hui* (cartes), *Plan* (événements), *Suiv
 - [ ] Détail d'activité : emplacement « Analyse IA » (3 constats + 1 conseil, placeholder)
 - [ ] Barre d'énergie : afficher le « Pourquoi ? » (facteurs et poids)
 - [ ] Charte des zones tactiles et d'accessibilité (taille mini, contraste, Dynamic Type) ; s'assurer qu'aucun bouton d'action n'est collé aux bords (le bouton d'outils de dev Expo masque aujourd'hui le CTA de la carte séance)
+- [ ] ADR-009 : navigation `Accueil · Plan · Agent · Suivi · Stats` (profil via le prénom, onglet Moi supprimé) — amende ADR-002
+- [x] Thème **Aurore** (jetons clair / sombre, Inter, barre à pad glissant, `HoldToConfirmCard`) — voir `docs/UX-V2.md` §12
+- [ ] **Onglet Stats** : page unique (période Semaine / Mois / Année), une carte par module actif (Sport : total + histogramme ; Nutrition : moyenne kcal vs cible ; Forme), carte « Analyse de l'Agent » (placeholder) ; chiffres calculés dans `src/core/`
+- [ ] **Profil via le prénom cliquable** (dégradé, relief, chevron) ; écrans Profil et Profil › Modules ; retrait de l'onglet Moi
+- [ ] **Modules activables** : écran Profil › Modules (bascules), feature flags câblés au registre ; sélecteur à icônes (souligné glissant) dans Plan et Suivi, masqué si un seul module ; dernier choix mémorisé par onglet
+- [ ] **Navigation glissée** entre modules (balayage horizontal, souligné qui suit le doigt, ressort léger) + respect de `prefers-reduced-motion`
+- [ ] **Plan › Sport** : afficher le plan (objectif + semaine) ; écran « sans plan » (création via l'Agent + modèles) ; plus de champ texte dans Plan
+- [ ] **Plan › Nutrition** : cibles du jour (calculées par le code) + semaine de repas ; bouton « Planifier avec l'Agent »
+- [ ] **Accueil « nutrition seule »** : carte « Ce soir · Dîner » (mock) quand le module Sport est désactivé
+- [ ] **Agent en trois zones** : Demande · À valider (compteur) · Historique ; exemples visibles groupés par domaine, adaptés aux modules actifs et à l'heure ; boutons contextuels « Modifier / Planifier avec l'Agent » depuis les autres onglets
+- [ ] Titres évocateurs + phrase de rôle sous chaque page ; **test des 5 secondes** sur 3 personnes (« ici, tu fais quoi ? »)
+- [ ] Animations : souligné glissant, histogrammes en cascade, courbes progressives, compteurs ; durées 600–900 ms, une fois à l'ouverture
 - [ ] **Tableau du budget de taps** par parcours clé (voir principes) validé sur device
-- **DoD** : les parcours clés respectent le budget de taps ; aucun formulaire à plus de 2 champs ; une même donnée n'apparaît qu'une fois par écran.
+- **DoD** : les parcours clés respectent le budget de taps ; aucun formulaire à plus de 2 champs ; une même donnée n'apparaît qu'une fois par écran ; **une seule saisie IA dans l'app (onglet Agent)** ; chaque page annonce son rôle et au moins 2 testeurs sur 3 le comprennent en 5 secondes.
 
 ## Jalon 5 — Backend, comptes & conformité de base ⏳
 - [ ] ADR-003 : backend = Supabase (**région UE**) — Auth + Postgres + Storage + Edge Functions + pg_cron
@@ -247,6 +263,7 @@ Les modules s'ajoutent dans *Aujourd'hui* (cartes), *Plan* (événements), *Suiv
 - [ ] Base de recettes (kcal, macros, temps, tags) ; **suggestions selon le restant du jour** et avant / après séance ; filtres ; favoris
 - [ ] Plan de ravitaillement pour une course (fueling)
 - [ ] Liste de courses générée (`Proposal`)
+- [ ] **« Ce soir ? »** : proposition de dîner calculée sur les kcal et macros restants + base d'habitudes (carte d'Accueil et exemple de l'Agent) ; kcal recalculés par le code
 - **DoD** : les objectifs nutritionnels varient avec le plan d'entraînement et restent dans les garde-fous.
 
 ## Jalon 11 — Monétisation : paywall & essai 7 jours ⏳
@@ -274,15 +291,16 @@ Les modules s'ajoutent dans *Aujourd'hui* (cartes), *Plan* (événements), *Suiv
 ---
 
 # Phase 2 — Life OS (modules)
-> Chaque jalon = un module qui s'enregistre via `LifeModule` : cartes dans *Aujourd'hui*, événements dans *Plan*, dashboards dans *Suivi*, outils pour l'agent, analyseurs quotidiens / hebdo. **Aucun nouvel onglet.**
+> Chaque jalon = un module qui s'enregistre via `LifeModule` : cartes dans *Accueil*, section dans *Plan*, vue dans *Suivi*, cartes de tendances dans *Stats*, outils pour l'agent, analyseurs quotidiens / hebdo. **Aucun nouvel onglet.**
 
 ## Jalon 13 — Planning & agenda ⏳
-- [ ] Entité `CalendarEvent`, vue *Plan* (semaine / mois)
+- [ ] Entité `CalendarEvent`, section Agenda dans *Plan* (semaine / mois)
 - [ ] Import du calendrier en lecture seule (Apple / Google)
 - [ ] **Time-blocking par l'agent** : « place mes 4 séances autour de mon agenda » → `Proposal`
 - [ ] Détection de conflits ; disponibilités injectées dans le coach (J9)
 
 ## Jalon 14 — Objectifs court / long terme ⏳
+- [ ] Écrans **Plan › Objectifs** et **Suivi › Objectifs** (progression par objectif) ; l'onglet existe déjà dans les sélecteurs, désactivé tant que le module n'est pas lancé
 - [ ] `Goal` (court / long terme) avec jalons et tâches
 - [ ] Dictée : « je veux courir mon premier marathon d'ici avril » → décomposition en étapes et tâches (`Proposal`)
 - [ ] Revue hebdo des objectifs ; liens avec agenda et plan d'entraînement
@@ -319,7 +337,9 @@ Les modules s'ajoutent dans *Aujourd'hui* (cartes), *Plan* (événements), *Suiv
 ## Décisions ouvertes (à trancher par ADR)
 | ADR | Question | Quand |
 |---|---|---|
-| 002 | Navigation `Aujourd'hui · Plan · Agent · Suivi · Moi` — ✅ **validée le 2026-10-30** | J4 |
+| 002 | Navigation `Aujourd'hui · Plan · Agent · Suivi · Moi` — ✅ validée le 2026-10-30, **amendée par l'ADR-009** | J4 |
+| 009 | Navigation `Accueil · Plan · Agent · Suivi · Stats` : profil via le prénom, modules activables, une seule porte vers l'IA — ✅ **décidé le 2026-10-31**, à formaliser | J4 |
+| 010 | Sources de données nutrition : Open Food Facts (licence ODbL) + Ciqual + base d'habitudes de l'utilisateur ; recettes générées par l'IA avec valeurs nutritionnelles **recalculées par le code** ; MyFitnessPal : API fermée aux nouveaux partenaires ; FatSecret : offre gratuite limitée à l'anglais / US (vérifier les conditions de chaque source avant adoption) | avant J7 |
 | 003 | Backend Supabase (région UE), alternatives | J5 |
 | 004 | Sources d'activité autorisées pour l'IA (Strava, Apple Health, Garmin…) | **avant J8** |
 | 005 | Modèles par niveau (small / medium / large) après benchmark sur les évals | J6 |
@@ -369,11 +389,12 @@ Les modules s'ajoutent dans *Aujourd'hui* (cartes), *Plan* (événements), *Suiv
 | 2026-10-30 | T8 — `LifeModule` + registre ; Aujourd'hui rendu via les widgets des modules |
 | 2026-10-30 | T9 — feature flags par module (`isModuleEnabled` + overrides) |
 | 2026-10-30 | T10 — `ProposalCard` + store des propositions (appliquer / éditer / refuser / annuler, toast) |
-| 2026-10-31 | J4 — rôles et IA : une seule saisie (Agent en 3 zones, exemples par domaine), titres + phrases de rôle, Plan sans zone de texte (« Modifier / Planifier avec l'Agent », écran sans plan), action `create_program` |
+| 2026-10-30 | J4 — ADR-002, navigation 5 onglets, Suivi par module, CommandBar (MockAgent), carte « Maintenant » ; fix bouton Accueil |
 | 2026-10-31 | J4 — maquette v2 : onglet Stats, profil via le prénom, modules activables (Sport / Nutrition / Objectifs / Forme), Plan › Nutrition, accueil nutrition seule |
 | 2026-10-31 | J4 — thème « Aurore » (jetons clair/sombre, Inter), barre à pad glissant, `HoldToConfirmCard`, écrans Accueil / Agent / Plan / Suivi / Moi refaits d'après la maquette |
-| 2026-10-30 | J4 — ADR-002, navigation 5 onglets, Suivi par module, CommandBar (MockAgent), carte « Maintenant » ; fix bouton Accueil |
+| 2026-10-31 | J4 — rôles et IA : une seule saisie (Agent en 3 zones, exemples par domaine), titres + phrases de rôle, Plan sans zone de texte (« Modifier / Planifier avec l'Agent », écran sans plan), action `create_program` |
+| 2026-10-31 | Maquette v2.1 : onglet Moi → Stats, profil via le prénom, sélecteur de modules à icônes, Plan › Nutrition, accueil nutrition seule, Agent en 3 zones, une seule saisie IA (voir `docs/UX-V2-CHANGES.md`) ; roadmap mise à jour (ADR-009, ADR-010) |
 
 ## ▶️ Prochaine étape
-Lancer le **Jalon 3** (socle modulaire & contrats de données), en commençant par l'ADR-001 et la source unique du bilan du jour.
-En parallèle (hors code) : lire l'accord API Strava complet et ouvrir l'**ADR-004** avant de démarrer le Jalon 8.
+Terminer le **Jalon 4** dans l'ordre : (1) ADR-009 + navigation `Accueil · Plan · Agent · Suivi · Stats` et profil via le prénom ; (2) Agent en 3 zones et suppression du champ texte de Plan ; (3) modules activables + sélecteur à icônes ; (4) Plan › Sport / Nutrition ; (5) Stats ; (6) animations et test des 5 secondes. Détail et maquettes : `docs/UX-V2.md` et `docs/UX-V2-CHANGES.md`.
+En parallèle (hors code) : lire l'accord API Strava complet et ouvrir l'**ADR-004** avant le Jalon 8 ; vérifier les conditions des sources nutrition (ADR-010) avant le Jalon 7.
