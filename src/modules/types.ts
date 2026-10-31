@@ -1,7 +1,12 @@
 import type { ComponentType } from 'react';
 import type { ZodTypeAny } from 'zod';
 
-export type TodayWidget = { id: string; order: number; Component: ComponentType };
+export type TodayWidget = {
+  id: string;
+  order: number;
+  Component: ComponentType;
+  half?: boolean;
+};
 export type Dashboard = { id: string; title: string; Component: ComponentType };
 export type AgentTool = { name: string; description: string; access: 'read' | 'write' };
 export type Analyzer = { id: string; cadence: 'daily' | 'weekly' };

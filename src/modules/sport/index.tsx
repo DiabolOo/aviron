@@ -11,20 +11,20 @@ import {
 import type { LifeModule } from '@/src/modules/types';
 
 function Energy() {
-  const { todaysSession, consumed, profile } = useTodayStats();
-  return (
-    <EnergyBatteryWidget
-      session={todaysSession}
-      consumedKcal={consumed.calories}
-      targetKcal={profile.macrosTarget.calories}
-    />
-  );
+  return <EnergyBatteryWidget />;
 }
 
 function Workout() {
   const { todaysSession } = useTodayStats();
   const completeSession = usePulseFitStore((s) => s.completeSession);
-  return <WorkoutWidget session={todaysSession} onComplete={completeSession} />;
+  const uncompleteSession = usePulseFitStore((s) => s.uncompleteSession);
+  return (
+    <WorkoutWidget
+      session={todaysSession}
+      onComplete={completeSession}
+      onUndo={uncompleteSession}
+    />
+  );
 }
 
 export const sportModule: LifeModule = {
@@ -33,8 +33,8 @@ export const sportModule: LifeModule = {
   enabledByDefault: true,
   entities: [PlannedWorkoutSchema, ActivitySchema, TrainingPlanSchema, GoalSchema],
   todayWidgets: [
-    { id: 'workout', order: 20, Component: Workout },
-    { id: 'energy', order: 40, Component: Energy },
+    { id: 'workout', order: 10, Component: Workout },
+    { id: 'energy', order: 30, Component: Energy, half: true },
   ],
   dashboards: [{ id: 'sport', title: 'Sport', Component: SportDashboard }],
   agentTools: [

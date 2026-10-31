@@ -1,6 +1,8 @@
 import * as Haptics from 'expo-haptics';
 import { type ReactNode } from 'react';
-import { Pressable, Text } from 'react-native';
+import { Pressable } from 'react-native';
+
+import { Text } from '@/components/ui/Text';
 
 type PrimaryButtonProps = {
   label: string;
@@ -11,18 +13,8 @@ type PrimaryButtonProps = {
 };
 
 const VARIANT = {
-  primary: {
-    container: 'bg-accent border-black/25',
-    text: 'text-accent-fg',
-    pressIn: Haptics.ImpactFeedbackStyle.Light,
-    press: Haptics.ImpactFeedbackStyle.Heavy,
-  },
-  ghost: {
-    container: 'bg-fg/5 border-fg/10',
-    text: 'text-fg',
-    pressIn: Haptics.ImpactFeedbackStyle.Soft,
-    press: Haptics.ImpactFeedbackStyle.Medium,
-  },
+  primary: { container: 'bg-fg', text: 'text-canvas' },
+  ghost: { container: 'bg-chip', text: 'text-fg' },
 } as const;
 
 export function PrimaryButton({
@@ -36,17 +28,18 @@ export function PrimaryButton({
 
   return (
     <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
       disabled={disabled}
-      onPressIn={() => void Haptics.impactAsync(style.pressIn)}
       onPress={() => {
-        void Haptics.impactAsync(style.press);
+        void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         onPress();
       }}
-      className={`flex-row items-center justify-center gap-2 rounded-full border-b-4 px-5 py-4 active:mb-1 active:translate-y-1 active:border-b-0 ${
+      className={`h-[52px] flex-row items-center justify-center gap-2 rounded-full px-6 active:scale-95 ${
         style.container
       } ${disabled ? 'opacity-40' : ''}`}>
       {icon}
-      <Text className={`text-base font-semibold ${style.text}`}>{label}</Text>
+      <Text className={`text-[17px] font-semibold ${style.text}`}>{label}</Text>
     </Pressable>
   );
 }

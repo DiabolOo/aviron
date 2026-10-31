@@ -1,6 +1,8 @@
 import { Unplug } from 'lucide-react-native';
 import { useState } from 'react';
-import { Text } from 'react-native';
+import { View } from 'react-native';
+import { Text } from '@/components/ui/Text';
+import { router } from 'expo-router';
 
 import { ConnectionSwitch } from '@/components/profile/ConnectionSwitch';
 import { EditProfileModal } from '@/components/profile/EditProfileModal';
@@ -11,6 +13,7 @@ import { Card } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Label } from '@/components/ui/Label';
 import { Screen } from '@/components/ui/Screen';
+import { ScreenTitle } from '@/components/ui/ScreenTitle';
 import { Segmented } from '@/components/ui/Segmented';
 import { Stepper } from '@/components/ui/Stepper';
 import { inferGoal } from '@/src/core/nutritionCalculator';
@@ -47,7 +50,9 @@ export default function ProfileScreen() {
   const nutritionGoal = profile.goal ?? inferGoal(profile.weightKg, profile.targetWeightKg);
 
   return (
-    <Screen>
+    <Screen tone="home">
+      <ScreenTitle title="Moi" />
+      <View className="mt-3.5">
       <MemberCard
         firstName={profile.firstName}
         goalLabel={profile.goalLabel}
@@ -56,6 +61,7 @@ export default function ProfileScreen() {
         activities={activities.length}
         onEdit={() => setNameSheetVisible(true)}
       />
+      </View>
 
       <Label className="mt-10">Objectifs</Label>
       <Card className="mt-3 py-1">
@@ -139,8 +145,11 @@ export default function ProfileScreen() {
         value={themePreference}
         onChange={setThemePreference}
       />
+      <Card className="mt-3 py-1">
+        <SettingRow first label="Galerie de composants" onPress={() => router.push('/gallery')} />
+      </Card>
 
-      <Text className="mt-10 text-center font-mono text-[10px] uppercase tracking-[2px] text-muted">
+      <Text className="mt-10 text-center text-[13px] text-muted">
         PulseFit · MVP
       </Text>
 

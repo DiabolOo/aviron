@@ -1,6 +1,7 @@
 import * as Haptics from 'expo-haptics';
 import { Flag, Pencil, RotateCcw } from 'lucide-react-native';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
+import { Text } from '@/components/ui/Text';
 
 import { Card } from '@/components/ui/Card';
 import { Label } from '@/components/ui/Label';

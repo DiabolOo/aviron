@@ -1,6 +1,7 @@
 import * as Haptics from 'expo-haptics';
 import { Minus, Plus } from 'lucide-react-native';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
+import { Text } from '@/components/ui/Text';
 
 import { useTheme } from '@/src/ui/useTheme';
 

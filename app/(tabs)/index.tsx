@@ -1,27 +1,57 @@
+import { Fragment } from 'react';
+import { View } from 'react-native';
+
 import { HomeHeader } from '@/components/dashboard/HomeHeader';
 import { Screen } from '@/components/ui/Screen';
-import { usePulseFitStore, useStreak, useTodayStats } from '@/lib/store';
+import { usePulseFitStore, useStreak } from '@/lib/store';
 import { CORE_TODAY_WIDGETS, MODULES } from '@/src/modules';
 import { isModuleEnabled } from '@/src/modules/flags';
 import { collectTodayWidgets } from '@/src/modules/registry';
+import { Rise } from '@/src/ui/motion/Rise';
 
-export default function TodayScreen() {
-  const { profile, todaysSession } = useTodayStats();
-  const weather = usePulseFitStore((s) => s.weather);
+type Entry = { key: string; widgets: ReturnType<typeof collectTodayWidgets> };
+
+function groupWidgets(widgets: ReturnType<typeof collectTodayWidgets>): Entry[] {
+  const entries: Entry[] = [];
+  for (const widget of widgets) {
+    const last = entries[entries.length - 1];
+    if (widget.half && last?.widgets[0]?.half && last.widgets.length < 2) last.widgets.push(widget);
+    else entries.push({ key: widget.id, widgets: [widget] });
+  }
+  return entries;
+}
+
+function SingleWidget({ widget }: { widget: Entry['widgets'][number] }) {
+  return <widget.Component />;
+}
+
+export default function HomeScreen() {
+  const firstName = usePulseFitStore((s) => s.profile.firstName);
   const streak = useStreak();
-  const widgets = collectTodayWidgets(MODULES, isModuleEnabled, CORE_TODAY_WIDGETS);
+  const entries = groupWidgets(collectTodayWidgets(MODULES, isModuleEnabled, CORE_TODAY_WIDGETS));
 
   return (
-    <Screen>
-      <HomeHeader
-        firstName={profile.firstName}
-        streak={streak}
-        weather={weather}
-        session={todaysSession}
-      />
-      {widgets.map((widget) => (
-        <widget.Component key={widget.id} />
-      ))}
+    <Screen tone="home">
+      <Rise index={0}>
+        <HomeHeader firstName={firstName} streak={streak} />
+      </Rise>
+      <View className="mt-3.5 gap-3.5">
+        {entries.map((entry, i) => (
+          <Rise key={entry.key} index={i + 1}>
+            {entry.widgets.length > 1 || entry.widgets[0].half ? (
+              <View className="flex-row gap-3.5">
+                {entry.widgets.map((w) => (
+                  <Fragment key={w.id}>
+                    <w.Component />
+                  </Fragment>
+                ))}
+              </View>
+            ) : (
+              <SingleWidget widget={entry.widgets[0]} />
+            )}
+          </Rise>
+        ))}
+      </View>
     </Screen>
   );
 }

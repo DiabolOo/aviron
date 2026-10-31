@@ -1,4 +1,5 @@
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
+import { Text } from '@/components/ui/Text';
 import Svg, { Defs, Line, LinearGradient, Path, Stop } from 'react-native-svg';
 
 import { smoothPath } from '@/components/sport/SmoothPath';
@@ -19,7 +20,7 @@ type HeartRateChartProps = {
 function Stat({ label, value }: { label: string; value: number }) {
   return (
     <View>
-      <Text className="font-mono text-[10px] uppercase tracking-[2px] text-muted">{label}</Text>
+      <Text className="font-mono text-[13px] text-muted">{label}</Text>
       <Text className="mt-1 text-4xl font-semibold tracking-tighter text-fg">
         {value}
         <Text className="text-sm font-normal text-muted"> bpm</Text>

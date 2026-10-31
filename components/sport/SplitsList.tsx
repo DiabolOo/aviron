@@ -1,5 +1,6 @@
 import { Zap } from 'lucide-react-native';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
+import { Text } from '@/components/ui/Text';
 
 import { Card } from '@/components/ui/Card';
 import type { ActivitySplit } from '@/src/core/types';
@@ -13,17 +14,17 @@ export function SplitsList({ splits }: { splits: ActivitySplit[] }) {
   return (
     <Card className="mt-3">
       <View className="flex-row pb-3">
-        <Text className="w-10 font-mono text-[10px] uppercase tracking-[2px] text-muted">Km</Text>
-        <Text className="flex-1 font-mono text-[10px] uppercase tracking-[2px] text-muted">Allure</Text>
-        <Text className="w-14 text-right font-mono text-[10px] uppercase tracking-[2px] text-muted">D+</Text>
-        <Text className="w-14 text-right font-mono text-[10px] uppercase tracking-[2px] text-muted">FC</Text>
+        <Text className="w-10 text-[13px] text-muted">Km</Text>
+        <Text className="flex-1 text-[13px] text-muted">Allure</Text>
+        <Text className="w-14 text-right text-[13px] text-muted">D+</Text>
+        <Text className="w-14 text-right text-[13px] text-muted">FC</Text>
       </View>
       {splits.map((split) => {
         const isFastest = split.paceSec === fastest;
         const ratio = slowest === fastest ? 1 : 1 - (split.paceSec - fastest) / (slowest - fastest);
         return (
           <View key={split.km} className="flex-row items-center border-t border-fg/5 py-3">
-            <Text className="w-10 font-mono text-xs text-muted">{`${split.km}`.padStart(2, '0')}</Text>
+            <Text className="w-10 text-xs text-muted">{`${split.km}`.padStart(2, '0')}</Text>
             <View className="flex-1 flex-row items-center gap-3 pr-3">
               <Text className={`w-11 text-base ${isFastest ? 'font-semibold text-fg' : 'text-fg'}`}>
                 {split.pace}

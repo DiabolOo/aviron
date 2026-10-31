@@ -1,6 +1,7 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { Activity, ChevronLeft } from 'lucide-react-native';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
+import { Text } from '@/components/ui/Text';
 
 import { HeartRateChart } from '@/components/sport/HeartRateChart';
 import { RouteMap } from '@/components/sport/RouteMap';

@@ -1,20 +1,94 @@
 import * as Haptics from 'expo-haptics';
 import { Tabs } from 'expo-router';
 import { House } from 'lucide-react-native';
-import { type ComponentProps } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { type ComponentProps, useEffect, useState } from 'react';
+import { Pressable, View } from 'react-native';
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withTiming,
+} from 'react-native-reanimated';
 
+import { Gradient } from '@/components/ui/Gradient';
+import { Text } from '@/components/ui/Text';
 import { TAB_ICONS as ICONS } from '@/components/ui/tabIcons';
+import { useReducedMotion } from '@/src/ui/motion/useReducedMotion';
+import { AI_GRADIENT } from '@/src/ui/theme/tokens';
 import { useTheme } from '@/src/ui/useTheme';
 
 type TabBarProps = Parameters<NonNullable<ComponentProps<typeof Tabs>['tabBar']>>[0];
 
-export function TabBar({ state, descriptors, emitter, navigateToTab, insets }: TabBarProps) {
-  const { colors } = useTheme();
+const SLIDE = Easing.bezier(0.16, 1, 0.3, 1);
+const PAD = 6;
+
+function AgentGlow() {
+  const reduced = useReducedMotion();
+  const pulse = useSharedValue(0);
+
+  useEffect(() => {
+    pulse.set(
+      reduced
+        ? 0
+        : withRepeat(withTiming(1, { duration: 3000, easing: Easing.inOut(Easing.ease) }), -1, true),
+    );
+  }, [pulse, reduced]);
+
+  const style = useAnimatedStyle(() => ({
+    opacity: 0.45 * (1 - pulse.get()) + 0.1,
+    transform: [{ scale: 1 + pulse.get() * 0.28 }],
+  }));
 
   return (
-    <View className="bg-canvas px-5 pt-2" style={{ paddingBottom: Math.max(insets.bottom, 12) }}>
-      <View className="flex-row items-center rounded-full border border-fg/5 bg-surface p-1.5">
+    <Animated.View
+      pointerEvents="none"
+      className="absolute h-[54px] w-[54px] rounded-full bg-iris"
+      style={style}
+    />
+  );
+}
+
+export function TabBar({ state, descriptors, emitter, navigateToTab, insets }: TabBarProps) {
+  const { colors } = useTheme();
+  const reduced = useReducedMotion();
+  const [width, setWidth] = useState(0);
+  const slotW = Math.max(0, (width - PAD * 2) / state.routes.length);
+  const x = useSharedValue(0);
+
+  useEffect(() => {
+    const target = PAD + state.index * slotW;
+    x.set(reduced || x.get() === 0 ? target : withTiming(target, { duration: 700, easing: SLIDE }));
+  }, [state.index, slotW, reduced, x]);
+
+  const padStyle = useAnimatedStyle(() => ({ transform: [{ translateX: x.get() }] }));
+  const activeIsAgent = state.routes[state.index]?.name === 'agent';
+
+  return (
+    <View
+      pointerEvents="box-none"
+      className="absolute inset-x-4"
+      style={{ bottom: Math.max(insets.bottom, 12) + 8 }}>
+      <View
+        onLayout={(e) => setWidth(e.nativeEvent.layout.width)}
+        className="h-[72px] flex-row items-center rounded-full px-1.5"
+        style={{
+          backgroundColor: colors.navBg,
+          borderWidth: 1,
+          borderColor: colors.cardBorder,
+          shadowColor: '#000',
+          shadowOpacity: 0.14,
+          shadowRadius: 18,
+          shadowOffset: { width: 0, height: 10 },
+          elevation: 10,
+        }}>
+        {slotW > 0 && !activeIsAgent ? (
+          <Animated.View
+            pointerEvents="none"
+            className="absolute top-2 h-[54px] rounded-full"
+            style={[{ width: slotW, backgroundColor: colors.navPad }, padStyle]}
+          />
+        ) : null}
         {state.routes.map((route, index) => {
           const focused = state.index === index;
           const Icon = ICONS[route.name as keyof typeof ICONS] ?? House;
@@ -34,43 +108,50 @@ export function TabBar({ state, descriptors, emitter, navigateToTab, insets }: T
             navigateToTab(route.key);
           };
 
-          if (isAgent) {
-            return (
+          return (
+            <View key={route.key} className="flex-1 items-center justify-center">
               <Pressable
-                key={route.key}
                 onPress={onPress}
                 accessibilityRole="button"
                 accessibilityLabel={title}
                 accessibilityState={{ selected: focused }}
-                className={`mx-1 h-12 w-12 items-center justify-center rounded-full bg-accent active:opacity-80 ${
-                  focused ? 'border-2 border-fg' : ''
-                }`}>
-                <Icon color={colors.accentFg} size={22} strokeWidth={2.2} />
+                className="h-[54px] w-full items-center justify-center active:scale-95">
+                {isAgent ? (
+                  <View className="h-[54px] w-[54px] items-center justify-center">
+                    <AgentGlow />
+                    <Gradient
+                      colors={AI_GRADIENT}
+                      style={{
+                        width: 54,
+                        height: 54,
+                        borderRadius: 27,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        borderWidth: focused ? 3 : 0,
+                        borderColor: colors.cardBorder,
+                      }}>
+                      <Icon color="#FFFFFF" size={26} strokeWidth={2} />
+                    </Gradient>
+                  </View>
+                ) : (
+                  <>
+                    <Icon
+                      color={focused ? colors.fg : colors.navMuted}
+                      size={25}
+                      strokeWidth={focused ? 2 : 1.7}
+                    />
+                    <Text
+                      numberOfLines={1}
+                      className={`mt-[3px] text-[13px] ${
+                        focused ? 'font-semibold text-fg' : 'font-medium'
+                      }`}
+                      style={focused ? undefined : { color: colors.navMuted }}>
+                      {title}
+                    </Text>
+                  </>
+                )}
               </Pressable>
-            );
-          }
-
-          return (
-            <Pressable
-              key={route.key}
-              onPress={onPress}
-              accessibilityRole="button"
-              accessibilityLabel={title}
-              accessibilityState={{ selected: focused }}
-              className={`h-12 flex-row items-center justify-center gap-2 rounded-full active:opacity-70 ${
-                focused ? 'flex-[2] bg-fg' : 'flex-1'
-              }`}>
-              <Icon
-                color={focused ? colors.canvas : colors.muted}
-                size={20}
-                strokeWidth={focused ? 2.2 : 1.7}
-              />
-              {focused ? (
-                <Text numberOfLines={1} className="text-xs font-semibold text-canvas">
-                  {title}
-                </Text>
-              ) : null}
-            </Pressable>
+            </View>
           );
         })}
       </View>

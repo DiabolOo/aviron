@@ -1,5 +1,6 @@
 import { Zap } from 'lucide-react-native';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
+import { Text } from '@/components/ui/Text';
 
 import type { WorkoutSession } from '@/src/core/types';
 import { useTheme } from '@/src/ui/useTheme';

@@ -1,6 +1,7 @@
 import { Check } from 'lucide-react-native';
 import { type ReactNode } from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
+import { Text } from '@/components/ui/Text';
 
 import { Card } from '@/components/ui/Card';
 import { Label } from '@/components/ui/Label';
@@ -53,7 +54,7 @@ export function SessionDetail({ session, onComplete }: SessionDetailProps) {
       <View className="mt-4">
         {session.blocks?.map((block, index) => (
           <Row key={block.id} index={index}>
-            <Text className="w-8 font-mono text-xs text-muted">
+            <Text className="w-8 text-xs text-muted">
               {`${index + 1}`.padStart(2, '0')}
             </Text>
             <View className="flex-1 pr-3">

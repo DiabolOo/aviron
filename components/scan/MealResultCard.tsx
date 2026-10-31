@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Image, Switch, Text, View } from 'react-native';
+import { Image, Switch, View } from 'react-native';
+import { Text } from '@/components/ui/Text';
 
 import { Label } from '@/components/ui/Label';
 import { MacroBar } from '@/components/ui/MacroBar';

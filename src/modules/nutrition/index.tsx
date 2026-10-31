@@ -1,20 +1,17 @@
-import { MealTimeline } from '@/components/dashboard/MealTimeline';
 import { NutritionWidget } from '@/components/dashboard/NutritionWidget';
-import { useTodayStats } from '@/lib/store';
+import { usePulseFitStore, useTodayStats } from '@/lib/store';
+import { getKcalSeries } from '@/src/core/balance';
+import { addDaysISO } from '@/src/core/dates';
 import { FoodItemSchema, MealSchema } from '@/src/core/schemas';
 import { NutritionDashboard } from '@/src/modules/nutrition/NutritionDashboard';
 import type { LifeModule } from '@/src/modules/types';
 
-function CalorieRing() {
-  const { profile, consumed, remaining } = useTodayStats();
-  return (
-    <NutritionWidget consumed={consumed} target={profile.macrosTarget} remaining={remaining} />
-  );
-}
-
-function TodayMeals() {
-  const { todaysMeals } = useTodayStats();
-  return <MealTimeline meals={todaysMeals} />;
+function CalorieCard() {
+  const { remaining, today } = useTodayStats();
+  const profile = usePulseFitStore((s) => s.profile);
+  const meals = usePulseFitStore((s) => s.meals);
+  const series = getKcalSeries({ endDate: today, days: 7, profile, meals, addDays: addDaysISO });
+  return <NutritionWidget remaining={remaining} series={series} />;
 }
 
 export const nutritionModule: LifeModule = {
@@ -23,8 +20,7 @@ export const nutritionModule: LifeModule = {
   enabledByDefault: true,
   entities: [MealSchema, FoodItemSchema],
   todayWidgets: [
-    { id: 'calorie-ring', order: 10, Component: CalorieRing },
-    { id: 'meal-timeline', order: 50, Component: TodayMeals },
+    { id: 'calorie-card', order: 20, Component: CalorieCard, half: true },
   ],
   dashboards: [{ id: 'nutrition', title: 'Nutrition', Component: NutritionDashboard }],
   agentTools: [

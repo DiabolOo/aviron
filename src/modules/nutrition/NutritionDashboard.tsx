@@ -14,7 +14,7 @@ export function NutritionDashboard() {
   const [adding, setAdding] = useState(false);
 
   return (
-    <View>
+    <View className="gap-3.5">
       <DateSelector />
       <MacroSummary consumed={consumed} target={profile.macrosTarget} />
       <MealJournal meals={dayMeals} onAddMeal={() => setAdding(true)} />

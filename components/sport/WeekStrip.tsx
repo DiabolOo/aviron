@@ -1,5 +1,6 @@
 import * as Haptics from 'expo-haptics';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
+import { Text } from '@/components/ui/Text';
 
 import { toISODate, weekdayLabel } from '@/src/core/dates';
 import type { WorkoutSession } from '@/src/core/types';
@@ -28,7 +29,7 @@ export function WeekStrip({ sessions, selectedDate, onSelect }: WeekStripProps) 
             className={`h-[76px] w-11 items-center justify-center rounded-full ${
               selected ? 'bg-fg' : isToday ? 'border border-fg/15' : ''
             }`}>
-            <Text className={`font-mono text-[10px] uppercase ${selected ? 'text-canvas' : 'text-muted'}`}>
+            <Text className={`font-mono text-[13px] ${selected ? 'text-canvas' : 'text-muted'}`}>
               {weekdayLabel(session.date)}
             </Text>
             <Text className={`mt-1 text-base font-semibold ${selected ? 'text-canvas' : 'text-fg'}`}>

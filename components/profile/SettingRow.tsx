@@ -1,7 +1,8 @@
 import * as Haptics from 'expo-haptics';
 import { ChevronRight } from 'lucide-react-native';
 import { type ReactNode } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
+import { Text } from '@/components/ui/Text';
 
 import { useTheme } from '@/src/ui/useTheme';
 
@@ -15,7 +16,7 @@ type SettingRowProps = {
 
 export function SettingRow({ label, hint, first = false, onPress, children }: SettingRowProps) {
   const { colors } = useTheme();
-  const className = `flex-row items-center py-4 ${first ? '' : 'border-t border-fg/5'}`;
+  const className = `flex-row items-center min-h-14 py-3 ${first ? '' : 'border-t border-fg/10'}`;
 
   const content = (
     <>

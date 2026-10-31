@@ -159,7 +159,7 @@ Les modules s'ajoutent dans *Aujourd'hui* (cartes), *Plan* (événements), *Suiv
 - [ ] **CommandBar** : champ texte + dictée vocale ; au début, `MockAgent` qui renvoie des `Proposal` conformes au schéma
 - [x] **Aujourd'hui = flux d'actions** : carte « Maintenant » (prochaine action) → bilan kcal → séance du jour validable en 1 tap → propositions en attente → brief IA (placeholder)
 - [x] Supprimer les doublons d'affichage (macros en-tête vs carte « Apports du jour » dans Nutrition)
-- [ ] Remplacer le formulaire « Forme / Temps max / Régénérer » par : valeurs **inférées** + phrase libre dans la CommandBar (« claqué, 45 min max ») ; garder des chips rapides facultatives
+- [x] Remplacer le formulaire « Forme / Temps max / Régénérer » par : valeurs **inférées** + phrase libre dans la CommandBar (« claqué, 45 min max ») ; garder des chips rapides facultatives
 - [ ] Saisie repas : appareil photo direct (appui long sur le bouton scan), **repas habituels suggérés selon l'heure** (1 tap), « comme hier », saisie en langage naturel
 - [ ] Séance du jour : validation automatique quand l'activité correspondante arrive (prévoir l'UI d'annulation)
 - [ ] Détail d'activité : emplacement « Analyse IA » (3 constats + 1 conseil, placeholder)
@@ -369,6 +369,7 @@ Les modules s'ajoutent dans *Aujourd'hui* (cartes), *Plan* (événements), *Suiv
 | 2026-10-30 | T8 — `LifeModule` + registre ; Aujourd'hui rendu via les widgets des modules |
 | 2026-10-30 | T9 — feature flags par module (`isModuleEnabled` + overrides) |
 | 2026-10-30 | T10 — `ProposalCard` + store des propositions (appliquer / éditer / refuser / annuler, toast) |
+| 2026-10-31 | J4 — thème « Aurore » (jetons clair/sombre, Inter), barre à pad glissant, `HoldToConfirmCard`, écrans Accueil / Agent / Plan / Suivi / Moi refaits d'après la maquette |
 | 2026-10-30 | J4 — ADR-002, navigation 5 onglets, Suivi par module, CommandBar (MockAgent), carte « Maintenant » ; fix bouton Accueil |
 
 ## ▶️ Prochaine étape

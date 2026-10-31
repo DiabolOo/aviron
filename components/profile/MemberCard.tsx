@@ -1,9 +1,12 @@
 import { Pencil } from 'lucide-react-native';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
+import { Text } from '@/components/ui/Text';
 
 import { IconButton } from '@/components/ui/IconButton';
-import { Label } from '@/components/ui/Label';
+import { Card } from '@/components/ui/Card';
+import { Gradient } from '@/components/ui/Gradient';
 import { TAB_ICONS } from '@/components/ui/tabIcons';
+import { AI_GRADIENT } from '@/src/ui/theme/tokens';
 import { useTheme } from '@/src/ui/useTheme';
 
 type MemberCardProps = {
@@ -27,22 +30,23 @@ export function MemberCard({
   const stats = [
     { label: 'Série', value: `${streak}`, unit: streak > 1 ? 'jours' : 'jour' },
     { label: 'Séances', value: `${sessionsDone}`, unit: 'faites' },
-    { label: 'Activités', value: `${activities}`, unit: 'Strava' },
+    { label: 'Activités', value: `${activities}`, unit: 'importées' },
   ];
 
   return (
-    <View className="mt-2 overflow-hidden rounded-3xl border border-iris/30 bg-surface p-5">
-      <View className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-iris/10" />
+    <Card tint="ai">
       <View className="flex-row items-center justify-between">
-        <Label>Membre PulseFit</Label>
+        <Text className="text-[16px] font-medium text-muted">Membre PulseFit</Text>
         <IconButton label="Modifier le profil" onPress={onEdit}>
           <Pencil color={colors.fg} size={16} strokeWidth={1.8} />
         </IconButton>
       </View>
       <View className="mt-3 flex-row items-center gap-4">
-        <View className="h-16 w-16 items-center justify-center rounded-full bg-black">
-          <TAB_ICONS.moi color={colors.accent} size={28} strokeWidth={1.9} />
-        </View>
+        <Gradient
+          colors={AI_GRADIENT}
+          style={{ width: 64, height: 64, borderRadius: 32, alignItems: 'center', justifyContent: 'center' }}>
+          <TAB_ICONS.moi color="#FFFFFF" size={28} strokeWidth={1.9} />
+        </Gradient>
         <View className="flex-1">
           <Text className="text-3xl font-semibold tracking-tight text-fg">{firstName}</Text>
           <Text numberOfLines={2} className="mt-1 text-sm text-muted">
@@ -50,10 +54,10 @@ export function MemberCard({
           </Text>
         </View>
       </View>
-      <View className="mt-5 flex-row rounded-2xl border border-iris/20 bg-fg/5 px-4 py-3">
+      <View className="mt-5 flex-row rounded-2xl bg-fg/5 px-4 py-3">
         {stats.map((stat) => (
           <View key={stat.label} className="flex-1">
-            <Text className="font-mono text-[10px] uppercase tracking-[2px] text-muted">
+            <Text className="font-mono text-[13px] text-muted">
               {stat.label}
             </Text>
             <Text className="mt-1 text-3xl font-semibold tracking-tight text-fg">
@@ -63,6 +67,6 @@ export function MemberCard({
           </View>
         ))}
       </View>
-    </View>
+    </Card>
   );
 }

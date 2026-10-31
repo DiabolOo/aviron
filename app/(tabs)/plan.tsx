@@ -1,20 +1,18 @@
 import { useMemo, useState } from 'react';
-import { Text } from 'react-native';
+import { Text } from '@/components/ui/Text';
 
 import { ProgramTimeline } from '@/components/sport/ProgramTimeline';
 import { ProgramWizard } from '@/components/sport/ProgramWizard';
 import { SessionDetail } from '@/components/sport/SessionDetail';
 import { WeekStrip } from '@/components/sport/WeekStrip';
 import { Screen } from '@/components/ui/Screen';
-import { TabHeader } from '@/components/ui/TabHeader';
-import { TAB_ICONS } from '@/components/ui/tabIcons';
+import { ScreenTitle } from '@/components/ui/ScreenTitle';
 import { usePulseFitStore } from '@/lib/store';
 import { toISODate, weekDates } from '@/src/core/dates';
 import type { WorkoutSession } from '@/src/core/types';
 
 export default function PlanScreen() {
   const sessions = usePulseFitStore((s) => s.sessions);
-  const goalLabel = usePulseFitStore((s) => s.profile.goalLabel);
   const completeSession = usePulseFitStore((s) => s.completeSession);
   const program = usePulseFitStore((s) => s.activeWorkoutProgram);
   const resetWorkoutProgram = usePulseFitStore((s) => s.resetWorkoutProgram);
@@ -31,17 +29,13 @@ export default function PlanScreen() {
   const selected = sessions.find((session) => session.date === selectedDate) ?? week[0];
 
   return (
-    <Screen>
-      <TabHeader
-        icon={TAB_ICONS.plan}
-        tint="aqua"
-        eyebrow={program ? 'Programme en cours' : 'Nouveau programme'}
+    <Screen tone="plan">
+      <ScreenTitle
         title="Plan"
-        subtitle={goalLabel}
         right={
           program && week.length > 0 ? (
-            <Text className="text-base text-muted">
-              <Text className="font-semibold text-aqua">{done}</Text> / {week.length}
+            <Text className="text-[17px] text-muted">
+              <Text className="font-semibold text-fg">{done}</Text> / {week.length}
             </Text>
           ) : null
         }

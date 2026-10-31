@@ -1,4 +1,5 @@
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
+import { Text } from '@/components/ui/Text';
 
 import { ActivityHistory } from '@/components/sport/ActivityHistory';
 import { Label } from '@/components/ui/Label';

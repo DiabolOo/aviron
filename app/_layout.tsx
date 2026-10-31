@@ -1,5 +1,11 @@
 import '../global.css';
 
+import {
+  Inter_400Regular,
+  Inter_500Medium,
+  Inter_600SemiBold,
+  Inter_700Bold,
+} from '@expo-google-fonts/inter';
 import { useFonts } from 'expo-font';
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -21,6 +27,10 @@ export const unstable_settings = {
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
+    Inter_700Bold,
   });
   const themePreference = usePulseFitStore((s) => s.themePreference);
   const { scheme, colors } = useTheme();
@@ -89,6 +99,7 @@ export default function RootLayout() {
               animation: 'slide_from_right',
             }}
           />
+          <Stack.Screen name="gallery" options={{ animation: 'slide_from_right' }} />
           <Stack.Screen name="activity/[id]" options={{ animation: 'slide_from_right' }} />
         </Stack.Protected>
       </Stack>

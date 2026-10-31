@@ -60,6 +60,7 @@ type PulseFitState = {
   pendingMeal: Meal | null;
   isAdapting: boolean;
   completeSession: (id: string) => void;
+  uncompleteSession: (id: string) => void;
   moveSession: (id: string, toDate: string) => void;
   resetWeek: () => void;
   analyzePhoto: (uri: string) => Promise<void>;
@@ -251,6 +252,13 @@ export const usePulseFitStore = create<PulseFitState>()(
           persistSessions(
             get().sessions.map((session) =>
               session.id === id ? { ...session, completed: true } : session,
+            ),
+          );
+        },
+        uncompleteSession: (id) => {
+          persistSessions(
+            get().sessions.map((session) =>
+              session.id === id ? { ...session, completed: false } : session,
             ),
           );
         },

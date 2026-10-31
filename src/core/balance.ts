@@ -39,3 +39,28 @@ export function getDailyBalance(params: {
     session: sessions.find((session) => session.date === date),
   };
 }
+
+export type DaySeriesPoint = { date: string; consumed: number; ratio: number; isToday: boolean };
+
+export function getKcalSeries(params: {
+  endDate: string;
+  days: number;
+  profile: UserProfile;
+  meals: Meal[];
+  addDays: (date: string, n: number) => string;
+}): DaySeriesPoint[] {
+  const { endDate, days, profile, meals, addDays } = params;
+  return Array.from({ length: days }, (_, i) => {
+    const date = addDays(endDate, i - (days - 1));
+    const consumed = sumMacros(
+      meals.filter((meal) => meal.loggedAt.startsWith(date)).map((meal) => meal.macros),
+    ).calories;
+    const target = profile.macrosTarget.calories;
+    return {
+      date,
+      consumed,
+      ratio: target > 0 ? Math.min(1, consumed / target) : 0,
+      isToday: date === endDate,
+    };
+  });
+}

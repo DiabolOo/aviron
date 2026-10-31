@@ -10,14 +10,16 @@ import Animated, {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Glow } from '@/components/ui/Glow';
+import type { Tone } from '@/src/ui/theme/tokens';
 
 type ScreenProps = {
   children: ReactNode;
   scroll?: boolean;
   withSafeBottom?: boolean;
+  tone?: Tone;
 };
 
-export function Screen({ children, scroll = true, withSafeBottom = false }: ScreenProps) {
+export function Screen({ children, scroll = true, withSafeBottom = false, tone = 'home' }: ScreenProps) {
   const progress = useSharedValue(0);
 
   useFocusEffect(
@@ -35,7 +37,7 @@ export function Screen({ children, scroll = true, withSafeBottom = false }: Scre
   const content = scroll ? (
     <ScrollView
       className="flex-1"
-      contentContainerClassName="px-6 pb-10 pt-4"
+      contentContainerClassName="px-5 pb-32 pt-4"
       showsVerticalScrollIndicator={false}>
       <Animated.View style={animatedStyle}>{children}</Animated.View>
     </ScrollView>
@@ -47,7 +49,7 @@ export function Screen({ children, scroll = true, withSafeBottom = false }: Scre
 
   return (
     <View className="flex-1 bg-canvas">
-      <Glow />
+      <Glow tone={tone} />
       <SafeAreaView className="flex-1" edges={withSafeBottom ? ['top', 'bottom'] : ['top']}>
         {content}
       </SafeAreaView>

@@ -1,14 +1,8 @@
 import * as Haptics from 'expo-haptics';
 import { X } from 'lucide-react-native';
 import { useState } from 'react';
-import {
-    KeyboardAvoidingView,
-    Modal,
-    Platform,
-    Pressable,
-    TextInput,
-    View,
-} from 'react-native';
+import { KeyboardAvoidingView, Modal, Platform, Pressable, View } from 'react-native';
+import { TextInput } from '@/components/ui/Text';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { IconButton } from '@/components/ui/IconButton';

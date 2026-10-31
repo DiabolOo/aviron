@@ -1,4 +1,4 @@
-import { getDailyBalance } from './balance';
+import { getDailyBalance, getKcalSeries } from './balance';
 import type { Meal, UserProfile, WorkoutSession } from './types';
 
 const profile: UserProfile = {
@@ -73,5 +73,34 @@ describe('getDailyBalance', () => {
       sessions: [],
     });
     expect(balance.remaining).toBe(-200);
+  });
+});
+
+describe('getKcalSeries', () => {
+  const add = (d: string, n: number) => {
+    const date = new Date(`${d}T00:00:00Z`);
+    date.setUTCDate(date.getUTCDate() + n);
+    return date.toISOString().slice(0, 10);
+  };
+
+  it('renvoie une valeur par jour, le dernier étant aujourd’hui', () => {
+    const series = getKcalSeries({
+      endDate: '2026-10-30',
+      days: 7,
+      profile: { macrosTarget: { calories: 2000, protein: 0, carbs: 0, fat: 0 } } as UserProfile,
+      meals: [
+        {
+          id: 'm',
+          name: 'x',
+          loggedAt: '2026-10-30T12:00:00',
+          macros: { calories: 1000, protein: 0, carbs: 0, fat: 0 },
+          confidence: 1,
+        } as Meal,
+      ],
+      addDays: add,
+    });
+    expect(series).toHaveLength(7);
+    expect(series[0].date).toBe('2026-10-24');
+    expect(series[6]).toMatchObject({ isToday: true, consumed: 1000, ratio: 0.5 });
   });
 });

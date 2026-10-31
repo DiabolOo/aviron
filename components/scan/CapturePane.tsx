@@ -3,7 +3,8 @@ import * as Haptics from 'expo-haptics';
 import * as ImagePicker from 'expo-image-picker';
 import { Images } from 'lucide-react-native';
 import { useRef } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
+import { Text } from '@/components/ui/Text';
 
 import { IconButton } from '@/components/ui/IconButton';
 import { Label } from '@/components/ui/Label';

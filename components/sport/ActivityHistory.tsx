@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import { Bike, Footprints, Mountain, RefreshCcw } from 'lucide-react-native';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
+import { Text } from '@/components/ui/Text';
 
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Label } from '@/components/ui/Label';
@@ -29,9 +30,9 @@ export function ActivityHistory({ activities, connected }: ActivityHistoryProps)
   return (
     <View className="mt-10">
       <View className="flex-row items-center justify-between">
-        <Label>Activités Strava</Label>
+        <Label>Activités</Label>
         {connected ? (
-          <Text className="font-mono text-[10px] uppercase tracking-[2px] text-muted">
+          <Text className="font-mono text-[13px] text-muted">
             {weekKm.toFixed(1)} km course
           </Text>
         ) : null}
@@ -48,7 +49,7 @@ export function ActivityHistory({ activities, connected }: ActivityHistoryProps)
         <EmptyState
           className="mt-3"
           icon={RefreshCcw}
-          title="Aucune activité Strava synchronisée"
+          title="Aucune activité synchronisée"
           description="Tes sorties apparaîtront ici après la prochaine synchro."
         />
       ) : (

@@ -2,7 +2,8 @@ import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { ChevronLeft } from 'lucide-react-native';
 import { useCallback, useState } from 'react';
-import { Keyboard, Pressable, Text, TextInput, View } from 'react-native';
+import { Keyboard, Pressable, View } from 'react-native';
+import { Text, TextInput } from '@/components/ui/Text';
 
 import { CalculatingStep } from '@/components/onboarding/CalculatingStep';
 import { StepProgress } from '@/components/onboarding/StepProgress';
