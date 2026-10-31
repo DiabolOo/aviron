@@ -50,9 +50,9 @@ function Bar({ ratio, height, delay = 400 }: { ratio: number; height: number; de
 }
 
 const MACROS = [
-  { key: 'protein', label: 'Protéines' },
-  { key: 'carbs', label: 'Glucides' },
-  { key: 'fat', label: 'Lipides' },
+  { key: 'protein', label: 'Prot.' },
+  { key: 'carbs', label: 'Gluc.' },
+  { key: 'fat', label: 'Lip.' },
 ] as const;
 
 export function MacroSummary({ consumed, target }: MacroSummaryProps) {
@@ -67,13 +67,11 @@ export function MacroSummary({ consumed, target }: MacroSummaryProps) {
       <Bar ratio={clampRatio(consumed.calories, target.calories)} height={8} />
       <View className="flex-row gap-4">
         {MACROS.map(({ key, label }, i) => (
-          <View key={key} className="flex-1">
+          <View key={key} className="flex-1 items-center">
             <Text className="text-[14px] text-muted">{label}</Text>
-            <Text className="mt-0.5 text-[19px] font-semibold text-fg">
-              {Math.round(consumed[key])}
-              <Text className="text-[14px] font-normal text-muted"> / {Math.round(target[key])} g</Text>
-            </Text>
-            <View className="mt-2">
+            <Text className="mt-0.5 text-[19px] font-semibold text-fg">{Math.round(consumed[key])}</Text>
+            <Text className="text-[13px] text-muted">/ {Math.round(target[key])} g</Text>
+            <View className="mt-2 w-full">
               <Bar ratio={clampRatio(consumed[key], target[key])} height={5} delay={500 + i * 60} />
             </View>
           </View>

@@ -56,7 +56,7 @@ export function EnergyBatteryWidget() {
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`Forme ${readiness.score}, ${readiness.label}. Pourquoi ?`}
+      accessibilityLabel={`Forme ${readiness.score}, ${readiness.label}. Afficher le détail`}
       onPress={() => {
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
         setOpen((v) => !v);
@@ -65,7 +65,6 @@ export function EnergyBatteryWidget() {
       <Card tint="forme" className="flex-1 p-[18px]">
         <View className="mb-1.5 h-[34px] flex-row items-center justify-between">
           <Text className="text-[17px] font-semibold text-fg">Forme</Text>
-          <Text className="text-[15px] text-muted underline">Pourquoi ?</Text>
         </View>
         <CountUp
           value={readiness.score}
