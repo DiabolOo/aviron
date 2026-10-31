@@ -13,7 +13,7 @@ import Animated, {
 
 import { Gradient } from '@/components/ui/Gradient';
 import { Text } from '@/components/ui/Text';
-import { TAB_ICONS as ICONS } from '@/components/ui/tabIcons';
+import { TAB_ICONS as ICONS, TAB_ORDER } from '@/components/ui/tabIcons';
 import { useReducedMotion } from '@/src/ui/motion/useReducedMotion';
 import { AI_GRADIENT } from '@/src/ui/theme/tokens';
 import { useTheme } from '@/src/ui/useTheme';
@@ -53,16 +53,19 @@ export function TabBar({ state, descriptors, emitter, navigateToTab, insets }: T
   const { colors } = useTheme();
   const reduced = useReducedMotion();
   const [width, setWidth] = useState(0);
-  const slotW = Math.max(0, (width - PAD * 2) / state.routes.length);
+  const visible = state.routes.filter((r) => (TAB_ORDER as readonly string[]).includes(r.name));
+  const activeIndex = visible.findIndex((r) => r.key === state.routes[state.index]?.key);
+  const slotW = Math.max(0, (width - PAD * 2) / visible.length);
   const x = useSharedValue(0);
 
   useEffect(() => {
-    const target = PAD + state.index * slotW;
+    const target = PAD + Math.max(0, activeIndex) * slotW;
     x.set(reduced || x.get() === 0 ? target : withTiming(target, { duration: 700, easing: SLIDE }));
-  }, [state.index, slotW, reduced, x]);
+  }, [activeIndex, slotW, reduced, x]);
 
   const padStyle = useAnimatedStyle(() => ({ transform: [{ translateX: x.get() }] }));
   const activeIsAgent = state.routes[state.index]?.name === 'agent';
+  const showPad = activeIndex >= 0 && !activeIsAgent;
 
   return (
     <View
@@ -82,15 +85,15 @@ export function TabBar({ state, descriptors, emitter, navigateToTab, insets }: T
           shadowOffset: { width: 0, height: 10 },
           elevation: 10,
         }}>
-        {slotW > 0 && !activeIsAgent ? (
+        {slotW > 0 && showPad ? (
           <Animated.View
             pointerEvents="none"
             className="absolute top-2 h-[54px] rounded-full"
             style={[{ width: slotW, backgroundColor: colors.navPad }, padStyle]}
           />
         ) : null}
-        {state.routes.map((route, index) => {
-          const focused = state.index === index;
+        {visible.map((route) => {
+          const focused = state.routes[state.index]?.key === route.key;
           const Icon = ICONS[route.name as keyof typeof ICONS] ?? House;
           const title = descriptors[route.key].options.title ?? route.name;
           const isAgent = route.name === 'agent';

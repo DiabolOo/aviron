@@ -1,7 +1,10 @@
-import { EnergyBatteryWidget } from '@/components/dashboard/EnergyBatteryWidget';
+import { Footprints } from 'lucide-react-native';
+
 import { WorkoutWidget } from '@/components/dashboard/WorkoutWidget';
 import { usePulseFitStore, useTodayStats } from '@/lib/store';
 import { SportDashboard } from '@/src/modules/sport/SportDashboard';
+import { SportPlan } from '@/src/modules/sport/SportPlan';
+import { SportStats } from '@/src/modules/sport/SportStats';
 import {
   ActivitySchema,
   GoalSchema,
@@ -9,10 +12,6 @@ import {
   TrainingPlanSchema,
 } from '@/src/core/schemas';
 import type { LifeModule } from '@/src/modules/types';
-
-function Energy() {
-  return <EnergyBatteryWidget />;
-}
 
 function Workout() {
   const { todaysSession } = useTodayStats();
@@ -30,13 +29,17 @@ function Workout() {
 export const sportModule: LifeModule = {
   id: 'sport',
   title: 'Sport',
+  description: 'Plan, séances, charge',
+  icon: Footprints,
+  color: 'sport',
   enabledByDefault: true,
   entities: [PlannedWorkoutSchema, ActivitySchema, TrainingPlanSchema, GoalSchema],
   todayWidgets: [
     { id: 'workout', order: 10, Component: Workout },
-    { id: 'energy', order: 30, Component: Energy, half: true },
   ],
+  plans: [{ id: 'sport-plan', title: 'Sport', Component: SportPlan }],
   dashboards: [{ id: 'sport', title: 'Sport', Component: SportDashboard }],
+  stats: [{ id: 'sport-stats', title: 'Sport', Component: SportStats }],
   agentTools: [
     {
       name: 'get_recent_activities',

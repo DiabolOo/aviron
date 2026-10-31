@@ -15,9 +15,14 @@ export const AdjustNutritionTargetsPayloadSchema = z.object({
   macros: MacrosSchema,
 });
 
+export const PlanWeekMealsPayloadSchema = z.object({
+  seed: z.number().int().min(0),
+});
+
 export type ProposalPayload =
   | { action: 'adjust_plan'; payload: z.infer<typeof AdjustPlanPayloadSchema> }
   | { action: 'log_meal'; payload: z.infer<typeof LogMealPayloadSchema> }
+  | { action: 'plan_week_meals'; payload: z.infer<typeof PlanWeekMealsPayloadSchema> }
   | {
       action: 'adjust_nutrition_targets';
       payload: z.infer<typeof AdjustNutritionTargetsPayloadSchema>;
@@ -36,6 +41,10 @@ export function parseProposalPayload(
     case 'log_meal': {
       const r = LogMealPayloadSchema.safeParse(raw);
       return r.success ? { action: 'log_meal', payload: r.data } : null;
+    }
+    case 'plan_week_meals': {
+      const r = PlanWeekMealsPayloadSchema.safeParse(raw);
+      return r.success ? { action: 'plan_week_meals', payload: r.data } : null;
     }
     case 'adjust_nutrition_targets': {
       const r = AdjustNutritionTargetsPayloadSchema.safeParse(raw);

@@ -209,6 +209,7 @@ export const ProposalActionSchema = z.enum([
   'adjust_plan',
   'log_meal',
   'adjust_nutrition_targets',
+  'plan_week_meals',
 ]);
 
 export const ProposalSchema = z.object({

@@ -1,4 +1,4 @@
-import { collectTodayWidgets, getEnabledModules } from './registry';
+import { collectSections, collectTodayWidgets, getEnabledModules } from './registry';
 import type { LifeModule } from './types';
 
 const Dummy = () => null;
@@ -43,3 +43,15 @@ describe('collectTodayWidgets', () => {
   });
 });
 
+
+describe('collectSections', () => {
+  it('ordonne les sections selon l’ordre demandé et ignore les modules désactivés', () => {
+    const mk = (id: string, enabled = true): LifeModule => ({
+      ...fakeModule(id, [], enabled),
+      plans: [{ id: `${id}-plan`, title: id, Component: Dummy }],
+    });
+    const modules = [mk('sport'), mk('nutrition'), mk('goals', false)];
+    const sections = collectSections(modules, byDefault, 'plans', ['nutrition', 'sport']);
+    expect(sections.map((s) => s.id)).toEqual(['nutrition-plan', 'sport-plan']);
+  });
+});

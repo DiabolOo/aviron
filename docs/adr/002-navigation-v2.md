@@ -1,4 +1,4 @@
-# ADR-002 — Navigation v2 : `Aujourd'hui · Plan · Agent · Suivi · Moi`
+# ADR-002 — Navigation v2 : `Accueil · Plan · Agent · Suivi · Stats`
 
 - **Date** : 2026-10-30
 - **Statut** : Accepté
@@ -22,7 +22,9 @@ Cinq entrées, dont l'agent au centre :
 | Plan | `app/(tabs)/plan.tsx` | Programme, semaine, détail de séance (ex-Sport, sans l'historique) |
 | ⊕ Agent | `app/(tabs)/agent.tsx` | `CommandBar` (texte), suggestions, propositions en attente, scan d'assiette |
 | Suivi | `app/(tabs)/suivi.tsx` | Sélecteur de module → `dashboards` du module (Sport : historique d'activités ; Nutrition : macros + journal) |
-| Moi | `app/(tabs)/moi.tsx` | Profil, objectifs, connexions, apparence (ex-Profil) |
+| Stats | `app/(tabs)/stats.tsx` | Tendances par module (période Semaine / Mois / Année), analyse de l'Agent |
+
+**Révision 2026-10-31** : l'onglet « Moi » est remplacé par « Stats ». Le profil s'ouvre depuis le prénom de l'Accueil (`profile`, `profile-modules`, `profile-section` : routes cachées de `(tabs)`, aucun onglet actif). Plan et Suivi utilisent un sélecteur de modules à icônes (`ModuleSwitcher`), généré depuis les modules actifs (`LifeModule.plans / dashboards / stats`) ; les modules s'activent dans Profil › Modules.
 
 - Les onglets **Sport** et **Nutrition** disparaissent. Leurs écrans migrent dans *Suivi* via
   `LifeModule.dashboards` : ajouter un module ne crée jamais d'onglet.

@@ -40,10 +40,10 @@ export function ActivityHistory({ activities, connected }: ActivityHistoryProps)
 
       {!connected ? (
         <Pressable
-          onPress={() => router.navigate('/moi')}
+          onPress={() => router.navigate('/profile-section?id=connexions')}
           className="mt-3 rounded-3xl border border-dashed border-fg/15 p-5 active:opacity-70">
           <Text className="text-base font-semibold text-fg">Connecter Strava</Text>
-          <Text className="mt-1 text-sm text-muted">Importe tes sorties depuis l’onglet Moi.</Text>
+          <Text className="mt-1 text-sm text-muted">Importe tes sorties depuis ton profil.</Text>
         </Pressable>
       ) : activities.length === 0 ? (
         <EmptyState

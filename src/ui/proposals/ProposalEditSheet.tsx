@@ -65,7 +65,7 @@ function EditForm({
           fat: macros.fat,
         },
       });
-    } else {
+    } else if (parsed.action === 'log_meal') {
       const meal = parsed.payload.meal;
       const ratio = meal.macros.calories > 0 ? calories / meal.macros.calories : 1;
       onSave({

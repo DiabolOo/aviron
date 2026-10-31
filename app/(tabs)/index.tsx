@@ -5,7 +5,7 @@ import { HomeHeader } from '@/components/dashboard/HomeHeader';
 import { Screen } from '@/components/ui/Screen';
 import { usePulseFitStore, useStreak } from '@/lib/store';
 import { CORE_TODAY_WIDGETS, MODULES } from '@/src/modules';
-import { isModuleEnabled } from '@/src/modules/flags';
+import { useIsModuleEnabled } from '@/src/modules/useModules';
 import { collectTodayWidgets } from '@/src/modules/registry';
 import { Rise } from '@/src/ui/motion/Rise';
 
@@ -28,7 +28,8 @@ function SingleWidget({ widget }: { widget: Entry['widgets'][number] }) {
 export default function HomeScreen() {
   const firstName = usePulseFitStore((s) => s.profile.firstName);
   const streak = useStreak();
-  const entries = groupWidgets(collectTodayWidgets(MODULES, isModuleEnabled, CORE_TODAY_WIDGETS));
+  const isEnabled = useIsModuleEnabled();
+  const entries = groupWidgets(collectTodayWidgets(MODULES, isEnabled, CORE_TODAY_WIDGETS));
 
   return (
     <Screen tone="home">

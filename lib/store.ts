@@ -37,6 +37,10 @@ type PulseFitState = {
   hydrate: () => Promise<void>;
   themePreference: ThemePreference;
   setThemePreference: (value: ThemePreference) => void;
+  moduleFlags: Record<string, boolean>;
+  setModuleFlag: (id: string, enabled: boolean) => void;
+  mealPlanSeed: number;
+  setMealPlanSeed: (seed: number) => void;
   profile: UserProfile;
   hasCompletedOnboarding: boolean;
   completeOnboarding: (profileData: Partial<UserProfile>) => void;
@@ -83,6 +87,8 @@ type PulseFitState = {
 type PersistedState = Pick<
   PulseFitState,
   | 'themePreference'
+  | 'moduleFlags'
+  | 'mealPlanSeed'
   | 'hasCompletedOnboarding'
   | 'stravaConnected'
   | 'watchConnected'
@@ -190,6 +196,10 @@ export const usePulseFitStore = create<PulseFitState>()(
         },
         themePreference: 'light',
         setThemePreference: (value) => set({ themePreference: value }),
+        moduleFlags: {},
+        setModuleFlag: (id, enabled) => set({ moduleFlags: { ...get().moduleFlags, [id]: enabled } }),
+        mealPlanSeed: 0,
+        setMealPlanSeed: (seed) => set({ mealPlanSeed: seed }),
         profile: DEFAULT_PROFILE,
         hasCompletedOnboarding: false,
         completeOnboarding: (profileData) => {
@@ -383,6 +393,8 @@ export const usePulseFitStore = create<PulseFitState>()(
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (state): PersistedState => ({
         themePreference: state.themePreference,
+        moduleFlags: state.moduleFlags,
+        mealPlanSeed: state.mealPlanSeed,
         hasCompletedOnboarding: state.hasCompletedOnboarding,
         stravaConnected: state.stravaConnected,
         watchConnected: state.watchConnected,

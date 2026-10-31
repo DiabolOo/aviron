@@ -2,6 +2,7 @@ import { create } from 'zustand';
 
 import { agent } from '@/src/agent';
 import { applyProposal } from '@/src/agent/applyProposal';
+import type { IntentResult } from '@/src/agent/types';
 import { toISODate } from '@/src/core/dates';
 import { parseProposalPayload } from '@/src/core/proposalActions';
 import { transition } from '@/src/core/proposals';
@@ -16,7 +17,7 @@ type ProposalState = {
   loaded: boolean;
   lastResolved: { id: string; label: string } | null;
   load: () => Promise<void>;
-  ask: (text: string) => Promise<string>;
+  ask: (text: string) => Promise<IntentResult>;
   accept: (id: string) => Promise<void>;
   edit: (id: string, payload: Record<string, unknown>) => Promise<void>;
   reject: (id: string) => Promise<void>;
@@ -60,14 +61,16 @@ export const useProposalStore = create<ProposalState>()((set, get) => {
     },
     ask: async (text) => {
       const main = usePulseFitStore.getState();
-      const { reply, proposals } = await agent.interpretIntent(text, {
+      const result = await agent.interpretIntent(text, {
         sessions: main.sessions,
         profile: main.profile,
         today: toISODate(new Date()),
+        mealPlanSeed: main.mealPlanSeed,
       });
+      const { proposals } = result;
       for (const proposal of proposals) await repositories.proposals.upsert(proposal);
       set({ proposals: [...proposals, ...get().proposals] });
-      return reply;
+      return result;
     },
     accept: async (id) => {
       const proposal = get().proposals.find((p) => p.id === id);

@@ -369,6 +369,7 @@ Les modules s'ajoutent dans *Aujourd'hui* (cartes), *Plan* (événements), *Suiv
 | 2026-10-30 | T8 — `LifeModule` + registre ; Aujourd'hui rendu via les widgets des modules |
 | 2026-10-30 | T9 — feature flags par module (`isModuleEnabled` + overrides) |
 | 2026-10-30 | T10 — `ProposalCard` + store des propositions (appliquer / éditer / refuser / annuler, toast) |
+| 2026-10-31 | J4 — maquette v2 : onglet Stats, profil via le prénom, modules activables (Sport / Nutrition / Objectifs / Forme), Plan › Nutrition, accueil nutrition seule |
 | 2026-10-31 | J4 — thème « Aurore » (jetons clair/sombre, Inter), barre à pad glissant, `HoldToConfirmCard`, écrans Accueil / Agent / Plan / Suivi / Moi refaits d'après la maquette |
 | 2026-10-30 | J4 — ADR-002, navigation 5 onglets, Suivi par module, CommandBar (MockAgent), carte « Maintenant » ; fix bouton Accueil |
 

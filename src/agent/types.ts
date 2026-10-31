@@ -19,10 +19,16 @@ export type ProposalContext = {
   today: string;
 };
 
-export type IntentResult = { reply: string; proposals: Proposal[] };
+export type IntentResult = {
+  reply: string;
+  proposals: Proposal[];
+  navigateTo?: '/profile' | '/profile-modules';
+};
+
+export type IntentContext = ProposalContext & { mealPlanSeed?: number };
 
 export interface IAgent {
-  interpretIntent(text: string, context: ProposalContext): Promise<IntentResult>;
+  interpretIntent(text: string, context: IntentContext): Promise<IntentResult>;
   analyzePlate(photoUri: string): Promise<Meal>;
   adaptWeek(params: AdaptWeekParams): Promise<WorkoutSession[]>;
   generateDefaultWeek(): Promise<WorkoutSession[]>;

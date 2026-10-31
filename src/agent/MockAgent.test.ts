@@ -30,11 +30,18 @@ describe('MockAgent.interpretIntent', () => {
     ['claqué, 45 min max', 'adjust_plan'],
     ['décale la sortie longue au dimanche', 'adjust_plan'],
     ['j’ai mangé des pâtes au déjeuner', 'log_meal'],
+    ['planifie ma semaine de repas', 'plan_week_meals'],
   ])('« %s » produit une proposition valide', async (text, action) => {
     const { proposals } = await new MockAgent().interpretIntent(text, ctx);
     expect(proposals).toHaveLength(1);
     expect(proposals[0].action).toBe(action);
     expect(() => ProposalSchema.parse(proposals[0])).not.toThrow();
+  });
+
+  it('ouvre les réglages sans proposition', async () => {
+    const result = await new MockAgent().interpretIntent('ouvre mes réglages', ctx);
+    expect(result.navigateTo).toBe('/profile');
+    expect(result.proposals).toHaveLength(0);
   });
 
   it('répond sans proposition quand rien n’est compris', async () => {

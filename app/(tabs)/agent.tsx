@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
 
@@ -29,7 +30,9 @@ export default function AgentScreen() {
   const send = async (text: string) => {
     setBusy(true);
     try {
-      setReply(await ask(text));
+      const result = await ask(text);
+      setReply(result.reply);
+      if (result.navigateTo) router.navigate(result.navigateTo);
     } finally {
       setBusy(false);
     }

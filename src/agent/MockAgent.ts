@@ -1,7 +1,13 @@
 import { addDaysISO } from '@/src/core/dates';
 import type { Proposal } from '@/src/core/schemas';
 import type { Meal, WorkoutSession } from '@/src/core/types';
-import type { AdaptWeekParams, IAgent, IntentResult, ProposalContext } from '@/src/agent/types';
+import type {
+  AdaptWeekParams,
+  IAgent,
+  IntentContext,
+  IntentResult,
+  ProposalContext,
+} from '@/src/agent/types';
 import { buildWeekSessions, mockAdaptWeek, mockAnalyzePlate } from '@/src/data/mock';
 
 function nextSunday(date: string): string {
@@ -11,17 +17,44 @@ function nextSunday(date: string): string {
 
 const MEAL_RE = /mang|repas|déjeuner|dejeuner|dîner|diner|petit[- ]?déj|goûter|gouter/i;
 const TIRED_RE = /claqu|fatigu|crev|épuis|epuis|courbatur|pas la forme/i;
+const SETTINGS_RE = /r[ée]glage|param[èe]tre|profil|module/i;
+const PLAN_MEALS_RE = /planifi\w*.*(semaine|repas)|menu de la semaine|courses/i;
 const MOVE_RE = /décal|decal|report|dimanche/i;
 
 export class MockAgent implements IAgent {
   async interpretIntent(
     text: string,
-    { sessions, today }: ProposalContext,
+    { sessions, today, mealPlanSeed = 0 }: IntentContext,
   ): Promise<IntentResult> {
     const input = text.trim();
     const createdAt = new Date().toISOString();
     const id = `prop-intent-${Date.now()}`;
     const upcoming = sessions.filter((s) => !s.completed && s.date >= today);
+
+    if (SETTINGS_RE.test(input)) {
+      return { reply: 'Voici tes réglages.', proposals: [], navigateTo: '/profile' };
+    }
+
+    if (PLAN_MEALS_RE.test(input)) {
+      return {
+        reply: 'J’ai préparé une nouvelle semaine de repas, les chiffres sont recalculés par l’app.',
+        proposals: [
+          {
+            id,
+            createdAt,
+            title: 'Planifier ma semaine de repas',
+            source: 'nutrition',
+            action: 'plan_week_meals',
+            payload: { seed: mealPlanSeed + 1 },
+            status: 'pending',
+            rationale: 'Repas variés calés sur tes cibles du jour, courses déduites du plan',
+            confidence: 0.82,
+            autoApply: false,
+            preview: { before: 'Semaine actuelle', after: 'Nouvelle semaine' },
+          },
+        ],
+      };
+    }
 
     if (TIRED_RE.test(input)) {
       const session = upcoming[0];

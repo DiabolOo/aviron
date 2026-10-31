@@ -36,6 +36,11 @@ export function applyProposal(
       const mealId = store.addMeal(parsed.payload.meal);
       return () => usePulseFitStore.getState().deleteMeal(mealId);
     }
+    case 'plan_week_meals': {
+      const previous = store.mealPlanSeed;
+      store.setMealPlanSeed(parsed.payload.seed);
+      return () => usePulseFitStore.getState().setMealPlanSeed(previous);
+    }
     case 'adjust_nutrition_targets': {
       const { macros } = parsed.payload;
       if (!macrosRespectInvariant(macros)) return null;

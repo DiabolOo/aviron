@@ -1,6 +1,7 @@
 import { Flame } from 'lucide-react-native';
 import { View } from 'react-native';
 
+import { GradientName } from '@/components/dashboard/GradientName';
 import { Gradient } from '@/components/ui/Gradient';
 import { Text } from '@/components/ui/Text';
 import { greetingForHour } from '@/src/core/dates';
@@ -25,9 +26,12 @@ export function HomeHeader({ firstName, streak }: HomeHeaderProps) {
     <View className="mb-2 flex-row items-end justify-between">
       <View className="flex-1 gap-1.5 pr-3">
         <Text className="text-[16px] font-medium capitalize text-muted">{dateLabel}</Text>
-        <Text numberOfLines={1} className="text-[34px] font-bold leading-[38px] tracking-tight text-fg">
-          {greetingForHour(now.getHours())}, {firstName}
-        </Text>
+        <View className="flex-row flex-wrap items-center">
+          <Text className="text-[34px] font-bold leading-[42px] tracking-tight text-fg">
+            {greetingForHour(now.getHours())},{' '}
+          </Text>
+          <GradientName name={firstName} />
+        </View>
       </View>
       {streak > 0 ? (
         <View

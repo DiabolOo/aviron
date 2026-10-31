@@ -1,5 +1,7 @@
 import type { Dashboard, LifeModule, TodayWidget } from '@/src/modules/types';
 
+export type ModuleSection = 'plans' | 'dashboards' | 'stats';
+
 export function getEnabledModules(
   modules: LifeModule[],
   isEnabled: (module: LifeModule) => boolean,
@@ -7,11 +9,26 @@ export function getEnabledModules(
   return modules.filter(isEnabled);
 }
 
+export function collectSections(
+  modules: LifeModule[],
+  isEnabled: (module: LifeModule) => boolean,
+  section: ModuleSection,
+  order: string[] = [],
+): (Dashboard & { module: LifeModule })[] {
+  const rank = (id: string) => {
+    const i = order.indexOf(id);
+    return i < 0 ? order.length : i;
+  };
+  return getEnabledModules(modules, isEnabled)
+    .flatMap((module) => (module[section] ?? []).map((d) => ({ ...d, module })))
+    .sort((a, b) => rank(a.module.id) - rank(b.module.id));
+}
+
 export function collectDashboards(
   modules: LifeModule[],
   isEnabled: (module: LifeModule) => boolean,
 ): Dashboard[] {
-  return getEnabledModules(modules, isEnabled).flatMap((module) => module.dashboards);
+  return collectSections(modules, isEnabled, 'dashboards');
 }
 
 export function collectTodayWidgets(
