@@ -1,4 +1,5 @@
 import { addDaysISO } from '@/src/core/dates';
+import { parseObjective } from '@/src/core/objective';
 import type { Proposal } from '@/src/core/schemas';
 import type { Meal, WorkoutSession } from '@/src/core/types';
 import type {
@@ -20,6 +21,7 @@ const TIRED_RE = /claqu|fatigu|crev|épuis|epuis|courbatur|pas la forme/i;
 const SETTINGS_RE = /r[ée]glage|param[èe]tre|profil|module/i;
 const PLAN_MEALS_RE = /planifi\w*.*(semaine|repas)|menu de la semaine|courses/i;
 const MOVE_RE = /décal|decal|report|dimanche/i;
+const PROGRAM_RE = /semi|marathon|\b\d{1,2}\s*km\b|pr[ée]pa|cr[ée]e\w*.*plan|plan d|mon plan|muscu|force|endurance|rester actif|courir/i;
 
 export class MockAgent implements IAgent {
   async interpretIntent(
@@ -54,6 +56,34 @@ export class MockAgent implements IAgent {
           },
         ],
       };
+    }
+
+    if (PROGRAM_RE.test(input)) {
+      const goal = parseObjective(input, today);
+      if (goal) {
+        return {
+          reply: 'J’ai construit un plan à partir de ton objectif, rien ne change tant que tu n’as pas validé.',
+          proposals: [
+            {
+              id,
+              createdAt,
+              title: `Créer mon plan : ${goal.targetName}`,
+              source: 'coach',
+              action: 'create_program',
+              payload: { goal },
+              status: 'pending',
+              rationale: 'Plan progressif calé sur ton objectif et sur ton volume des 7 derniers jours',
+              confidence: 0.8,
+              autoApply: false,
+              preview: {
+                after: [goal.targetValue, `${goal.weeklySessionsCount} séances / sem.`]
+                  .filter(Boolean)
+                  .join(' · '),
+              },
+            },
+          ],
+        };
+      }
     }
 
     if (TIRED_RE.test(input)) {

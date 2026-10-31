@@ -46,5 +46,6 @@ export const nutritionModule: LifeModule = {
       access: 'write',
     },
   ],
+  agentExamples: ['J’ai mangé des pâtes', 'Planifie ma semaine de repas'],
   analyzers: [],
 };

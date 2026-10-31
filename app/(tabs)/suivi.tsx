@@ -8,7 +8,7 @@ export default function TrackingScreen() {
   return (
     <Screen tone="suivi">
       <View className="gap-3.5">
-        <ScreenTitle title="Suivi" />
+        <ScreenTitle title="Mon journal" subtitle="Ce que tu as fait, jour par jour" />
         <ModuleSwitcher scope="suivi" section="dashboards" order={['nutrition', 'sport', 'goals']} />
       </View>
     </Screen>

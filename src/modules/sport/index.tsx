@@ -52,5 +52,6 @@ export const sportModule: LifeModule = {
       access: 'write',
     },
   ],
+  agentExamples: ['Décale la sortie longue', 'Prépare un semi en 1h45 dans 10 semaines'],
   analyzers: [],
 };

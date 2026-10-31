@@ -31,6 +31,7 @@ describe('MockAgent.interpretIntent', () => {
     ['décale la sortie longue au dimanche', 'adjust_plan'],
     ['j’ai mangé des pâtes au déjeuner', 'log_meal'],
     ['planifie ma semaine de repas', 'plan_week_meals'],
+    ['Prépare un semi en 1h45 dans 10 semaines', 'create_program'],
   ])('« %s » produit une proposition valide', async (text, action) => {
     const { proposals } = await new MockAgent().interpretIntent(text, ctx);
     expect(proposals).toHaveLength(1);

@@ -1,18 +1,16 @@
-import { Mic } from 'lucide-react-native';
+import { Sparkles } from 'lucide-react-native';
 import { useState } from 'react';
 import { Pressable, View } from 'react-native';
 
 import { Card } from '@/components/ui/Card';
-import { PrimaryButton } from '@/components/ui/PrimaryButton';
 import { Text } from '@/components/ui/Text';
-import { useProposalStore } from '@/lib/proposalStore';
 import { usePulseFitStore } from '@/lib/store';
 import { addDaysISO, toISODate, weekDates } from '@/src/core/dates';
 import { formatKcal } from '@/src/core/format';
 import { buildMealPlan } from '@/src/core/mealPlan';
 import { MacroBars } from '@/src/modules/nutrition/MacroBars';
+import { openAgent } from '@/src/ui/agentDraft';
 import { useTheme } from '@/src/ui/useTheme';
-import { router } from 'expo-router';
 
 const DAY_INITIALS = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
 
@@ -26,11 +24,9 @@ export function NutritionPlan() {
   const { colors } = useTheme();
   const profile = usePulseFitStore((s) => s.profile);
   const seed = usePulseFitStore((s) => s.mealPlanSeed);
-  const ask = useProposalStore((s) => s.ask);
   const week = weekDates();
   const today = toISODate(new Date());
   const [selected, setSelected] = useState(Math.max(0, week.indexOf(today)));
-  const [busy, setBusy] = useState(false);
   const plan = buildMealPlan(profile.macrosTarget.calories, seed);
   const date = week[selected] ?? addDaysISO(today, 0);
   const dateLabel = new Date(`${date}T00:00:00`).toLocaleDateString('fr-FR', {
@@ -38,16 +34,6 @@ export function NutritionPlan() {
     day: 'numeric',
     month: 'short',
   });
-
-  const planWeek = async () => {
-    setBusy(true);
-    try {
-      await ask('Planifie ma semaine de repas');
-      router.navigate('/agent');
-    } finally {
-      setBusy(false);
-    }
-  };
 
   return (
     <View className="gap-3.5">
@@ -110,18 +96,14 @@ export function NutritionPlan() {
         </View>
       </Card>
 
-      <View className="flex-row gap-2.5">
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Dicter"
-          onPress={() => router.navigate('/agent')}
-          className="h-[52px] w-[52px] items-center justify-center rounded-full bg-chip active:scale-95">
-          <Mic color={colors.fg} size={22} strokeWidth={1.9} />
-        </Pressable>
-        <View className="flex-1">
-          <PrimaryButton label="Planifier ma semaine" onPress={() => void planWeek()} disabled={busy} />
-        </View>
-      </View>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Planifier avec l’Agent"
+        onPress={() => openAgent('Planifie ma semaine de repas', 'Plan · Nutrition')}
+        className="h-[52px] flex-row items-center justify-center gap-2 rounded-full bg-fg active:scale-95">
+        <Sparkles color={colors.canvas} size={20} strokeWidth={2} />
+        <Text className="text-[18px] font-semibold text-canvas">Planifier avec l’Agent</Text>
+      </Pressable>
     </View>
   );
 }

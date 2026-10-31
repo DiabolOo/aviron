@@ -1,7 +1,7 @@
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { Camera, Mic } from 'lucide-react-native';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, View } from 'react-native';
 
 import { Gradient } from '@/components/ui/Gradient';
@@ -13,12 +13,28 @@ type CommandBarProps = {
   onSubmit: (text: string) => Promise<void> | void;
   placeholder?: string;
   busy?: boolean;
+  prefill?: { text: string; nonce: number };
 };
 
-export function CommandBar({ onSubmit, placeholder = 'Que veux-tu faire ?', busy = false }: CommandBarProps) {
+export function CommandBar({
+  onSubmit,
+  placeholder = 'Que veux-tu faire ?',
+  busy = false,
+  prefill,
+}: CommandBarProps) {
   const { colors, scheme } = useTheme();
-  const [text, setText] = useState('');
+  const [text, setText] = useState(prefill?.text ?? '');
   const input = useRef<InputRef>(null);
+
+  const [seenNonce, setSeenNonce] = useState(prefill?.nonce ?? 0);
+  if (prefill && prefill.nonce !== seenNonce) {
+    setSeenNonce(prefill.nonce);
+    setText(prefill.text);
+  }
+
+  useEffect(() => {
+    if (prefill?.nonce) input.current?.focus();
+  }, [prefill?.nonce]);
 
   const submit = async () => {
     const value = text.trim();

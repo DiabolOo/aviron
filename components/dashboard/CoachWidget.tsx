@@ -12,6 +12,8 @@ import { useTheme } from '@/src/ui/useTheme';
 const TOPIC: Record<string, string> = {
   adjust_plan: 'séance',
   log_meal: 'repas',
+  create_program: 'plan sport',
+  plan_week_meals: 'repas de la semaine',
   adjust_nutrition_targets: 'objectif nutrition',
 };
 

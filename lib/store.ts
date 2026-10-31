@@ -81,6 +81,11 @@ type PulseFitState = {
   activeWorkoutProgram?: WorkoutProgram;
   setAthleticGoal: (goal: AthleticGoal) => void;
   generateWorkoutProgram: () => void;
+  restoreProgramState: (snapshot: {
+    profile: UserProfile;
+    program: WorkoutProgram | undefined;
+    sessions: WorkoutSession[];
+  }) => void;
   resetWorkoutProgram: (keepGoal?: boolean) => void;
 };
 
@@ -367,6 +372,11 @@ export const usePulseFitStore = create<PulseFitState>()(
           setProfile({ ...get().profile, goalLabel: goal.targetName });
           set({ activeWorkoutProgram: buildProgram(goal) });
           persistSessions(buildProgramSessions(goal));
+        },
+        restoreProgramState: ({ profile, program, sessions }) => {
+          setProfile(profile);
+          set({ activeWorkoutProgram: program });
+          persistSessions(sessions);
         },
         resetWorkoutProgram: (keepGoal = false) => {
           const { athleticGoal, ...rest } = get().profile;

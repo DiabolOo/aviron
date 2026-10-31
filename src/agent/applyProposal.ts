@@ -36,6 +36,16 @@ export function applyProposal(
       const mealId = store.addMeal(parsed.payload.meal);
       return () => usePulseFitStore.getState().deleteMeal(mealId);
     }
+    case 'create_program': {
+      const snapshot = {
+        profile: store.profile,
+        program: store.activeWorkoutProgram,
+        sessions: store.sessions,
+      };
+      store.setAthleticGoal(parsed.payload.goal);
+      usePulseFitStore.getState().generateWorkoutProgram();
+      return () => usePulseFitStore.getState().restoreProgramState(snapshot);
+    }
     case 'plan_week_meals': {
       const previous = store.mealPlanSeed;
       store.setMealPlanSeed(parsed.payload.seed);

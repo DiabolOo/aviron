@@ -33,7 +33,7 @@ export default function StatsScreen() {
   return (
     <Screen tone="plan">
       <View className="gap-3.5">
-        <ScreenTitle title="Stats" />
+        <ScreenTitle title="Ma progression" subtitle="Où tu en es sur le mois et l’année" />
         <View className="flex-row gap-1">
           {PERIODS.map((item) => {
             const selected = item.id === period;

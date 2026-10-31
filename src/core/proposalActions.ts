@@ -19,8 +19,19 @@ export const PlanWeekMealsPayloadSchema = z.object({
   seed: z.number().int().min(0),
 });
 
+export const CreateProgramPayloadSchema = z.object({
+  goal: z.object({
+    type: z.enum(['race_prep', 'muscle_strength', 'endurance', 'fitness']),
+    targetName: z.string().min(1),
+    targetValue: z.string().optional(),
+    targetDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+    weeklySessionsCount: z.number().int().min(1).max(7),
+  }),
+});
+
 export type ProposalPayload =
   | { action: 'adjust_plan'; payload: z.infer<typeof AdjustPlanPayloadSchema> }
+  | { action: 'create_program'; payload: z.infer<typeof CreateProgramPayloadSchema> }
   | { action: 'log_meal'; payload: z.infer<typeof LogMealPayloadSchema> }
   | { action: 'plan_week_meals'; payload: z.infer<typeof PlanWeekMealsPayloadSchema> }
   | {
@@ -41,6 +52,10 @@ export function parseProposalPayload(
     case 'log_meal': {
       const r = LogMealPayloadSchema.safeParse(raw);
       return r.success ? { action: 'log_meal', payload: r.data } : null;
+    }
+    case 'create_program': {
+      const r = CreateProgramPayloadSchema.safeParse(raw);
+      return r.success ? { action: 'create_program', payload: r.data } : null;
     }
     case 'plan_week_meals': {
       const r = PlanWeekMealsPayloadSchema.safeParse(raw);

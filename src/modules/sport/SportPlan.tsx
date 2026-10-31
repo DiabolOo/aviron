@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { View } from 'react-native';
 
 import { ProgramTimeline } from '@/components/sport/ProgramTimeline';
-import { ProgramWizard } from '@/components/sport/ProgramWizard';
+import { NoPlanCard } from '@/components/sport/NoPlanCard';
 import { SessionDetail } from '@/components/sport/SessionDetail';
 import { WeekStrip } from '@/components/sport/WeekStrip';
 import { usePulseFitStore } from '@/lib/store';
@@ -13,7 +13,6 @@ export function SportPlan() {
   const sessions = usePulseFitStore((s) => s.sessions);
   const completeSession = usePulseFitStore((s) => s.completeSession);
   const program = usePulseFitStore((s) => s.activeWorkoutProgram);
-  const resetWorkoutProgram = usePulseFitStore((s) => s.resetWorkoutProgram);
   const [selectedDate, setSelectedDate] = useState(toISODate(new Date()));
 
   const week = useMemo(() => {
@@ -25,15 +24,11 @@ export function SportPlan() {
 
   const selected = sessions.find((session) => session.date === selectedDate) ?? week[0];
 
-  if (!program) return <ProgramWizard />;
+  if (!program) return <NoPlanCard />;
 
   return (
-    <View>
-      <ProgramTimeline
-        program={program}
-        onEdit={() => resetWorkoutProgram(true)}
-        onReset={() => resetWorkoutProgram()}
-      />
+    <View className="gap-3.5">
+      <ProgramTimeline program={program} />
       {week.length > 0 ? (
         <WeekStrip
           sessions={week}

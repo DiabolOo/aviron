@@ -33,6 +33,8 @@ function kindOf(proposal: Proposal): Kind {
         textClass: 'text-[#9A3412] dark:text-muted',
       };
     }
+    case 'create_program':
+      return { chip: 'Plan · sport', tint: 'sport', chipClass: 'bg-sport-tint', textClass: 'text-sport' };
     case 'plan_week_meals':
       return {
         chip: 'Repas · semaine',
@@ -130,7 +132,7 @@ export function ProposalCard({ proposal, onAccept, onReject, onEdit }: ProposalC
         <View className="flex-1">
           <PrimaryButton label={askConfirm ? 'Oui, valider' : 'Valider'} onPress={accept} />
         </View>
-        {proposal.action === 'plan_week_meals' ? null : (
+        {proposal.action === 'plan_week_meals' || proposal.action === 'create_program' ? null : (
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={askConfirm ? 'Corriger' : 'Modifier'}

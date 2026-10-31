@@ -8,7 +8,7 @@ export default function PlanScreen() {
   return (
     <Screen tone="plan">
       <View className="gap-3.5">
-        <ScreenTitle title="Plan" />
+        <ScreenTitle title="Ma semaine" subtitle="Ce que tu vas faire" />
         <ModuleSwitcher scope="plan" section="plans" order={['sport', 'nutrition', 'goals']} />
       </View>
     </Screen>

@@ -26,5 +26,6 @@ export interface LifeModule {
   dashboards: Dashboard[];
   stats?: Dashboard[];
   agentTools: AgentTool[];
+  agentExamples?: string[];
   analyzers: Analyzer[];
 }
