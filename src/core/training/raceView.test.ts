@@ -10,6 +10,7 @@ import {
   formatPaceKm,
   formatRaceDelta,
   formatRaceTime,
+  raceSummary,
   suggestRaceName,
 } from './raceView';
 
@@ -120,11 +121,11 @@ describe('buildRaceDebriefView', () => {
     const v = buildRaceDebriefView([...acts, long], all, 'race-a26', undefined, goal)!;
     expect(v.pacing?.message).toBeTruthy();
     expect(v.pacing?.extras).toEqual([
-      'Plus longue sortie des 8 semaines avant la course : 24,3 km.',
+      'Plus longue sortie des 8 semaines avant la course : 24,3 km (115 % de la distance).',
       'Allure nécessaire pour ton objectif (1h45) : 4:59 /km.',
     ]);
     const other = buildRaceDebriefView([...acts, long], all, 'race-a26', undefined, { ...goal, targetName: '10 km' })!;
-    expect(other.pacing?.extras).toEqual(['Plus longue sortie des 8 semaines avant la course : 24,3 km.']);
+    expect(other.pacing?.extras).toEqual(['Plus longue sortie des 8 semaines avant la course : 24,3 km (115 % de la distance).']);
   });
 
   it('tranches et moitiés suivent le temps écoulé (arrêts compris)', () => {
@@ -135,6 +136,30 @@ describe('buildRaceDebriefView', () => {
     const moving = buildRaceDebriefView(acts, all, 'race-a26')!;
     expect(v.bands[1].officialPaceSec).toBeGreaterThan(moving.bands[1].officialPaceSec!);
     expect(v.bands.reduce((s, b) => s + (b.timeSec ?? 0), 0)).toBeCloseTo(v.timeSec!, 5);
+  });
+
+  it('résumé de course : chrono, allure officielle, distances ; moment fort = écart avec l’an dernier', () => {
+    const v = buildRaceDebriefView(acts, all, 'race-a26')!;
+    const r = raceSummary(v);
+    expect(formatRaceTime(r.timeSec!)).toBe('1h53:09');
+    expect(formatPaceKm(r.officialPaceSec!)).toBe('5:22');
+    expect(r.officialKm).toBeCloseTo(21.0975);
+    expect(r.measuredKm).toBeCloseTo(21.876);
+    // 2e moitié plus lente : pas de « seconde moitié plus rapide »
+    expect(r.highlight).toMatchObject({ kind: 'race_vs_last_year', tone: 'accent', value: '+2 min' });
+    expect(r.highlight?.title).toBe('Par rapport à l’an dernier (1h50:50)');
+  });
+
+  it('moment fort de course : 2e moitié plus rapide en priorité ; rien sans donnée', () => {
+    const fast = acts.map((a) =>
+      a.id === 'a25' ? { ...a, splits: a.splits!.map((sp, i) => ({ ...sp, paceSec: i < 11 ? 330 : 300 })) } : a,
+    );
+    const h = raceSummary(buildRaceDebriefView(fast, all, 'race-a25')!).highlight;
+    expect(h).toMatchObject({ kind: 'race_negative_split', tone: 'accent' });
+    expect(h?.value).toMatch(/^−\d+ s\/km$/);
+    // une seule course : pas d'an dernier, 2e moitié plus lente → pas de moment fort
+    const alone = raceSummary(buildRaceDebriefView(acts, { confirmedIds: ['a26'], rejectedIds: [] }, 'race-a26')!);
+    expect(alone.highlight).toBeNull();
   });
 
   it('compares with previous confirmed races of the same distance, flags the best', () => {

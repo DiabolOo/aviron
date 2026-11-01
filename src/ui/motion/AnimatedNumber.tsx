@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { memo, useEffect, useState } from 'react';
 import { type TextProps } from 'react-native';
 import { Easing, useAnimatedReaction, useSharedValue, withTiming } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
@@ -6,15 +6,21 @@ import { scheduleOnRN } from 'react-native-worklets';
 import { Text } from '@/components/ui/Text';
 import { useReducedMotion } from '@/src/ui/motion/useReducedMotion';
 
-type CountToProps = TextProps & {
+type AnimatedNumberProps = TextProps & {
   value: number;
+  /** formate la valeur à chaque image : « 45:18 », « 9,1 »… le format reste respecté pendant la montée */
   format: (n: number) => string;
   className?: string;
   durationMs?: number;
 };
 
-/** Nombre qui monte de 0 à `value` une seule fois, à l'ouverture. Affichage direct si « Réduire les animations ». */
-export function CountTo({ value, format, durationMs = 700, ...props }: CountToProps) {
+const TABULAR = { fontVariant: ['tabular-nums' as const] };
+
+/**
+ * Nombre qui monte de 0 à `value` une seule fois, à l'ouverture. Composant isolé : l'état de l'animation
+ * est local, le parent ne se re-rend pas à chaque image. Affichage direct avec « Réduire les animations ».
+ */
+function AnimatedNumberBase({ value, format, durationMs = 700, style, ...props }: AnimatedNumberProps) {
   const reduced = useReducedMotion();
   const progress = useSharedValue(0);
   const [ratio, setRatio] = useState(0);
@@ -35,5 +41,11 @@ export function CountTo({ value, format, durationMs = 700, ...props }: CountToPr
     },
   );
 
-  return <Text {...props}>{format(value * (reduced ? 1 : ratio))}</Text>;
+  return (
+    <Text {...props} style={[TABULAR, style]}>
+      {format(value * (reduced ? 1 : ratio))}
+    </Text>
+  );
 }
+
+export const AnimatedNumber = memo(AnimatedNumberBase);

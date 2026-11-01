@@ -4,69 +4,66 @@ import { usePulseFitStore } from '@/lib/store';
 import { toISODate } from '@/src/core/dates';
 import type { AthleteProfile, TrainingInsight } from '@/src/core/training/types';
 import type { RaceCandidate } from '@/src/core/training/engine';
+import type { Highlight, HighlightActivity } from '@/src/core/training/highlights';
 import { confirmRace } from '@/src/core/training/insights/rules/confirmRace';
 import { racePacing } from '@/src/core/training/insights/rules/racePacing';
 import {
-  buildRaceDebriefView,
-  detectUserRaces,
   isConfirmed,
   racePacingExtras,
   suggestRaceName,
   type RaceDebriefView,
 } from '@/src/core/training/raceView';
-import { stravaToActivity } from '@/src/data/mappers';
+import { sportDerived, type SportDerived } from '@/src/ui/sportDerived';
 
 const ATHLETE: AthleteProfile = { level: 'regular' };
 
-function useRaceInputs() {
+/**
+ * Dérivés sport du snapshot courant (mapping, courses, index des comparables) :
+ * calculés une fois par version, partagés par tous les écrans montés.
+ */
+export function useSportDerived(): SportDerived {
   const stravaActivities = usePulseFitStore((s) => s.activities);
   const confirmedIds = usePulseFitStore((s) => s.confirmedRaceIds);
   const rejectedIds = usePulseFitStore((s) => s.rejectedRaceIds);
   const names = usePulseFitStore((s) => s.raceNames);
   const goal = usePulseFitStore((s) => s.profile.athleticGoal);
-  const activities = useMemo(() => stravaActivities.map(stravaToActivity), [stravaActivities]);
-  return { activities, confirmedIds, rejectedIds, names, goal };
+  return sportDerived({ stravaActivities, confirmedIds, rejectedIds, names, goal });
 }
 
 export function useRaceDebrief(id: string | undefined): RaceDebriefView | undefined {
-  const { activities, confirmedIds, rejectedIds, names, goal } = useRaceInputs();
-  return useMemo(
-    () => (id ? buildRaceDebriefView(activities, { confirmedIds, rejectedIds, names }, id, ATHLETE, goal) : undefined),
-    [activities, confirmedIds, rejectedIds, names, goal, id],
-  );
+  return useSportDerived().raceDebrief(id);
 }
 
 /** activityId → raceId pour les courses confirmées (badge « Course », durée chrono, bouton débrief). */
 export function useConfirmedRaceMap(): ReadonlyMap<string, string> {
-  const { activities, confirmedIds, rejectedIds, names } = useRaceInputs();
-  return useMemo(() => {
-    const map = new Map<string, string>();
-    for (const race of detectUserRaces(activities, { confirmedIds, rejectedIds, names })) {
-      if (race.activityId && isConfirmed(race, confirmedIds)) map.set(race.activityId, race.id);
-    }
-    return map;
-  }, [activities, confirmedIds, rejectedIds, names]);
+  return useSportDerived().confirmedRaceMap;
 }
 
 /** Course confirmée correspondant à une activité (détail d'activité → « Voir le débrief »). */
 export function useConfirmedRaceId(activityId: string | undefined): string | undefined {
-  const map = useConfirmedRaceMap();
+  const map = useSportDerived().confirmedRaceMap;
   return activityId ? map.get(activityId) : undefined;
+}
+
+/** Moment fort d'une activité, mémoïsé sur l'index des comparables du snapshot. */
+export function useActivityHighlight(activity: HighlightActivity | undefined): Highlight | null {
+  const derived = useSportDerived();
+  return useMemo(() => (activity ? derived.highlightFor(activity) : null), [derived, activity]);
 }
 
 export type RaceLists = { confirmed: RaceCandidate[]; pending: RaceCandidate[] };
 
 export function useRaceLists(): RaceLists {
-  const { activities, confirmedIds, rejectedIds, names } = useRaceInputs();
+  const derived = useSportDerived();
   return useMemo(() => {
-    const races = detectUserRaces(activities, { confirmedIds, rejectedIds, names })
+    const races = derived.races
       .filter((r) => r.status === 'completed')
       .sort((a, b) => b.date.localeCompare(a.date));
     return {
-      confirmed: races.filter((r) => isConfirmed(r, confirmedIds)),
-      pending: races.filter((r) => !isConfirmed(r, confirmedIds)),
+      confirmed: races.filter((r) => isConfirmed(r, derived.confirmedIds)),
+      pending: races.filter((r) => !isConfirmed(r, derived.confirmedIds)),
     };
-  }, [activities, confirmedIds, rejectedIds, names]);
+  }, [derived]);
 }
 
 export type RaceInsights = {
@@ -78,9 +75,9 @@ const raceIdOf = (insight: TrainingInsight): string => insight.id.slice(insight.
 
 /** Cartes race_pacing et confirm_race de l'Accueil (règles du moteur, sans recalcul d'affichage). */
 export function useRaceInsights(): RaceInsights {
-  const { activities, confirmedIds, rejectedIds, names, goal } = useRaceInputs();
+  const derived = useSportDerived();
   return useMemo(() => {
-    const races = detectUserRaces(activities, { confirmedIds, rejectedIds, names });
+    const { races, activities, confirmedIds, goal } = derived;
     const ctx = { today: toISODate(new Date()), activities, profile: ATHLETE, races, confirmedIds };
     const out: RaceInsights = {};
 
@@ -95,5 +92,5 @@ export function useRaceInsights(): RaceInsights {
       out.confirm = { insight: confirm, raceId: confirmRaceCandidate.id, suggestedName: suggestRaceName(confirmRaceCandidate) };
     }
     return out;
-  }, [activities, confirmedIds, rejectedIds, names, goal]);
+  }, [derived]);
 }

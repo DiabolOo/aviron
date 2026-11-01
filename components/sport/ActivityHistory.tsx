@@ -9,6 +9,7 @@ import { Text } from '@/components/ui/Text';
 import { formatClock, formatKmTotal } from '@/src/core/sportFormat';
 import type { WeekSummary } from '@/src/core/sportWeek';
 import type { StravaActivity } from '@/src/core/types';
+import { openActivities } from '@/src/ui/nav';
 import { useConfirmedRaceMap } from '@/src/ui/useRaces';
 
 type ActivityHistoryProps = {
@@ -60,7 +61,7 @@ export function ActivityHistory({ week, activities, connected, lastActivityLabel
             ))
           )}
           <Pressable
-            onPress={() => router.push('/activities')}
+            onPress={() => openActivities()}
             className="mt-2 items-center border-t border-fg/5 py-4 active:opacity-70">
             <Text className="text-sm font-medium text-fg">Voir tout l&apos;historique</Text>
           </Pressable>

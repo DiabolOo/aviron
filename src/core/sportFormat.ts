@@ -144,6 +144,11 @@ export function formatKmNumber(km: number): string {
   return km.toFixed(1).replace('.', ',');
 }
 
+/** Km d'un split : « 01 » pour un km entier, « 9,1 » pour le dernier split partiel. */
+export function formatSplitKm(km: number): string {
+  return Number.isInteger(km) ? `${km}`.padStart(2, '0') : formatKmNumber(km);
+}
+
 /** « 9,1 km ». */
 export function formatKm(km: number): string {
   return `${formatKmNumber(km)} km`;

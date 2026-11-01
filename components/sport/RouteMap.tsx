@@ -23,7 +23,7 @@ export function RouteMap({ polyline }: { polyline: RoutePoint[] }) {
   const grid = [1, 2, 3, 4, 5];
 
   return (
-    <View className="mt-3 overflow-hidden rounded-3xl border border-fg/5 bg-surface">
+    <View className="mt-3 overflow-hidden rounded-3xl">
       <Svg width="100%" height={HEIGHT} viewBox={`0 0 ${WIDTH} ${HEIGHT}`}>
         <Defs>
           <LinearGradient id="route" x1="0" y1="0" x2="1" y2="1">

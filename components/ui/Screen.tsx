@@ -18,9 +18,11 @@ type ScreenProps = {
   scroll?: boolean;
   withSafeBottom?: boolean;
   tone?: Tone;
+  /** pastel qui remplace l'aurore du ton (couleur du sport) */
+  glowTint?: string;
 };
 
-export function Screen({ children, scroll = true, withSafeBottom = false, tone = 'home' }: ScreenProps) {
+export function Screen({ children, scroll = true, withSafeBottom = false, tone = 'home', glowTint }: ScreenProps) {
   const progress = useSharedValue(0);
   const tabInset = useTabBarInset();
 
@@ -52,7 +54,7 @@ export function Screen({ children, scroll = true, withSafeBottom = false, tone =
 
   return (
     <View className="flex-1 bg-canvas">
-      <Glow tone={tone} />
+      <Glow tone={tone} tint={glowTint} />
       <SafeAreaView className="flex-1" edges={withSafeBottom ? ['top', 'bottom'] : ['top']}>
         {content}
       </SafeAreaView>

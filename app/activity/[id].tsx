@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { Activity, ChevronLeft } from 'lucide-react-native';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Pressable, View } from 'react-native';
 
 import { ActivityDetail } from '@/components/sport/ActivityDetail';
@@ -8,7 +8,9 @@ import { ErrorState } from '@/components/ui/ErrorState';
 import { Label } from '@/components/ui/Label';
 import { Screen } from '@/components/ui/Screen';
 import { usePulseFitStore } from '@/lib/store';
-import { useConfirmedRaceId } from '@/src/ui/useRaces';
+import { openRace, perfLog } from '@/src/ui/nav';
+import { sportTokens } from '@/src/ui/theme/sportColors';
+import { useActivityHighlight, useSportDerived } from '@/src/ui/useRaces';
 import { useTheme } from '@/src/ui/useTheme';
 
 const STRAVA_COLOR = '#FC4C02';
@@ -17,9 +19,15 @@ export default function ActivityScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const activities = usePulseFitStore((s) => s.activities);
   const activity = useMemo(() => activities.find((item) => item.id === id), [activities, id]);
-  const maxHr = useMemo(() => Math.max(0, ...activities.map((a) => a.maxHr ?? 0)) || undefined, [activities]);
   const { colors } = useTheme();
-  const raceId = useConfirmedRaceId(id);
+  const derived = useSportDerived();
+  const raceId = id ? derived.confirmedRaceMap.get(id) : undefined;
+  const race = derived.raceSummaryFor(raceId);
+  const highlight = useActivityHighlight(activity);
+
+  useEffect(() => {
+    perfLog('/activity premier rendu');
+  }, []);
 
   const header = (
     <View className="flex-row items-center justify-between">
@@ -52,14 +60,13 @@ export default function ActivityScreen() {
   }
 
   return (
-    <Screen>
+    <Screen glowTint={sportTokens(colors, activity.type).tint}>
       {header}
       <ActivityDetail
         activity={activity}
-        history={activities}
-        raceId={raceId}
-        maxHr={maxHr}
-        onOpenRace={(raceId) => router.push(`/race/${raceId}`)}
+        highlight={highlight}
+        race={race}
+        onOpenRace={openRace}
       />
     </Screen>
   );

@@ -3,7 +3,8 @@ import { formatHour, formatKm } from '../sportFormat';
 import type { Activity } from '../schemas';
 import type { AthleticGoal } from '../types';
 import { daysBetween, detectRaces, raceDebrief, racePrep, type PaceBand, type RaceCandidate, type RaceDebrief } from './engine';
-import { distanceNoteFr, driftSentenceFr, pacingExtrasFr } from './insights/copy.fr';
+import type { Highlight } from './highlights';
+import { distanceNoteFr, driftSentenceFr, highlightCopyFr, pacingExtrasFr } from './insights/copy.fr';
 import { targetPaceSec } from './insights/helpers';
 import { CONFIRM_RACE_MAX_AGE_DAYS } from './insights/thresholds';
 import { racePacing } from './insights/rules/racePacing';
@@ -46,6 +47,10 @@ export type RacePacingView = {
 
 export type RaceDebriefView = {
   race: RaceCandidate;
+  /** nom de la course : celui choisi par l'utilisateur, sinon suggestion (distance + ville + année) */
+  title: string;
+  /** titre d'origine de l'activité, s'il diffère du titre affiché */
+  originalName?: string;
   confirmed: boolean;
   timeSec?: number;
   officialPaceSec?: number;
@@ -55,6 +60,8 @@ export type RaceDebriefView = {
   /** allure moyenne officielle, pour la ligne de référence des tranches */
   averagePaceSec?: number;
   hr?: RaceHrView;
+  /** allures officielles des deux moitiés (avec ou sans FC) */
+  halfPaces?: { first: number; second: number };
   comparison: RaceRow[];
 };
 
@@ -174,6 +181,7 @@ export function racePacingExtras(activities: Activity[], race: RaceCandidate, go
   const neededPaceSec = sameDistance ? targetPaceSec(goal?.targetValue, race.officialDistanceKm) : undefined;
   return pacingExtrasFr({
     longestRunKm: longest > 0 ? Math.round(longest * 10) / 10 : undefined,
+    raceKm: race.officialDistanceKm,
     neededPaceSec,
     targetValue: neededPaceSec !== undefined ? goal?.targetValue : undefined,
   });
@@ -225,15 +233,15 @@ function comparisonRows(race: RaceCandidate, races: RaceCandidate[], confirmedId
     .reverse();
 }
 
-/** Undefined si la course (ou son activité) est introuvable. */
-export function buildRaceDebriefView(
+/** Undefined si la course (ou son activité) est introuvable. `races` précalculées = pas de redétection. */
+export function buildRaceDebriefViewFromRaces(
   activities: Activity[],
+  races: RaceCandidate[],
   choices: RaceChoices,
   raceId: string,
   profile: AthleteProfile = DEFAULT_PROFILE,
   goal?: AthleticGoal,
 ): RaceDebriefView | undefined {
-  const races = detectUserRaces(activities, choices);
   const race = races.find((r) => r.id === raceId);
   const activity = race?.activityId ? activities.find((a) => a.id === race.activityId) : undefined;
   if (!race || !activity) return undefined;
@@ -242,8 +250,13 @@ export function buildRaceDebriefView(
   const hasHr = debrief.halves?.first.avgHr !== undefined && debrief.halves.second.avgHr !== undefined;
   const bands = debrief.bands.filter((b) => b.officialPaceSec !== undefined);
 
+  const chosen = choices.names?.[activity.id]?.trim();
+  const title = chosen || suggestRaceName(race);
+
   return {
     race,
+    title,
+    originalName: activity.name && activity.name !== title ? activity.name : undefined,
     confirmed: isConfirmed(race, choices.confirmedIds),
     timeSec: race.timeSec,
     officialPaceSec: debrief.officialPaceSec,
@@ -251,6 +264,9 @@ export function buildRaceDebriefView(
     pacing: racePacingFor(activities, race, profile, goal),
     bands,
     averagePaceSec: debrief.officialPaceSec,
+    halfPaces: debrief.halves
+      ? { first: debrief.halves.first.officialPaceSec, second: debrief.halves.second.officialPaceSec }
+      : undefined,
     hr:
       hasHr && debrief.halves
         ? {
@@ -262,6 +278,74 @@ export function buildRaceDebriefView(
   };
 }
 
+/** Undefined si la course (ou son activité) est introuvable. */
+export function buildRaceDebriefView(
+  activities: Activity[],
+  choices: RaceChoices,
+  raceId: string,
+  profile: AthleteProfile = DEFAULT_PROFILE,
+  goal?: AthleticGoal,
+): RaceDebriefView | undefined {
+  return buildRaceDebriefViewFromRaces(activities, detectUserRaces(activities, choices), choices, raceId, profile, goal);
+}
+
 /** Candidate trop ancienne pour la carte de l'Accueil (28 jours) : elle se confirme depuis la section « Courses ». */
 export const isStaleCandidate = (race: Pick<RaceCandidate, 'date'>, today: string): boolean =>
   daysBetween(race.date, today) > CONFIRM_RACE_MAX_AGE_DAYS;
+
+/** Seconde moitié plus rapide d'au moins 2 % pour en faire le moment fort d'une course. */
+export const RACE_NEGATIVE_SPLIT_MIN_PCT = 2;
+/** « La même course l'année d'avant » : 365 jours à ±45 jours près, même distance officielle. */
+export const SAME_RACE_WINDOW_DAYS = 45;
+
+/** Moment fort orienté course : 2e moitié plus rapide, sinon écart avec la même course l'année d'avant. */
+export function raceHighlight(view: RaceDebriefView): Highlight | null {
+  const halves = view.halfPaces;
+  if (halves && (halves.first - halves.second) / halves.first >= RACE_NEGATIVE_SPLIT_MIN_PCT / 100) {
+    const gain = Math.round(halves.first - halves.second);
+    return { kind: 'race_negative_split', tone: 'accent', ...highlightCopyFr('race_negative_split', { beginner: false, gainSecPerKm: gain }) };
+  }
+  const current = view.comparison.find((r) => r.current);
+  if (!current || current.timeSec === undefined) return null;
+  const lastYear = view.comparison.find(
+    (r) =>
+      !r.current &&
+      r.timeSec !== undefined &&
+      r.officialDistanceKm === current.officialDistanceKm &&
+      Math.abs(daysBetween(r.date, current.date) - 365) <= SAME_RACE_WINDOW_DAYS,
+  );
+  if (!lastYear || lastYear.timeSec === undefined) return null;
+  return {
+    kind: 'race_vs_last_year',
+    tone: 'accent',
+    ...highlightCopyFr('race_vs_last_year', {
+      beginner: false,
+      deltaLabel: formatRaceDelta(current.timeSec - lastYear.timeSec),
+      lastYearTime: formatRaceTime(lastYear.timeSec),
+    }),
+  };
+}
+
+export interface RaceSummary {
+  raceId: string;
+  /** chrono (temps écoulé) */
+  timeSec?: number;
+  /** allure officielle : chrono / distance officielle */
+  officialPaceSec?: number;
+  officialKm: number;
+  /** distance de l'activité (GPS) */
+  measuredKm?: number;
+  highlight: Highlight | null;
+}
+
+/** Ce que l'écran de détail d'une course confirmée affiche : chrono, allure officielle, distances, moment fort. */
+export function raceSummary(view: RaceDebriefView): RaceSummary {
+  return {
+    raceId: view.race.id,
+    timeSec: view.timeSec,
+    officialPaceSec: view.officialPaceSec,
+    officialKm: view.race.officialDistanceKm,
+    measuredKm: view.race.measuredDistanceKm,
+    highlight: raceHighlight(view),
+  };
+}

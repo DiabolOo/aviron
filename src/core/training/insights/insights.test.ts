@@ -82,7 +82,7 @@ const COPY_VARIANTS: Record<string, InsightCopy[]> = {
   confirm_race: [confirmRaceCopy({ distanceKm: 21.9, date: '2026-10-11' })],
   race_pacing: [
     fastStartCopy({ gapPct: 6.2, firstPaceSec: 321, secondPaceSec: 341, evenPaceSec: 331 }),
-    cautiousStartCopy({ gapPct: 5.8, firstQuarterPaceSec: 350, averagePaceSec: 331 }),
+    cautiousStartCopy({ gapPct: 5.8, firstQuarterPaceSec: 350, averagePaceSec: 331, bestQuarter: { index: 3, paceSec: 318 }, gainSec: 190 }),
   ],
   race_prep: [
     racePrepReachableCopy({ longestKm: 9.2, raceKm: 21.0975, sharePct: 44, weeks: 8, weeksLeft: 5, nextKm: 10.1 }),

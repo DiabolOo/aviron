@@ -4,10 +4,14 @@ import Svg, { Defs, RadialGradient, Rect, Stop } from 'react-native-svg';
 import { AURORA, DARK_GLOW, type Tone } from '@/src/ui/theme/tokens';
 import { useTheme } from '@/src/ui/useTheme';
 
-export function Glow({ tone = 'home' }: { tone?: Tone }) {
+/** `tint` : pastel d'un sport, remplace l'aurore du ton (clair et sombre) — fondu vers le neutre. */
+export function Glow({ tone = 'home', tint }: { tone?: Tone; tint?: string }) {
   const { scheme } = useTheme();
-  const blobs =
-    scheme === 'dark' ? [{ color: DARK_GLOW, cx: 50, cy: 0 }] : AURORA[tone];
+  const blobs = tint
+    ? [{ color: tint, cx: 50, cy: 0 }]
+    : scheme === 'dark'
+      ? [{ color: DARK_GLOW, cx: 50, cy: 0 }]
+      : AURORA[tone];
 
   return (
     <View pointerEvents="none" className="absolute inset-x-0 top-0 h-[460px]">

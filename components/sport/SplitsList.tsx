@@ -11,7 +11,7 @@ import Animated, {
 import { Card } from '@/components/ui/Card';
 import { Text } from '@/components/ui/Text';
 import { staggerDelay } from '@/src/core/motion';
-import { analyzeSplits } from '@/src/core/sportFormat';
+import { analyzeSplits, formatSplitKm } from '@/src/core/sportFormat';
 import type { ActivitySplit } from '@/src/core/types';
 import { useReducedMotion } from '@/src/ui/motion/useReducedMotion';
 
@@ -65,7 +65,7 @@ export function SplitsList({ splits }: { splits: ActivitySplit[] }) {
         return (
           <View key={split.km} className="flex-row items-center gap-3 border-t border-fg/5 py-3">
             <Text numberOfLines={1} ellipsizeMode="clip" style={TABULAR} className={`w-8 text-muted ${BODY}`}>
-              {`${split.km}`.padStart(2, '0')}
+              {formatSplitKm(split.km)}
             </Text>
             <View className="flex-1 flex-row items-center gap-3">
               <Text

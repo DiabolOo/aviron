@@ -7,6 +7,7 @@ import { TargetRace } from '@/components/race/TargetRace';
 import { ActivityRow } from '@/components/sport/ActivityRow';
 import { usePulseFitStore } from '@/lib/store';
 import type { StravaActivity } from '@/src/core/types';
+import { resetNavLock } from '@/src/ui/nav';
 
 const mockPush = jest.fn();
 const mockBack = jest.fn();
@@ -50,6 +51,7 @@ const ACTIVITIES = [
 beforeEach(() => {
   mockPush.mockClear();
   mockBack.mockClear();
+  resetNavLock();
   usePulseFitStore.setState({
     activities: ACTIVITIES,
     confirmedRaceIds: ['a24', 'a25', 'a26'],

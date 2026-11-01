@@ -1,7 +1,7 @@
+import { View } from 'react-native';
 import Svg, { Defs, Line, LinearGradient, Path, Stop } from 'react-native-svg';
 
 import { smoothPath } from '@/components/sport/SmoothPath';
-import { Card } from '@/components/ui/Card';
 import { useTheme } from '@/src/ui/useTheme';
 
 const WIDTH = 320;
@@ -26,7 +26,7 @@ export function HeartRateChart({ stream, avgHr }: HeartRateChartProps) {
   const avgY = avgHr !== undefined && avgHr > 0 ? toY(avgHr) : undefined;
 
   return (
-    <Card className="mt-3">
+    <View className="mt-3">
       <Svg width="100%" height={HEIGHT} viewBox={`0 0 ${WIDTH} ${HEIGHT}`} preserveAspectRatio="none">
         <Defs>
           <LinearGradient id="hrFill" x1="0" y1="0" x2="0" y2="1">
@@ -44,6 +44,6 @@ export function HeartRateChart({ stream, avgHr }: HeartRateChartProps) {
         ) : null}
         <Path d={line} stroke="url(#hrLine)" strokeWidth={2.5} fill="none" strokeLinecap="round" />
       </Svg>
-    </Card>
+    </View>
   );
 }

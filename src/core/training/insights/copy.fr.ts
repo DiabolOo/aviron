@@ -113,9 +113,12 @@ export function driftSentenceFr(d: { hrBpm: number; paceSecPerKm: number }): str
 }
 
 /** Lignes ajoutées à la carte race_pacing. */
-export function pacingExtrasFr(p: { longestRunKm?: number; neededPaceSec?: number; targetValue?: string }): string[] {
+export function pacingExtrasFr(p: { longestRunKm?: number; raceKm?: number; neededPaceSec?: number; targetValue?: string }): string[] {
   const lines: string[] = [];
-  if (p.longestRunKm !== undefined) lines.push(`Plus longue sortie des 8 semaines avant la course : ${km(p.longestRunKm)}.`);
+  if (p.longestRunKm !== undefined) {
+    const share = p.raceKm !== undefined && p.raceKm > 0 ? ` (${pct((p.longestRunKm / p.raceKm) * 100)} de la distance)` : '';
+    lines.push(`Plus longue sortie des 8 semaines avant la course : ${km(p.longestRunKm)}${share}.`);
+  }
   if (p.neededPaceSec !== undefined) {
     lines.push(`Allure nécessaire pour ton objectif${p.targetValue ? ` (${p.targetValue})` : ''} : ${paceFr(p.neededPaceSec)}.`);
   }
@@ -131,6 +134,7 @@ export const PACING_LABELS = {
   average: 'Allure moyenne',
   gapHalves: 'Écart 2e moitié vs 1re',
   gapQuarter: 'Écart 1er quart vs moyenne',
+  bestQuarter: 'Allure meilleur quart',
 };
 
 export function fastStartCopy(p: { gapPct: number; firstPaceSec: number; secondPaceSec: number; evenPaceSec: number }): InsightCopy {
@@ -143,13 +147,27 @@ export function fastStartCopy(p: { gapPct: number; firstPaceSec: number; secondP
   };
 }
 
-export function cautiousStartCopy(p: { gapPct: number; firstQuarterPaceSec: number; averagePaceSec: number }): InsightCopy {
+const QUARTER_NAMES = ['1er quart', '2e quart', '3e quart', 'dernier quart'];
+
+/** « environ 2 min » au-delà de 90 s, sinon « environ 45 s ». */
+const approxDuration = (sec: number): string => (sec < 90 ? `${Math.max(1, Math.round(sec))} s` : `${Math.round(sec / 60)} min`);
+
+export function cautiousStartCopy(p: {
+  gapPct: number;
+  firstQuarterPaceSec: number;
+  averagePaceSec: number;
+  /** meilleur quart de la course (0 à 3) et son allure */
+  bestQuarter: { index: number; paceSec: number };
+  /** (allure du 1er quart − allure moyenne) × distance du 1er quart, en secondes */
+  gainSec: number;
+}): InsightCopy {
+  const best = QUARTER_NAMES[p.bestQuarter.index] ?? QUARTER_NAMES[3];
+  const gain = approxDuration(p.gainSec);
   return {
     title: 'Ton départ était peut-être trop prudent',
-    beginnerText:
-      'Tu as démarré tranquillement, plus lentement que le reste de ta course. Au prochain départ, accélère un peu plus tôt, dès le deuxième kilomètre.',
-    athleteText: `Ton 1er quart est ${pct(p.gapPct, 1)} plus lent que ta moyenne (${paceFr(p.firstQuarterPaceSec)} contre ${paceFr(p.averagePaceSec)}). Passe à ${paceFr(p.averagePaceSec)} dès le 2e km.`,
-    why: 'Partir un peu plus doucement que sa moyenne est souvent judicieux, mais ici l’écart dépasse 5 %. La foule du départ ou une côte peuvent l’expliquer, et ce n’est pas un problème en soi. Si ce n’était pas voulu, il restait de la marge pour accélérer plus tôt.',
+    beginnerText: `Ton ${best} a été ta meilleure partie : tu as fini fort. En partant un peu plus vite, tu pouvais gagner jusqu’à environ ${gain}.`,
+    athleteText: `Ton ${best} a été ta meilleure partie (${paceFr(p.bestQuarter.paceSec)}). Ton 1er quart était ${pct(p.gapPct, 1)} plus lent que ta moyenne (${paceFr(p.firstQuarterPaceSec)} contre ${paceFr(p.averagePaceSec)}) : à ${paceFr(p.averagePaceSec)}, tu pouvais gagner jusqu’à environ ${gain}.`,
+    why: 'Partir un peu plus doucement que sa moyenne est souvent judicieux, mais ici l’écart dépasse 5 %. La foule au départ, qui empêche de courir à son rythme, ou une côte peuvent l’expliquer, et ce n’est pas un problème en soi. Si ce n’était pas voulu, il restait de la marge pour accélérer plus tôt.',
   };
 }
 
@@ -330,7 +348,15 @@ export function aerobicTrendCopy(p: { variationPct: number; latest: string; base
 
 // ─── Moment fort d'une activité ───────────────────────────────────────────────
 
-export type HighlightKind = 'fastest_comparable' | 'longest' | 'return' | 'fastest_km' | 'negative_split' | 'steady';
+export type HighlightKind =
+  | 'fastest_comparable'
+  | 'longest'
+  | 'return'
+  | 'fastest_km'
+  | 'negative_split'
+  | 'steady'
+  | 'race_negative_split'
+  | 'race_vs_last_year';
 
 export interface HighlightText {
   title: string;
@@ -354,6 +380,9 @@ export function highlightCopyFr(
     lateInRun?: boolean;
     gainSecPerKm?: number;
     spreadSecPerKm?: number;
+    /** écart de temps déjà formaté (« +2 min ») et chrono de l'an dernier (« 1h50:50 ») */
+    deltaLabel?: string;
+    lastYearTime?: string;
   },
 ): HighlightText {
   const window = p.windowDays ?? 0;
@@ -393,6 +422,18 @@ export function highlightCopyFr(
         detail: p.beginner
           ? 'La deuxième moitié de ta sortie était plus rapide que la première : bien géré.'
           : `Ta 2e moitié est plus rapide de ${p.gainSecPerKm} s/km que la 1re.`,
+      };
+    case 'race_negative_split':
+      return {
+        title: 'Seconde moitié plus rapide',
+        value: `−${p.gainSecPerKm} s/km`,
+        detail: `Tu as couru la 2e moitié de la course ${p.gainSecPerKm} s/km plus vite que la 1re.`,
+      };
+    case 'race_vs_last_year':
+      return {
+        title: `Par rapport à l’an dernier (${p.lastYearTime})`,
+        value: p.deltaLabel ?? '',
+        detail: `Même course, même distance : ${p.deltaLabel} sur le chrono.`,
       };
     case 'steady':
       return {

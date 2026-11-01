@@ -174,7 +174,14 @@ function Comparison({ rows, onOpen }: { rows: RaceRow[]; onOpen: (id: string) =>
 export function RaceDebriefContent({ view, onOpenRace }: Props) {
   return (
     <View>
-      <Text className="mt-6 text-3xl font-semibold tracking-tight text-fg">{view.race.name}</Text>
+      <Text testID="race-title" numberOfLines={2} className="mt-6 text-3xl font-semibold tracking-tight text-fg">
+        {view.title}
+      </Text>
+      {view.originalName ? (
+        <Text testID="race-original-name" numberOfLines={1} className="mt-1 text-xs text-muted">
+          {view.originalName}
+        </Text>
+      ) : null}
       <Text className="mt-1 text-sm text-muted">{longDate(view.race.date)}</Text>
 
       {view.timeSec !== undefined ? (

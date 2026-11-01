@@ -1,9 +1,9 @@
-import { router } from 'expo-router';
 import { Pressable, View } from 'react-native';
 
 import { ConfirmRaceCard } from '@/components/race/ConfirmRaceCard';
 import { Card } from '@/components/ui/Card';
 import { Text } from '@/components/ui/Text';
+import { openRace } from '@/src/ui/nav';
 import { useRaceInsights } from '@/src/ui/useRaces';
 
 /** Accueil : carte race_pacing (→ débrief) et carte confirm_race (Oui / Non). */
@@ -22,7 +22,7 @@ export function RaceInsightCards() {
         />
       ) : null}
       {pacing ? (
-        <Pressable onPress={() => router.push(`/race/${pacing.raceId}`)} className="active:opacity-70">
+        <Pressable onPress={() => openRace(pacing.raceId)} className="active:opacity-70">
           <Card>
             <Text className="text-base font-semibold text-fg">{pacing.insight.title}</Text>
             <Text className="mt-1 text-sm text-muted">{pacing.insight.message}</Text>

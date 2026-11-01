@@ -2,6 +2,7 @@ import { router } from 'expo-router';
 
 import { RaceDebriefContent } from '@/components/race/RaceDebriefContent';
 import { ErrorState } from '@/components/ui/ErrorState';
+import { openRace } from '@/src/ui/nav';
 import { useRaceDebrief } from '@/src/ui/useRaces';
 
 export function RaceDebriefBody({ id }: { id: string | undefined }) {
@@ -18,5 +19,5 @@ export function RaceDebriefBody({ id }: { id: string | undefined }) {
       />
     );
   }
-  return <RaceDebriefContent view={view} onOpenRace={(raceId) => router.push(`/race/${raceId}`)} />;
+  return <RaceDebriefContent view={view} onOpenRace={openRace} />;
 }

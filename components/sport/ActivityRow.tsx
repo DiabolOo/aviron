@@ -1,4 +1,3 @@
-import { router } from 'expo-router';
 import { Activity, Bike, Dumbbell, Footprints, Mountain, Waves } from 'lucide-react-native';
 import { Pressable, View } from 'react-native';
 
@@ -6,6 +5,8 @@ import { Text } from '@/components/ui/Text';
 import { formatDayMonth } from '@/src/core/dates';
 import { activityDurationDisplay, activityPace, effortTimeSec, displayActivityName, formatKmNumber } from '@/src/core/sportFormat';
 import type { ActivityType, StravaActivity } from '@/src/core/types';
+import { openActivity, openRace } from '@/src/ui/nav';
+import { sportTokens } from '@/src/ui/theme/sportColors';
 import { useTheme } from '@/src/ui/useTheme';
 
 const ICONS: Record<ActivityType, typeof Footprints> = {
@@ -22,6 +23,7 @@ type Props = { activity: StravaActivity; first: boolean; raceId?: string };
 export function ActivityRow({ activity, first, raceId }: Props) {
   const { colors } = useTheme();
   const Icon = ICONS[activity.type];
+  const sport = sportTokens(colors, activity.type);
   const effort = activityPace(
     activity.type,
     activity.distanceKm,
@@ -29,10 +31,10 @@ export function ActivityRow({ activity, first, raceId }: Props) {
   );
   return (
     <Pressable
-      onPress={() => router.push(`/activity/${activity.id}`)}
+      onPress={() => openActivity(activity.id)}
       className={`flex-row items-center gap-4 py-4 active:opacity-70 ${first ? '' : 'border-t border-fg/5'}`}>
-      <View className="h-10 w-10 items-center justify-center rounded-full bg-fg/5">
-        <Icon color={colors.fg} size={17} strokeWidth={1.8} />
+      <View className="h-10 w-10 items-center justify-center rounded-full" style={{ backgroundColor: sport.tint }}>
+        <Icon color={sport.color} size={18} strokeWidth={2} />
       </View>
       <View className="flex-1">
         <View className="flex-row items-center gap-2">
@@ -42,7 +44,7 @@ export function ActivityRow({ activity, first, raceId }: Props) {
           {raceId ? (
             <Pressable
               hitSlop={6}
-              onPress={() => router.push(`/race/${raceId}`)}
+              onPress={() => openRace(raceId)}
               className="rounded-full bg-fg px-2 py-0.5 active:opacity-70">
               <Text className="text-[11px] font-semibold text-canvas">Course</Text>
             </Pressable>

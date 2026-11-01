@@ -73,5 +73,8 @@ describe('race_pacing', () => {
     expect(out.title).toContain('trop prudent');
     expect(out.severity).toBe('info');
     expect(out.evidence[2].numeric).toBeGreaterThan(5);
+    expect(out.athleteText).toMatch(/^Ton dernier quart a été ta meilleure partie \(5:00 \/km\)/);
+    expect(out.athleteText).toMatch(/jusqu’à environ 2 min/);
+    expect(out.why).toContain('foule');
   });
 });

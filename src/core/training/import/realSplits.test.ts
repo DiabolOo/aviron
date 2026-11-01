@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
+import { axisKmLabel, paceCurveModel } from '../../paceCurve';
 import type { Activity } from '../../schemas';
 
 const snapshotPath = path.join(__dirname, '../../../../fixtures/julien.snapshot.json');
@@ -17,5 +18,12 @@ const STRAVA = [313, 312, 286, 308, 313, 316, 290, 334, 220];
     const paces = run.splits!.slice(0, 9).map((s) => s.paceSec);
     paces.forEach((p, i) => expect(Math.abs(p - STRAVA[i])).toBeLessThanOrEqual(5));
     expect(run.splits![8].paceSec).toBeLessThan(300);
+  });
+
+  it('course du 15 octobre 2026 : la courbe garde le split partiel 9,1 (10 points)', () => {
+    const run = snapshot!.activities.find((a) => a.type === 'run' && a.date === '2026-10-15')!;
+    const m = paceCurveModel(run.splits, 343, 190, { left: 46, right: 14, top: 14, bottom: 26 })!;
+    expect(m.points).toHaveLength(10);
+    expect(axisKmLabel(m.points[9].km)).toBe('km 9,1');
   });
 });

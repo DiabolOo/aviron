@@ -21,6 +21,8 @@ export interface Highlight {
   title: string;
   value: string;
   detail: string;
+  /** km mis en avant sur la courbe d'allure (km le plus rapide) */
+  km?: number;
 }
 
 /** Fenêtre de comparaison de la « sortie la plus rapide » : 12 mois. */
@@ -37,8 +39,10 @@ export const LONGEST_WINDOW_DAYS = 84;
 export const LONGEST_MIN_ACTIVITIES = 3;
 /** Retour après au moins 14 jours sans aucune activité. */
 export const RETURN_GAP_DAYS = 14;
-/** Un km partiel de moins de 0,5 km n'est pas comparable. */
+/** « Km le plus rapide » : un split partiel de moins de 0,5 km n'est pas un kilomètre. */
 export const MIN_SPLIT_KM = 0.5;
+/** Courbe et moitiés : tout split partiel compte, sous 50 m ce n'est que du bruit GPS. */
+export const MIN_CURVE_KM = 0.05;
 /** Un km n'est « le plus rapide » que s'il se détache : au moins 5 % plus rapide que le km médian. */
 export const FASTEST_KM_MIN_GAIN_PCT = 5;
 /** Mini de kilomètres pour parler de km rapide, de seconde moitié ou de régularité. */
@@ -69,27 +73,77 @@ function movingSegments(splits: { km: number; paceSec: number }[] | undefined, m
   return segs;
 }
 
-/** Splits complets (≈ 1 km) pour la courbe d'allure. */
-export const fullSegments = (splits: { km: number; paceSec: number }[] | undefined): Seg[] =>
-  movingSegments(splits, 0.99);
+/** Splits de la courbe d'allure : arrêts exclus, dernier split partiel inclus (sauf bruit GPS sous 50 m). */
+export const curveSegments = (splits: { km: number; paceSec: number }[] | undefined): Seg[] =>
+  movingSegments(splits, MIN_CURVE_KM);
 
 const pacePerKm = (a: HighlightActivity): number | undefined =>
   a.distanceKm && a.distanceKm > 0 ? effortTimeSec(a) / a.distanceKm : undefined;
 
-function fastestComparable(a: HighlightActivity, history: HighlightActivity[], beginner: boolean): Highlight | null {
-  const pace = pacePerKm(a);
+/**
+ * Index des comparables : calculé une fois par version de l'historique (snapshot),
+ * partagé par toutes les activités au lieu d'un balayage complet par moment fort.
+ */
+export interface ComparablesIndex {
+  /** toutes les activités, dates croissantes */
+  sorted: HighlightActivity[];
+  /** même tri, regroupé par type de sport */
+  byType: ReadonlyMap<string, HighlightActivity[]>;
+  /** allure s/km précalculée par id d'activité */
+  paceById: ReadonlyMap<string, number | undefined>;
+}
+
+export function comparablesIndex(history: readonly HighlightActivity[]): ComparablesIndex {
+  const sorted = [...history].sort((a, b) => a.date.localeCompare(b.date));
+  const byType = new Map<string, HighlightActivity[]>();
+  for (const a of sorted) {
+    const bucket = byType.get(a.type);
+    if (bucket) bucket.push(a);
+    else byType.set(a.type, [a]);
+  }
+  const paceById = new Map(history.map((a) => [a.id, pacePerKm(a)]));
+  return { sorted, byType, paceById };
+}
+
+const paceOf = (a: HighlightActivity, index: ComparablesIndex): number | undefined =>
+  index.paceById.get(a.id) ?? pacePerKm(a);
+
+/** l'historique couvre-t-il `start` (au moins une activité plus ancienne) ? */
+const coversWindow = (index: ComparablesIndex, start: string): boolean =>
+  index.sorted.length > 0 && index.sorted[0].date <= start;
+
+/** Activités du même sport dans [start, a.date], l'activité elle-même exclue. */
+function sameTypeInWindow(a: HighlightActivity, index: ComparablesIndex, start: string): HighlightActivity[] {
+  const out: HighlightActivity[] = [];
+  for (const h of index.byType.get(a.type) ?? []) {
+    if (h.date < start) continue;
+    if (h.date > a.date) break; // tri croissant
+    if (h.id !== a.id) out.push(h);
+  }
+  return out;
+}
+
+/** Dernière date strictement avant a.date (recherche dichotomique sur le tri). */
+function lastDateBefore(index: ComparablesIndex, date: string): string | undefined {
+  let lo = 0;
+  let hi = index.sorted.length;
+  while (lo < hi) {
+    const mid = (lo + hi) >> 1;
+    if (index.sorted[mid].date < date) lo = mid + 1;
+    else hi = mid;
+  }
+  return lo > 0 ? index.sorted[lo - 1].date : undefined;
+}
+
+function fastestComparable(a: HighlightActivity, index: ComparablesIndex, beginner: boolean): Highlight | null {
+  const pace = paceOf(a, index);
   if (pace === undefined || !a.distanceKm) return null;
   const start = addDays(a.date, -FASTEST_WINDOW_DAYS);
-  if (!history.some((h) => h.date <= start)) return null; // l'historique ne couvre pas la fenêtre
-  const comparable = history.filter(
-    (h) =>
-      h.type === a.type &&
-      h.date >= start &&
-      h.date <= a.date &&
-      h.distanceKm !== undefined &&
-      Math.abs(h.distanceKm - a.distanceKm!) / a.distanceKm! <= COMPARABLE_RATIO,
+  if (!coversWindow(index, start)) return null; // l'historique ne couvre pas la fenêtre
+  const comparable = sameTypeInWindow(a, index, start).filter(
+    (h) => h.distanceKm !== undefined && Math.abs(h.distanceKm - a.distanceKm!) / a.distanceKm! <= COMPARABLE_RATIO,
   );
-  const paces = comparable.map(pacePerKm).filter((p): p is number => p !== undefined);
+  const paces = comparable.map((h) => paceOf(h, index)).filter((p): p is number => p !== undefined);
   if (paces.length < FASTEST_MIN_COMPARABLE) return null;
   if (paces.some((p) => p * (1 - FASTEST_MIN_MARGIN_PCT / 100) <= pace)) return null;
   const text = highlightCopyFr('fastest_comparable', {
@@ -101,19 +155,18 @@ function fastestComparable(a: HighlightActivity, history: HighlightActivity[], b
   return { kind: 'fastest_comparable', tone: 'flame', ...text };
 }
 
-function longest(a: HighlightActivity, history: HighlightActivity[], beginner: boolean): Highlight | null {
+function longest(a: HighlightActivity, index: ComparablesIndex, beginner: boolean): Highlight | null {
   if (!a.distanceKm) return null;
   const start = addDays(a.date, -LONGEST_WINDOW_DAYS);
-  if (!history.some((h) => h.date <= start)) return null;
-  const same = history.filter((h) => h.type === a.type && h.date >= start && h.date <= a.date && h.distanceKm);
+  if (!coversWindow(index, start)) return null;
+  const same = sameTypeInWindow(a, index, start).filter((h) => h.distanceKm);
   if (same.length < LONGEST_MIN_ACTIVITIES || same.some((h) => (h.distanceKm as number) >= a.distanceKm!)) return null;
   const text = highlightCopyFr('longest', { beginner, distanceKm: a.distanceKm, windowDays: LONGEST_WINDOW_DAYS });
   return { kind: 'longest', tone: 'flame', ...text };
 }
 
-function comeback(a: HighlightActivity, history: HighlightActivity[], beginner: boolean): Highlight | null {
-  const before = history.filter((h) => h.date < a.date).map((h) => h.date).sort();
-  const last = before[before.length - 1];
+function comeback(a: HighlightActivity, index: ComparablesIndex, beginner: boolean): Highlight | null {
+  const last = lastDateBefore(index, a.date);
   if (last === undefined) return null;
   const gap = daysBetween(last, a.date);
   if (gap < RETURN_GAP_DAYS) return null;
@@ -129,11 +182,11 @@ function fastestKm(a: HighlightActivity, beginner: boolean): Highlight | null {
   if ((median - best.paceSec) / median < FASTEST_KM_MIN_GAIN_PCT / 100) return null;
   const lateInRun = segs.slice(-2).includes(best);
   const text = highlightCopyFr('fastest_km', { beginner, paceSec: best.paceSec, km: Math.round(best.km), lateInRun });
-  return { kind: 'fastest_km', tone: 'accent', ...text };
+  return { kind: 'fastest_km', tone: 'accent', km: Math.round(best.km), ...text };
 }
 
 function negativeSplit(a: HighlightActivity, beginner: boolean): Highlight | null {
-  const segs = movingSegments(a.splits, MIN_SPLIT_KM);
+  const segs = movingSegments(a.splits, MIN_CURVE_KM);
   if (segs.length < STEADY_MIN_SPLITS) return null;
   const total = segs.reduce((s, x) => s + x.len, 0);
   let acc = 0;
@@ -171,24 +224,35 @@ function steady(a: HighlightActivity, beginner: boolean): Highlight | null {
 }
 
 /**
- * Moment fort d'une activité : un seul, le premier candidat valable dans l'ordre
- * a (plus rapide) > b (plus longue) > c (retour) > d (km rapide) > e (seconde moitié) > f (régularité).
- * `history` = les autres activités ; null sans données suffisantes (jamais de chiffre approximatif).
+ * Moment fort d'une activité sur un index précalculé : les candidats qui comparent à
+ * l'historique (a, b, c) lisent l'index ; l'activité elle-même y est exclue par id.
  */
-export function highlightOf(
+export function highlightOfIndexed(
   activity: HighlightActivity,
-  history: HighlightActivity[],
+  index: ComparablesIndex,
   opts: { beginner?: boolean } = {},
 ): Highlight | null {
   const beginner = opts.beginner ?? false;
-  const others = history.filter((h) => h.id !== activity.id);
   return (
-    fastestComparable(activity, others, beginner) ??
-    longest(activity, others, beginner) ??
-    comeback(activity, others, beginner) ??
+    fastestComparable(activity, index, beginner) ??
+    longest(activity, index, beginner) ??
+    comeback(activity, index, beginner) ??
     fastestKm(activity, beginner) ??
     negativeSplit(activity, beginner) ??
     steady(activity, beginner) ??
     null
   );
+}
+
+/**
+ * Moment fort d'une activité : un seul, le premier candidat valable dans l'ordre
+ * a (plus rapide) > b (plus longue) > c (retour) > d (km rapide) > e (seconde moitié) > f (régularité).
+ * `history` = toutes les activités ; null sans données suffisantes (jamais de chiffre approximatif).
+ */
+export function highlightOf(
+  activity: HighlightActivity,
+  history: readonly HighlightActivity[],
+  opts: { beginner?: boolean } = {},
+): Highlight | null {
+  return highlightOfIndexed(activity, comparablesIndex(history), opts);
 }

@@ -57,14 +57,18 @@ export const racePacing: InsightRuleDef = {
 
       const cautious = round1((q1 / evenPace - 1) * 100);
       if (cautious > PACING_GAP_PCT) {
+        const quarters = bands.flatMap((b, index) => (b.officialPaceSec !== undefined ? [{ index, paceSec: b.officialPaceSec }] : []));
+        const bestQuarter = quarters.reduce((m, q) => (q.paceSec <= m.paceSec ? q : m));
+        const gainSec = (q1 - evenPace) * (race.officialDistanceKm / 4);
         return buildInsight({
           ...common,
           severity: 'info',
-          copy: cautiousStartCopy({ gapPct: cautious, firstQuarterPaceSec: q1, averagePaceSec: evenPace }),
+          copy: cautiousStartCopy({ gapPct: cautious, firstQuarterPaceSec: q1, averagePaceSec: evenPace, bestQuarter, gainSec }),
           evidence: [
             { label: PACING_LABELS.firstQuarter, value: paceFr(q1), numeric: q1 },
             { label: PACING_LABELS.average, value: paceFr(evenPace), numeric: evenPace },
             { label: PACING_LABELS.gapQuarter, value: `+${nf(cautious, 1)} %`, numeric: cautious },
+            { label: PACING_LABELS.bestQuarter, value: paceFr(bestQuarter.paceSec), numeric: bestQuarter.paceSec },
           ],
         });
       }

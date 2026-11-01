@@ -1,14 +1,20 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { ChevronLeft } from 'lucide-react-native';
+import { useEffect } from 'react';
 import { Pressable, View } from 'react-native';
 
 import { RaceDebriefBody } from '@/components/race/RaceDebriefBody';
 import { Screen } from '@/components/ui/Screen';
+import { perfLog } from '@/src/ui/nav';
 import { useTheme } from '@/src/ui/useTheme';
 
 export default function RaceScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { colors } = useTheme();
+
+  useEffect(() => {
+    perfLog('/race premier rendu');
+  }, []);
 
   return (
     <Screen tone="suivi">

@@ -99,6 +99,7 @@ describe('highlightOf', () => {
     expect(h.value).toBe('3:40 /km');
     expect(h.title).toMatch(/en fin de sortie/);
     expect(h.detail).toMatch(/Km 9/);
+    expect(h.km).toBe(9);
   });
 
   it('d. km rapide au milieu : pas de mention « en fin de sortie » ; splits partiels de moins de 0,5 km ignorés', () => {
