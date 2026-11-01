@@ -53,3 +53,6 @@ docs/adr/     décisions d'architecture
 - Supprimer ou affaiblir un test pour faire passer la CI.
 - Ajouter une dépendance lourde sans en discuter (ADR).
 - Cocher une tâche ou un jalon dont la DoD n'est pas vérifiée.
+
+## Outils
+- Écrire les fichiers longs (surtout les tests) avec l'outil `write`, pas avec un heredoc shell : les heredocs ont été tronqués en cours de fichier et les commandes suivantes du même appel ne se lançaient pas. Lancer `typecheck` / `test` dans un appel séparé et relire les avertissements du shell.
