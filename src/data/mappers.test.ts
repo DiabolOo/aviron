@@ -13,6 +13,7 @@ describe('activityToStrava / stravaToActivity', () => {
     date: '2026-10-29',
     startTime: '07:15',
     distanceKm: 8.1,
+    durationMin: 50,
     movingTimeMin: 48,
     elevationM: 42,
     calories: 520,
@@ -23,9 +24,10 @@ describe('activityToStrava / stravaToActivity', () => {
     polyline: [{ x: 0.5, y: 0.5 }],
   };
 
-  it('convertit movingTimeMin ↔ durationMin et marque la source strava', () => {
+  it('convertit durationMin et movingTimeMin ↔ movingTimeSec, source strava', () => {
     const activity = stravaToActivity(strava);
-    expect(activity.durationMin).toBe(48);
+    expect(activity.durationMin).toBe(50);
+    expect(activity.movingTimeSec).toBe(2880);
     expect(activity.source).toBe('strava');
     expect(activity.splits).toEqual(strava.splits);
     expect(activity.hrStream).toEqual(strava.hrStream);
@@ -37,7 +39,7 @@ describe('activityToStrava / stravaToActivity', () => {
     expect(roundTrip).toEqual(strava);
   });
 
-  it('fournit des valeurs par défaut pour les champs optionnels', () => {
+  it('fournit des valeurs par défaut pour les champs optionnels, sans 0', () => {
     const ui = activityToStrava({
       id: 'a', name: 'Marche', type: 'walk', date: '2026-10-29',
       startTime: '10:00', durationMin: 30, calories: 150,
@@ -45,6 +47,9 @@ describe('activityToStrava / stravaToActivity', () => {
     expect(ui.splits).toEqual([]);
     expect(ui.hrStream).toEqual([]);
     expect(ui.polyline).toEqual([]);
+    expect(ui.distanceKm).toBeUndefined();
+    expect(ui.movingTimeMin).toBeUndefined();
+    expect(ui.avgHr).toBeUndefined();
   });
 });
 

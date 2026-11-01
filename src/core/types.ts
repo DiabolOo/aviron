@@ -100,18 +100,23 @@ export type Weather = {
 // le snapshot Strava contient des nages, de la muscu ('other'), etc.
 export type ActivityType = 'run' | 'ride' | 'walk' | 'swim' | 'strength' | 'other';
 
+// Les champs optionnels restent undefined quand la donnée est absente :
+// jamais de 0 à l'affichage.
 export type StravaActivity = {
   id: string;
   name: string;
   type: ActivityType;
   date: string;
-  distanceKm: number;
-  movingTimeMin: number;
-  elevationM: number;
   startTime: string;
-  calories: number;
-  avgHr: number;
-  maxHr: number;
+  distanceKm?: number;
+  /** temps écoulé (pauses incluses) */
+  durationMin: number;
+  /** temps de déplacement — sert l'allure/vitesse affichée quand il existe */
+  movingTimeMin?: number;
+  elevationM?: number;
+  calories?: number;
+  avgHr?: number;
+  maxHr?: number;
   splits: ActivitySplit[];
   hrStream: number[];
   polyline: RoutePoint[];
@@ -122,7 +127,7 @@ export type ActivitySplit = {
   pace: string;
   paceSec: number;
   elevationGain: number;
-  avgHr: number;
+  avgHr?: number;
 };
 
 export type RoutePoint = { x: number; y: number };

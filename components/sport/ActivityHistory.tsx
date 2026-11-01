@@ -6,7 +6,8 @@ import { Text } from '@/components/ui/Text';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Label } from '@/components/ui/Label';
 import { formatDayMonth } from '@/src/core/dates';
-import { formatDuration, formatPace, formatSpeed } from '@/src/core/format';
+import { formatDuration } from '@/src/core/format';
+import { activityPace, displayActivityName, formatKmNumber, formatKmTotal } from '@/src/core/sportFormat';
 import type { ActivityType, StravaActivity } from '@/src/core/types';
 import { useTheme } from '@/src/ui/useTheme';
 
@@ -28,7 +29,7 @@ export function ActivityHistory({ activities, connected }: ActivityHistoryProps)
   const { colors } = useTheme();
   const weekKm = activities
     .filter((a) => a.type === 'run')
-    .reduce((sum, a) => sum + a.distanceKm, 0);
+    .reduce((sum, a) => sum + (a.distanceKm ?? 0), 0);
 
   return (
     <View className="mt-10">
@@ -36,7 +37,7 @@ export function ActivityHistory({ activities, connected }: ActivityHistoryProps)
         <Label>Activités</Label>
         {connected ? (
           <Text className="font-mono text-[13px] text-muted">
-            {weekKm.toFixed(1)} km course
+            {formatKmTotal(weekKm)} course
           </Text>
         ) : null}
       </View>
@@ -59,10 +60,11 @@ export function ActivityHistory({ activities, connected }: ActivityHistoryProps)
         <View className="mt-2">
           {activities.map((activity, index) => {
             const Icon = ICONS[activity.type];
-            const pace =
-              activity.type === 'ride'
-                ? formatSpeed(activity.distanceKm, activity.movingTimeMin)
-                : formatPace(activity.distanceKm, activity.movingTimeMin);
+            const effort = activityPace(
+              activity.type,
+              activity.distanceKm,
+              (activity.movingTimeMin ?? activity.durationMin) * 60,
+            );
             return (
               <Pressable
                 key={activity.id}
@@ -73,16 +75,19 @@ export function ActivityHistory({ activities, connected }: ActivityHistoryProps)
                 </View>
                 <View className="flex-1">
                   <Text numberOfLines={1} className="text-base text-fg">
-                    {activity.name}
+                    {displayActivityName(activity.name)}
                   </Text>
                   <Text className="mt-0.5 text-sm font-medium text-fg/70">
-                    {formatDayMonth(activity.date)} · {formatDuration(activity.movingTimeMin)} · {pace}
+                    {formatDayMonth(activity.date)} · {formatDuration(activity.durationMin)}
+                    {effort ? ` · ${effort.value} ${effort.unit}` : ''}
                   </Text>
                 </View>
-                <Text className="text-base font-semibold text-fg">
-                  {activity.distanceKm.toFixed(1)}
-                  <Text className="text-xs font-normal text-muted"> km</Text>
-                </Text>
+                {activity.distanceKm !== undefined && activity.distanceKm > 0 ? (
+                  <Text className="text-base font-semibold text-fg">
+                    {formatKmNumber(activity.distanceKm)}
+                    <Text className="text-xs font-normal text-muted"> km</Text>
+                  </Text>
+                ) : null}
               </Pressable>
             );
           })}

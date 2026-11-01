@@ -7,6 +7,7 @@ import { Text } from '@/components/ui/Text';
 import { usePulseFitStore } from '@/lib/store';
 import { toISODate } from '@/src/core/dates';
 import { OBJECTIVE_MODELS } from '@/src/core/objective';
+import { formatKm } from '@/src/core/sportFormat';
 import { openAgent } from '@/src/ui/agentDraft';
 import { useTheme } from '@/src/ui/useTheme';
 
@@ -19,7 +20,7 @@ export function NoPlanCard() {
   const weekAgo = new Date();
   weekAgo.setDate(weekAgo.getDate() - 7);
   const recent = activities.filter((a) => a.date.slice(0, 10) >= toISODate(weekAgo));
-  const km = recent.reduce((sum, a) => sum + a.distanceKm, 0);
+  const km = recent.reduce((sum, a) => sum + (a.distanceKm ?? 0), 0);
 
   return (
     <View className="gap-3.5">
@@ -58,7 +59,7 @@ export function NoPlanCard() {
 
       <Text className="px-1 text-[15px] text-muted">
         {recent.length > 0
-          ? `Basé sur tes 7 derniers jours : ${km.toFixed(1).replace('.', ',')} km et ${recent.length} ${
+          ? `Basé sur tes 7 derniers jours : ${formatKm(km)} et ${recent.length} ${
               recent.length > 1 ? 'séances' : 'séance'
             }.`
           : 'Aucune activité sur les 7 derniers jours : le plan démarrera en douceur.'}

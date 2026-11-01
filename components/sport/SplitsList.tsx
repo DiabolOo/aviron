@@ -39,7 +39,7 @@ export function SplitsList({ splits }: { splits: ActivitySplit[] }) {
               {isFastest ? <Zap color={colors.accent} size={14} strokeWidth={2} /> : <View className="w-3.5" />}
             </View>
             <Text className="w-14 text-right text-sm text-muted">{split.elevationGain} m</Text>
-            <Text className="w-14 text-right text-sm text-muted">{split.avgHr}</Text>
+            <Text className="w-14 text-right text-sm text-muted">{split.avgHr ?? '–'}</Text>
           </View>
         );
       })}

@@ -5,6 +5,7 @@ import type {
   WorkoutSession,
 } from '@/src/core/types';
 
+// Les champs absents restent undefined : jamais de 0 affiché.
 export function activityToStrava(activity: Activity): StravaActivity {
   return {
     id: activity.id,
@@ -12,13 +13,17 @@ export function activityToStrava(activity: Activity): StravaActivity {
     type: activity.type,
     date: activity.date,
     startTime: activity.startTime,
-    distanceKm: activity.distanceKm ?? 0,
-    movingTimeMin: activity.durationMin,
-    elevationM: activity.elevationM ?? 0,
-    calories: activity.calories ?? 0,
-    avgHr: activity.avgHr ?? 0,
-    maxHr: activity.maxHr ?? 0,
-    splits: (activity.splits ?? []).map((s) => ({ ...s, avgHr: s.avgHr ?? 0 })),
+    distanceKm: activity.distanceKm,
+    durationMin: activity.durationMin,
+    movingTimeMin:
+      activity.movingTimeSec !== undefined
+        ? Math.round(activity.movingTimeSec / 6) / 10
+        : undefined,
+    elevationM: activity.elevationM,
+    calories: activity.calories,
+    avgHr: activity.avgHr,
+    maxHr: activity.maxHr,
+    splits: activity.splits ?? [],
     hrStream: activity.hrStream ?? [],
     polyline: activity.polyline ?? [],
   };
@@ -31,7 +36,9 @@ export function stravaToActivity(activity: StravaActivity): Activity {
     type: activity.type,
     date: activity.date.slice(0, 10),
     startTime: activity.startTime,
-    durationMin: activity.movingTimeMin,
+    durationMin: activity.durationMin,
+    movingTimeSec:
+      activity.movingTimeMin !== undefined ? Math.round(activity.movingTimeMin * 60) : undefined,
     distanceKm: activity.distanceKm,
     elevationM: activity.elevationM,
     calories: activity.calories,

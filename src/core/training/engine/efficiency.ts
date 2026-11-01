@@ -42,13 +42,15 @@ export function aerobicEfficiency(
       b = { distM: 0, durS: 0, hrSumW: 0, hrDistM: 0, efs: [], n: 0, hrLong: 0 };
       buckets.set(key, b);
     }
+    // Temps en mouvement quand il existe (les pauses ne font pas courir plus vite).
+    const timeSec = a.movingTimeSec ?? a.durationMin * 60;
     b.distM += distM;
-    b.durS += a.durationMin * 60;
+    b.durS += timeSec;
     b.n++;
     if (a.avgHr !== undefined) {
       b.hrDistM += distM;
       b.hrSumW += a.avgHr * distM;
-      b.efs.push(distM / a.durationMin / a.avgHr);
+      b.efs.push(distM / (timeSec / 60) / a.avgHr);
       if (distM > 5000) b.hrLong++;
     }
   }

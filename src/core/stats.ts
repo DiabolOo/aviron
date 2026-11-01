@@ -58,11 +58,11 @@ export function buildSportStats(params: {
     const age = daysBetween(activity.date.slice(0, 10), today);
     if (age < 0) continue;
     if (age < days) {
-      km += activity.distanceKm;
+      km += activity.distanceKm ?? 0;
       sessions += 1;
-      totals[bucketOf(period, age)] += activity.distanceKm;
+      totals[bucketOf(period, age)] += activity.distanceKm ?? 0;
     } else if (age < days * 2) {
-      previous += activity.distanceKm;
+      previous += activity.distanceKm ?? 0;
     }
   }
 

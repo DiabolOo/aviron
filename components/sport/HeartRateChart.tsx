@@ -13,17 +13,19 @@ const HR_COLOR = '#FF4D5E';
 
 type HeartRateChartProps = {
   stream: number[];
-  avgHr: number;
-  maxHr: number;
+  avgHr?: number;
+  maxHr?: number;
 };
 
-function Stat({ label, value }: { label: string; value: number }) {
+function Stat({ label, value }: { label: string; value?: number }) {
   return (
     <View>
       <Text className="font-mono text-[13px] text-muted">{label}</Text>
       <Text className="mt-1 text-4xl font-semibold tracking-tighter text-fg">
-        {value}
-        <Text className="text-sm font-normal text-muted"> bpm</Text>
+        {value !== undefined && value > 0 ? value : '–'}
+        {value !== undefined && value > 0 ? (
+          <Text className="text-sm font-normal text-muted"> bpm</Text>
+        ) : null}
       </Text>
     </View>
   );
@@ -40,7 +42,7 @@ export function HeartRateChart({ stream, avgHr, maxHr }: HeartRateChartProps) {
   const points = stream.map((hr, i) => ({ x: (i / (stream.length - 1)) * WIDTH, y: toY(hr) }));
   const line = smoothPath(points);
   const area = `${line} L${WIDTH},${HEIGHT} L0,${HEIGHT} Z`;
-  const avgY = toY(avgHr);
+  const avgY = toY(avgHr ?? 0);
 
   return (
     <Card className="mt-3">

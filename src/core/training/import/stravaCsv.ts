@@ -175,6 +175,7 @@ export function parseActivitiesCsv(csvText: string): CsvParseResult {
     }
     // « Temps écoulé » fait foi pour le temps de course (pauses incluses).
     const durationMin = parseDurationMin(cell(row, 'elapsed')) ?? parseDurationMin(cell(row, 'moving')) ?? 0;
+    const movingMin = parseDurationMin(cell(row, 'moving'));
     // Export FR : la 2e colonne « Distance » est en mètres bruts (la 1re en km affichés).
     const distM = num(row, 'distance', 1);
     const distanceKm = isFrench && distM !== undefined ? Math.round(distM) / 1000 : num(row, 'distance');
@@ -187,6 +188,7 @@ export function parseActivitiesCsv(csvText: string): CsvParseResult {
       startTime: parsedDate.startTime,
       startedAt: parsedDate.startedAt,
       durationMin,
+      movingTimeSec: movingMin !== undefined ? Math.round(movingMin * 60) : undefined,
       distanceKm,
       elevationM,
       calories: num(row, 'calories'),

@@ -330,8 +330,16 @@ export const MOCK_MEALS: Meal[] = [
 
 type ActivitySeed = Pick<
   StravaActivity,
-  'id' | 'name' | 'type' | 'distanceKm' | 'movingTimeMin' | 'elevationM' | 'startTime'
-> & { offset: number; avgHr: number; calories: number; seed: number };
+  'id' | 'name' | 'type' | 'distanceKm' | 'elevationM' | 'startTime'
+> & {
+  offset: number;
+  avgHr: number;
+  calories: number;
+  seed: number;
+  movingTimeMin: number;
+  distanceKm: number;
+  elevationM: number;
+};
 
 function seededRandom(seed: number): () => number {
   let state = seed;
@@ -387,6 +395,7 @@ function buildActivity(seed: ActivitySeed): StravaActivity {
     date: dated(seed.offset),
     startTime: seed.startTime,
     distanceKm: seed.distanceKm,
+    durationMin: seed.movingTimeMin,
     movingTimeMin: seed.movingTimeMin,
     elevationM: seed.elevationM,
     calories: seed.calories,

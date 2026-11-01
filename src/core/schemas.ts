@@ -81,6 +81,8 @@ export const ActivitySchema = z.object({
   startTime: z.string(),
   startedAt: z.string().datetime({ offset: true }).optional(),
   durationMin: z.number().nonnegative(),
+  /** temps de déplacement (sans pauses) — l'allure affichée s'appuie dessus */
+  movingTimeSec: z.number().positive().optional(),
   distanceKm: z.number().nonnegative().optional(),
   /** distance brute de la trace (GPS/FIT) — peut différer du CSV Strava */
   traceDistanceKm: z.number().positive().optional(),

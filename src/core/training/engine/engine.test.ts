@@ -106,6 +106,15 @@ describe('efficiency', () => {
     expect(q[1]).toMatchObject({ quarter: '2025-Q2', ef: 2, reliable: false });
   });
 
+  it('uses moving time over elapsed time when present', () => {
+    // 10 km en 60 min écoulées dont 10 min de pause → EF calculé sur 50 min.
+    const a = run('1', '2025-01-10', 10, 60, 150);
+    const withMoving = { ...a, movingTimeSec: 50 * 60 };
+    const q = aerobicEfficiency([withMoving]);
+    expect(q[0].avgPaceSecPerKm).toBe(300); // 5:00/km, pas 6:00
+    expect(q[0].ef).toBeCloseTo(10000 / 50 / 150, 3);
+  });
+
   it('marks a quarter reliable from 3 runs > 5 km with HR', () => {
     const acts = [1, 2, 3].map((i) => run(`r${i}`, `2025-01-0${i}`, 10, 50, 150));
     expect(aerobicEfficiency(acts)[0].reliable).toBe(true);

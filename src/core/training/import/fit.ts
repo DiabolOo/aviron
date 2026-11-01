@@ -104,6 +104,9 @@ export function mergeFitData(activity: Activity, fit: FitData): Activity {
     ...activity,
     startedAt: activity.startedAt ?? startedAt,
     distanceKm: activity.distanceKm ?? (session?.total_distance ? session.total_distance / 1000 : undefined),
+    movingTimeSec:
+      activity.movingTimeSec ??
+      (session?.total_moving_time ? Math.round(session.total_moving_time) : undefined),
     traceDistanceKm: activity.traceDistanceKm ?? traceDistanceKm,
     elevationM: activity.elevationM ?? session?.total_ascent,
     calories: activity.calories ?? session?.total_calories,

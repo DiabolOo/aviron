@@ -9,8 +9,8 @@ import { SplitsList } from '@/components/sport/SplitsList';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { Label } from '@/components/ui/Label';
 import { Screen } from '@/components/ui/Screen';
-import { parseISODate } from '@/src/core/dates';
-import { formatDuration, formatPace, formatSpeed } from '@/src/core/format';
+import { formatDuration } from '@/src/core/format';
+import { activityPace, displayActivityName, formatDayLong, formatHour, formatKmNumber } from '@/src/core/sportFormat';
 import { usePulseFitStore } from '@/lib/store';
 import { useTheme } from '@/src/ui/useTheme';
 
@@ -63,26 +63,29 @@ export default function ActivityScreen() {
     );
   }
 
-  const isRide = activity.type === 'ride';
-  const hasDistance = activity.distanceKm > 0;
-  const hasHr = activity.avgHr > 0 || activity.maxHr > 0;
-  const date = parseISODate(activity.date).toLocaleDateString('fr-FR', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-  });
+  const distanceKm = activity.distanceKm ?? 0;
+  const hasDistance = distanceKm > 0;
+  const hasHr = (activity.avgHr ?? 0) > 0 || (activity.maxHr ?? 0) > 0;
+  const effort = activityPace(
+    activity.type,
+    activity.distanceKm,
+    (activity.movingTimeMin ?? activity.durationMin) * 60,
+  );
+  const date = formatDayLong(activity.date);
 
   return (
     <Screen>
       {header}
-      <Text className="mt-6 text-3xl font-semibold tracking-tight text-fg">{activity.name}</Text>
-      <Text className="mt-1 text-sm capitalize text-muted">
-        {date} · {activity.startTime}
+      <Text className="mt-6 text-3xl font-semibold tracking-tight text-fg">
+        {displayActivityName(activity.name)}
+      </Text>
+      <Text className="mt-1 text-sm text-muted">
+        {date} · {formatHour(activity.startTime)}
       </Text>
 
       <View className="mt-6 flex-row items-end">
         <Text className="text-6xl font-semibold tracking-tighter text-fg">
-          {hasDistance ? activity.distanceKm.toFixed(1) : formatDuration(activity.movingTimeMin)}
+          {hasDistance ? formatKmNumber(distanceKm) : formatDuration(activity.durationMin)}
         </Text>
         {hasDistance ? (
           <Text className="mb-2 ml-2 text-sm font-medium text-muted">km</Text>
@@ -90,21 +93,20 @@ export default function ActivityScreen() {
       </View>
 
       <View className="mt-2 flex-row flex-wrap">
-        {hasDistance ? <Metric label="Durée" value={formatDuration(activity.movingTimeMin)} /> : null}
-        {hasDistance ? (
-          <Metric
-            label={isRide ? 'Vitesse' : 'Allure'}
-            value={(isRide
-              ? formatSpeed(activity.distanceKm, activity.movingTimeMin)
-              : formatPace(activity.distanceKm, activity.movingTimeMin)
-            ).replace(/ \/?(km\/h|km)$/, '')}
-            unit={isRide ? 'km/h' : 'min/km'}
-          />
+        {hasDistance ? <Metric label="Durée" value={formatDuration(activity.durationMin)} /> : null}
+        {effort ? <Metric label={effort.label} value={effort.value} unit={effort.unit} /> : null}
+        {activity.elevationM !== undefined ? (
+          <Metric label="Dénivelé" value={`${activity.elevationM}`} unit="m" />
         ) : null}
-        <Metric label="Dénivelé" value={`${activity.elevationM}`} unit="m" />
-        <Metric label="Calories" value={`${activity.calories}`} unit="kcal" />
-        <Metric label="FC moy." value={`${activity.avgHr}`} unit="bpm" />
-        <Metric label="FC max" value={`${activity.maxHr}`} unit="bpm" />
+        {activity.calories !== undefined ? (
+          <Metric label="Calories" value={`${activity.calories}`} unit="kcal" />
+        ) : null}
+        {(activity.avgHr ?? 0) > 0 ? (
+          <Metric label="FC moy." value={`${activity.avgHr}`} unit="bpm" />
+        ) : null}
+        {(activity.maxHr ?? 0) > 0 ? (
+          <Metric label="FC max" value={`${activity.maxHr}`} unit="bpm" />
+        ) : null}
       </View>
 
       {activity.polyline.length >= 2 ? (
