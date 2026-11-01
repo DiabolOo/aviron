@@ -39,3 +39,7 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# données personnelles — import Strava (ADR-004)
+fixtures/real/
+fixtures/*.snapshot.json

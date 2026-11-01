@@ -168,9 +168,9 @@ Aux niveaux 0 et 1, **aucune donnée d'activité ne quitte le téléphone**. Le 
 
 ## Jalon M1 — Moteur d'analyse sur tes données ⏳ (2 à 3 jours)
 > Réutilise J3 (schémas Zod) et amorce `core/load` de J8.
-- [ ] **ADR-004 (version courte)** : autoriser l'import de fichier utilisateur pour le moteur local ; décider si un résumé agrégé issu de cet import peut alimenter le coach (sinon M3 fonctionne sur Apple Santé / FIT seulement)
+- [x] **ADR-004 (version courte)** : autoriser l'import de fichier utilisateur pour le moteur local ; décider si un résumé agrégé issu de cet import peut alimenter le coach (sinon M3 fonctionne sur Apple Santé / FIT seulement)
 - [x] `src/core/training/types.ts` (+ schémas Zod) : `Activity`, `Split`, `DailyMetrics`, `Race`, `AthleteProfile`, `Insight` (réutiliser les entités existantes de J3 plutôt que dupliquer)
-- [ ] `scripts/import-strava.ts` (Node) : lit le zip, parse `activities.csv` (dates en français, colonnes en double) et les FIT (`fit-file-parser`, ajout de dépendance → mini-ADR), écrit `fixtures/julien.snapshot.json` (**gitignoré**)
+- [x] `scripts/import-strava.ts` (Node) : lit le zip, parse `activities.csv` (dates en français, colonnes en double) et les FIT (`fit-file-parser`, ajout de dépendance → mini-ADR), écrit `fixtures/julien.snapshot.json` (**gitignoré**)
 - [ ] `src/core/training/engine/` (fonctions pures) : volume par semaine / mois, régularité et coupures, zones de FC (FC max configurable), répartition des intensités, efficacité aérobie par trimestre, détection de courses + débrief (allure et FC par tranche, dérive cardiaque, recalage sur distance officielle), préparation sur 8 semaines
 - [ ] `src/core/training/insights/` : règles → `Insight` (gravité, titre, texte version débutant / version sportif, chiffres à l'appui, « Pourquoi ? »)
 - [ ] Tests : jeu synthétique + test local sur tes données avec les valeurs de référence (53 % des sorties > 160 bpm de moyenne, Reims 2025 en 1h50:50, Paris 2024 en 1h48:16, FC max observée 201 bpm, etc.)
@@ -525,6 +525,8 @@ Aux niveaux 0 et 1, **aucune donnée d'activité ne quitte le téléphone**. Le 
 | 2026-10-31 | J4 — navigation glissée entre modules (balayage, souligné qui suit le doigt, ressort, `reduced motion`) dans Plan et Suivi |
 | 2026-11-01 | **Voie MVP** ajoutée (M1–M6) : moteur d'analyse sur données réelles, coach IA, programmes sans IA, bêta privée de 10–15 testeurs ; sources : analyses Claude « Semi en 1h45 » et « plan MVP » |
 | 2026-11-01 | M1 — `src/core/training/types.ts` : schémas Zod `Split`, `DailyMetrics`, `Race`, `AthleteProfile`, `TrainingInsight` ; `Activity` et `Insight` réutilisés de J3 |
+| 2026-11-01 | M1 — ADR-004 rédigée + `scripts/import-strava.ts` (zip → `activities.csv` FR → FIT → snapshot gitignoré) ; parseurs réutilisables dans `src/core/training/import/` |
+| 2026-11-01 | M1 — import réussi sur l'export réel : 166 activités, 138 FIT + 28 GPX lus, 137 sorties avec splits (les 29 restantes sont des musculation sans distance), 30 sans FC ; valeurs de référence confirmées (Paris 2024 1h48:16, Reims 2025 1h50:50) |
 
 ## ▶️ Prochaine étape
 **Chemin critique : Voie MVP.** (1) Lancer les prérequis de comptes (Apple Developer, Anthropic, Supabase UE) ; (2) rédiger l'ADR-004 courte (import de fichier utilisateur) ; (3) démarrer **M1** sur la branche `jalon-m1-moteur-analyse` : types → import Strava local → moteur → insights → tests. Ne démarrer M1 que sur demande explicite.
