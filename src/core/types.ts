@@ -96,7 +96,9 @@ export type Weather = {
   condition: WeatherCondition;
 };
 
-export type ActivityType = 'run' | 'ride' | 'walk';
+// Mêmes valeurs que Activity['type'] (schemas.ts) : ne pas restreindre,
+// le snapshot Strava contient des nages, de la muscu ('other'), etc.
+export type ActivityType = 'run' | 'ride' | 'walk' | 'swim' | 'strength' | 'other';
 
 export type StravaActivity = {
   id: string;

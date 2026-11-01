@@ -1,25 +1,15 @@
 import type { Activity, PlannedWorkout } from '@/src/core/schemas';
 import type {
-  ActivityType,
   StravaActivity,
   WorkoutKind,
   WorkoutSession,
 } from '@/src/core/types';
 
-function toUiActivityType(type: Activity['type']): ActivityType {
-  if (type === 'ride' || type === 'walk') return type;
-  return 'run';
-}
-
-function fromUiActivityType(type: ActivityType): Activity['type'] {
-  return type;
-}
-
 export function activityToStrava(activity: Activity): StravaActivity {
   return {
     id: activity.id,
     name: activity.name,
-    type: toUiActivityType(activity.type),
+    type: activity.type,
     date: activity.date,
     startTime: activity.startTime,
     distanceKm: activity.distanceKm ?? 0,
@@ -38,7 +28,7 @@ export function stravaToActivity(activity: StravaActivity): Activity {
   return {
     id: activity.id,
     name: activity.name,
-    type: fromUiActivityType(activity.type),
+    type: activity.type,
     date: activity.date.slice(0, 10),
     startTime: activity.startTime,
     durationMin: activity.movingTimeMin,

@@ -6,10 +6,12 @@ import type { IActivityRepository } from '@/src/data/repositories/IActivityRepos
 export class MockActivityRepository implements IActivityRepository {
   private activities: Activity[] = buildStravaActivities().map(stravaToActivity);
 
+  async listAll(): Promise<Activity[]> {
+    return [...this.activities].sort((a, b) => b.date.localeCompare(a.date));
+  }
+
   async listRecent(n: number): Promise<Activity[]> {
-    return [...this.activities]
-      .sort((a, b) => b.date.localeCompare(a.date))
-      .slice(0, n);
+    return (await this.listAll()).slice(0, n);
   }
 
   async listByDateRange(from: string, to: string): Promise<Activity[]> {

@@ -153,7 +153,7 @@ export const usePulseFitStore = create<PulseFitState>()(
                 repositories.meals.listAll(),
                 repositories.workouts.listAll(),
                 repositories.recipes.list(),
-                repositories.activities.listRecent(50),
+                repositories.activities.listAll(),
                 repositories.weather.getCurrent(),
               ]);
             set({

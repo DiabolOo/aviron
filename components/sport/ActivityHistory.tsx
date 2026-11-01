@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { Bike, Footprints, Mountain, RefreshCcw } from 'lucide-react-native';
+import { Activity, Bike, Dumbbell, Footprints, Mountain, RefreshCcw, Waves } from 'lucide-react-native';
 import { Pressable, View } from 'react-native';
 import { Text } from '@/components/ui/Text';
 
@@ -19,6 +19,9 @@ const ICONS: Record<ActivityType, typeof Footprints> = {
   run: Footprints,
   ride: Bike,
   walk: Mountain,
+  swim: Waves,
+  strength: Dumbbell,
+  other: Activity,
 };
 
 export function ActivityHistory({ activities, connected }: ActivityHistoryProps) {

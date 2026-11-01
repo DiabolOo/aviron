@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import type { Meal, Profile, Recipe } from '@/src/core/schemas';
 import type { WorkoutSession } from '@/src/core/types';
+import { LocalActivityRepository } from '@/src/data/adapters/local/LocalActivityRepository';
 import { LocalProfileRepository } from '@/src/data/adapters/local/LocalProfileRepository';
 import type { Repositories } from '@/src/data/index';
 import { sessionToPlanned, stravaToActivity } from '@/src/data/mappers';
@@ -52,8 +53,12 @@ export async function seedLocalIfNeeded(
   for (const recipe of legacy?.savedRecipes ?? MOCK_RECIPES) {
     await repos.recipes.upsert(recipe);
   }
-  for (const activity of buildStravaActivities().map(stravaToActivity)) {
-    await repos.activities.add(activity);
+  // Le dépôt fixture (EXPO_PUBLIC_USE_FIXTURE) ne reçoit pas les activités mock :
+  // elles pollueraient les données réelles du snapshot.
+  if (repos.activities instanceof LocalActivityRepository) {
+    for (const activity of buildStravaActivities().map(stravaToActivity)) {
+      await repos.activities.add(activity);
+    }
   }
 
   await AsyncStorage.setItem(SEEDED_KEY, '1');

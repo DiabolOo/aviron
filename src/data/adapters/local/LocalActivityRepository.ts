@@ -20,9 +20,13 @@ export class LocalActivityRepository implements IActivityRepository {
     await AsyncStorage.setItem(KEY, JSON.stringify(activities));
   }
 
-  async listRecent(n: number): Promise<Activity[]> {
+  async listAll(): Promise<Activity[]> {
     const all = await this.loadAll();
-    return [...all].sort((a, b) => b.date.localeCompare(a.date)).slice(0, n);
+    return all.sort((a, b) => b.date.localeCompare(a.date));
+  }
+
+  async listRecent(n: number): Promise<Activity[]> {
+    return (await this.listAll()).slice(0, n);
   }
 
   async listByDateRange(from: string, to: string): Promise<Activity[]> {

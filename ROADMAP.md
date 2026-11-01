@@ -96,7 +96,7 @@ export interface LifeModule {
 | 18 | Récompenses (optionnel) | ⏳ |
 | 19 | Ouverture : MCP, API, widgets, mode coach | ⏳ |
 
-**🎯 Voie MVP (chemin critique, voir section dédiée)** : M1 Moteur d'analyse ⏳ · M2 Écran d'analyse sur données réelles ⏳ · M3 Coach IA ⏳ (🚪 porte 1) · M4 Données testeurs ⏳ · M5 Profils, consentements, programmes sans IA ⏳ (🚪 porte 2) · M6 Bêta privée ⏳ (🚪 porte 3).
+**🎯 Voie MVP (chemin critique, voir section dédiée)** : M1 Moteur d'analyse ✅ · M2 Écran d'analyse sur données réelles 🔧 · M3 Coach IA ⏳ (🚪 porte 1) · M4 Données testeurs ⏳ · M5 Profils, consentements, programmes sans IA ⏳ (🚪 porte 2) · M6 Bêta privée ⏳ (🚪 porte 3).
 
 **Correspondance avec l'ancienne roadmap** : ancien J3 → J5 · J4 → J7 · J5 → J8 · J6 → J11 · J7 → J9 · J8 → J9 (objectif de course) · J9 → J10 · J10 → J12 · J11 → J14/J15 · J12 → J18 · J13 → J16 · J14 → J17.
 
@@ -166,7 +166,7 @@ Aux niveaux 0 et 1, **aucune donnée d'activité ne quitte le téléphone**. Le 
 - [ ] Projet Supabase région UE ; comptes PostHog (UE) et Sentry
 - [ ] Liste de 10 à 15 testeurs : profil, iPhone/Android, montre
 
-## Jalon M1 — Moteur d'analyse sur tes données ⏳ (2 à 3 jours)
+## Jalon M1 — Moteur d'analyse sur tes données ✅ (2 à 3 jours)
 > Réutilise J3 (schémas Zod) et amorce `core/load` de J8.
 - [x] **ADR-004 (version courte)** : autoriser l'import de fichier utilisateur pour le moteur local ; décider si un résumé agrégé issu de cet import peut alimenter le coach (sinon M3 fonctionne sur Apple Santé / FIT seulement)
 - [x] `src/core/training/types.ts` (+ schémas Zod) : `Activity`, `Split`, `DailyMetrics`, `Race`, `AthleteProfile`, `Insight` (réutiliser les entités existantes de J3 plutôt que dupliquer)
@@ -176,9 +176,9 @@ Aux niveaux 0 et 1, **aucune donnée d'activité ne quitte le téléphone**. Le 
 - [x] Tests : jeu synthétique + test local sur tes données avec les valeurs de référence (53 % des sorties > 160 bpm de moyenne, Reims 2025 en 1h50:50, Paris 2024 en 1h48:16, FC max observée 201 bpm, etc.)
 - **Fini quand** les tests passent et le snapshot local est généré.
 
-## Jalon M2 — L'écran d'analyse avec tes vraies données ⏳ (3 à 4 jours)
+## Jalon M2 — L'écran d'analyse avec tes vraies données 🔧 (3 à 4 jours)
 > Réutilise Accueil / Suivi / Stats du J4. Expo Go suffit.
-- [ ] Charger le snapshot dans le store derrière un drapeau de dev `EXPO_PUBLIC_USE_FIXTURE` (via un adaptateur de repository, pas d'import direct dans l'UI)
+- [x] Charger le snapshot dans le store derrière un drapeau de dev `EXPO_PUBLIC_USE_FIXTURE` (via un adaptateur de repository, pas d'import direct dans l'UI)
 - [ ] **Stats / Suivi › Sport** : volume par semaine, répartition des intensités, tendance d'efficacité aérobie
 - [ ] **Accueil** : carte « Analyse » avec les 2–3 constats prioritaires
 - [ ] Écran **Débrief de course** (`app/race/[id].tsx`) : allure et FC par tranche, comparaison avec les courses précédentes
@@ -540,3 +540,4 @@ En parallèle (hors code) : lire l'accord API Strava complet et ouvrir l'**ADR-0
 | 2026-11-01 | M1 — insights : carte « dernière ligne droite » pour toute course confirmée/déclarée à ≤ 10 j (indépendante de la prépa), `confirm_race` jamais masquée (refus = `rejectedIds`), allure visée de `targetTime` validée (2:30–10:00/km, ambiguïtés tranchées par la distance) |
 | 2026-11-01 | M1 — insights : `parseTargetTime(value, distanceKm)` garde les lectures h:mm / mm:ss dont l'allure est plausible (seuil 15 km supprimé) ; toute carte sur une course précise exige une course déclarée ou confirmée (y compris `race_prep` à venir) |
 | 2026-11-01 | M1 — insights : `data_quality_no_hr` jamais pour un débutant ni sans appareil FC (`AthleteProfile.hasHrDevice`, aussi pour `intensity_too_high` et `aerobic_trend`), ≥ 5 séances avec FC exigées, texte « montre ou capteur cardiaque », refus permanent via `rankInsights({ rejectedForever })` |
+| 2026-11-01 | M2 — adaptateur `fixture` : `EXPO_PUBLIC_USE_FIXTURE=1` sert `fixtures/julien.snapshot.json` via `FixtureActivityRepository` (repos locaux pour le reste) ; `IActivityRepository.listAll()`, hydrate charge tout l'historique ; `ActivityType` étendu (swim / strength / other affichés tels quels) ; `seed.ts` n'injecte plus les mocks dans le dépôt fixture ; `metro.config.js` → snapshot vide si le fichier est absent ; `.env.local` activé, `.env.example` documenté |
