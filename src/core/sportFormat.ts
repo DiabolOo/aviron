@@ -63,6 +63,18 @@ export function formatClock(totalSec: number): string {
   return h > 0 ? `${h}:${`${m}`.padStart(2, '0')}:${ss}` : `${m}:${ss}`;
 }
 
+/** Espace insécable : « 49:13 au total » ne se coupe jamais. */
+export const NBSP = '\u00a0';
+/** Trait d'union insécable : « après‑midi » ne se coupe jamais en fin de ligne. */
+export const NB_HYPHEN = '\u2011';
+
+const UNIT_AFTER_SPACE = /(\d) (\/km|%|min|km|bpm)(?![\p{L}\d])/gu;
+
+/** Espace insécable entre un nombre et « /km », « % », « min », « km », « bpm » : l'unité ne passe jamais seule à la ligne. */
+export function nbspUnits(text: string): string {
+  return text.replace(UNIT_AFTER_SPACE, `$1${NBSP}$2`);
+}
+
 export interface DurationDisplay {
   main: string;
   /** « 49:13 au total » — seulement si le temps écoulé dépasse d'au moins 1 min le temps de déplacement */
@@ -79,7 +91,10 @@ export function activityDurationDisplay(
 ): DurationDisplay {
   const elapsed = Math.round(a.durationMin * 60);
   const main = activityDurationSec(a, race);
-  return { main: formatClock(main), total: elapsed - main >= 60 ? `${formatClock(elapsed)} au total` : undefined };
+  return {
+    main: formatClock(main),
+    total: elapsed - main >= 60 ? `${formatClock(elapsed)}${NBSP}au${NBSP}total` : undefined,
+  };
 }
 
 /** Durée principale en secondes, même règle que `activityDurationDisplay` (sert aux totaux). */
@@ -159,6 +174,11 @@ export function formatKmTotal(km: number): string {
   return `${Math.round(km)} km`;
 }
 
+/** Distance d'un total par sport : « 1,5 km » sous 10 km (nage), « 128 km » au-delà. */
+export function formatSportKm(km: number): string {
+  return km < 10 ? formatKm(km) : formatKmTotal(km);
+}
+
 /** « vendredi 8 mars » — jour en minuscules, sans l'année. */
 export function formatDayLong(iso: string): string {
   return parseISODate(iso).toLocaleDateString('fr-FR', {
@@ -195,7 +215,12 @@ const AUTO_SPORTS: Record<string, string> = {
   'weight training': 'Musculation',
 };
 
+/** Titre affiché : titres automatiques traduits, traits d'union rendus insécables. */
 export function displayActivityName(name: string): string {
+  return translateAutoName(name).replace(/-/g, NB_HYPHEN);
+}
+
+function translateAutoName(name: string): string {
   const trimmed = name.trim();
   const firstSpace = trimmed.indexOf(' ');
   const first = firstSpace > 0 ? trimmed.slice(0, firstSpace).toLowerCase() : '';

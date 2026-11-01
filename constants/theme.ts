@@ -30,6 +30,10 @@ export const palettes = {
     sportWalkTint: '#F6ECDA',
     sportStrength: '#C464A7',
     sportStrengthTint: '#FCD5F0',
+    insightData: '#34527D',
+    insightDataTint: '#E6ECF6',
+    insightAi: '#5A3DCB',
+    insightAiTint: '#EEEAFF',
   },
   dark: {
     canvas: '#090B0F',
@@ -62,6 +66,10 @@ export const palettes = {
     sportWalkTint: '#4E422C',
     sportStrength: '#D897C4',
     sportStrengthTint: '#562547',
+    insightData: '#A9C1E8',
+    insightDataTint: '#232F46',
+    insightAi: '#C9BEFF',
+    insightAiTint: '#30275C',
   },
 } as const;
 

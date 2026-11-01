@@ -24,6 +24,7 @@ export default function ActivityScreen() {
   const raceId = id ? derived.confirmedRaceMap.get(id) : undefined;
   const race = derived.raceSummaryFor(raceId);
   const highlight = useActivityHighlight(activity);
+  const comparison = useMemo(() => (activity ? derived.comparisonFor(activity) : null), [derived, activity]);
 
   useEffect(() => {
     perfLog('/activity premier rendu');
@@ -65,6 +66,7 @@ export default function ActivityScreen() {
       <ActivityDetail
         activity={activity}
         highlight={highlight}
+        comparison={comparison}
         race={race}
         onOpenRace={openRace}
       />

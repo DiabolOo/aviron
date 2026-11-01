@@ -9,14 +9,23 @@ import { Glow } from '@/components/ui/Glow';
 import { Label } from '@/components/ui/Label';
 import { Text } from '@/components/ui/Text';
 import { usePulseFitStore } from '@/lib/store';
-import { activityDurationSec, formatClock, formatKmTotal } from '@/src/core/sportFormat';
-import { groupByMonth } from '@/src/core/sportWeek';
-import type { StravaActivity } from '@/src/core/types';
+import { formatClock, formatSportKm } from '@/src/core/sportFormat';
+import { groupByMonth, monthTotals, type MonthTotals } from '@/src/core/sportWeek';
+import type { ActivityType, StravaActivity } from '@/src/core/types';
 import { useConfirmedRaceMap } from '@/src/ui/useRaces';
 import { useTheme } from '@/src/ui/useTheme';
 
+const SPORT_LABELS: Record<ActivityType, string> = {
+  run: 'Course',
+  ride: 'Vélo',
+  walk: 'Marche',
+  swim: 'Nage',
+  strength: 'Muscu',
+  other: 'Autre',
+};
+
 type Item =
-  | { kind: 'header'; key: string; label: string; km: number; durationSec: number }
+  | { kind: 'header'; key: string; label: string; totals: MonthTotals }
   | { kind: 'row'; key: string; activity: StravaActivity; first: boolean };
 
 export default function ActivitiesScreen() {
@@ -31,8 +40,7 @@ export default function ActivitiesScreen() {
           kind: 'header' as const,
           key: `h-${group.key}`,
           label: group.label,
-          km: group.items.reduce((sum, a) => sum + (a.distanceKm ?? 0), 0),
-          durationSec: group.items.reduce((sum, a) => sum + activityDurationSec(a, raceMap.has(a.id)), 0),
+          totals: monthTotals(group.items, new Set(raceMap.keys())),
         },
         ...group.items.map((activity, index) => ({
           kind: 'row' as const,
@@ -64,11 +72,16 @@ export default function ActivitiesScreen() {
           showsVerticalScrollIndicator={false}
           renderItem={({ item }) =>
             item.kind === 'header' ? (
-              <View className="mt-8 flex-row items-center justify-between">
-                <Label>{item.label}</Label>
-                <Text className="font-mono text-[13px] text-muted">
-                  {formatKmTotal(item.km)} · {formatClock(item.durationSec)}
-                </Text>
+              <View className="mt-8">
+                <View className="flex-row items-center justify-between">
+                  <Label>{item.label}</Label>
+                  <Text className="font-mono text-[13px] text-muted">{formatClock(item.totals.durationSec)}</Text>
+                </View>
+                {item.totals.distances.length > 0 ? (
+                  <Text className="mt-1 text-sm text-muted">
+                    {item.totals.distances.map((d) => `${SPORT_LABELS[d.type]} ${formatSportKm(d.km)}`).join(' · ')}
+                  </Text>
+                ) : null}
               </View>
             ) : (
               <ActivityRow activity={item.activity} first={item.first} raceId={raceMap.get(item.activity.id)} />

@@ -19,6 +19,7 @@ export function ConfirmRaceCard({ raceId, title, message, suggestedName }: Props
   const confirmRace = usePulseFitStore((s) => s.confirmRace);
   const rejectRace = usePulseFitStore((s) => s.rejectRace);
   const activityId = activityIdOfRace(raceId);
+  const originalName = usePulseFitStore((s) => s.activities.find((a) => a.id === activityId)?.name);
   const [naming, setNaming] = useState(false);
   const [name, setName] = useState(suggestedName);
 
@@ -35,6 +36,11 @@ export function ConfirmRaceCard({ raceId, title, message, suggestedName }: Props
             onChangeText={setName}
             className="h-[52px] rounded-2xl bg-fg/5 px-4 text-base text-fg"
           />
+          {originalName ? (
+            <Text testID="original-title-ref" className="text-sm text-muted">
+              Titre d’origine : {originalName}
+            </Text>
+          ) : null}
           <View className="flex-row gap-2.5">
             <View className="flex-1">
               <PrimaryButton label="Valider" onPress={() => confirmRace(activityId, name)} />

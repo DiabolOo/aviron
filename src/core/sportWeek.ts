@@ -45,6 +45,25 @@ export function selectWeek(
   };
 }
 
+export type MonthTotals = {
+  /** temps total de toutes les activités du mois */
+  durationSec: number;
+  /** distance par sport (sports sans distance omis), ordre fixe course, vélo, marche, nage */
+  distances: { type: StravaActivity['type']; km: number }[];
+};
+
+const DISTANCE_SPORTS: StravaActivity['type'][] = ['run', 'ride', 'walk', 'swim'];
+
+export function monthTotals(items: readonly StravaActivity[], raceActivityIds: ReadonlySet<string> = new Set()): MonthTotals {
+  return {
+    durationSec: items.reduce((sum, a) => sum + activityDurationSec(a, raceActivityIds.has(a.id)), 0),
+    distances: DISTANCE_SPORTS.map((type) => ({
+      type,
+      km: items.filter((a) => a.type === type).reduce((sum, a) => sum + (a.distanceKm ?? 0), 0),
+    })).filter((d) => d.km > 0),
+  };
+}
+
 export function groupByMonth(
   activities: StravaActivity[],
 ): { key: string; label: string; items: StravaActivity[] }[] {

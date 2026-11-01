@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { Pressable, View } from 'react-native';
 
+import { AdviceCard } from '@/components/ui/AdviceCard';
 import { Card } from '@/components/ui/Card';
 import { Label } from '@/components/ui/Label';
 import { Text } from '@/components/ui/Text';
 import { parseISODate } from '@/src/core/dates';
+import { NBSP, nbspUnits } from '@/src/core/sportFormat';
 import {
   formatKmRange,
   formatPaceKm,
@@ -36,7 +38,7 @@ function Pace({ paceSec }: { paceSec: number }) {
   return (
     <Text className="text-xl font-semibold text-fg">
       {formatPaceKm(paceSec)}
-      <Text className="text-sm font-normal text-muted"> /km</Text>
+      <Text className="text-sm font-normal text-muted">{NBSP}/km</Text>
     </Text>
   );
 }
@@ -57,7 +59,7 @@ function Bands({ view }: { view: RaceDebriefView }) {
             <View className="flex-row items-baseline justify-between">
               <Text className="text-sm text-muted">Km {formatKmRange(band.fromKm, band.toKm)}</Text>
               <View className="flex-row items-baseline gap-3">
-                {band.avgHr !== undefined ? <Text className="text-xs text-muted">{band.avgHr} bpm</Text> : null}
+                {band.avgHr !== undefined ? <Text className="text-xs text-muted">{`${band.avgHr}${NBSP}bpm`}</Text> : null}
                 <Pace paceSec={band.officialPaceSec as number} />
               </View>
             </View>
@@ -73,7 +75,7 @@ function Bands({ view }: { view: RaceDebriefView }) {
           </View>
         ))}
         {view.averagePaceSec !== undefined ? (
-          <Text className="mb-1 mt-1 text-xs text-muted">Trait : allure moyenne {formatPaceKm(view.averagePaceSec)} /km</Text>
+          <Text className="mb-1 mt-1 text-xs text-muted">Trait : allure moyenne {formatPaceKm(view.averagePaceSec)}{NBSP}/km</Text>
         ) : null}
       </Card>
     </View>
@@ -94,13 +96,13 @@ function HeartRate({ hr }: { hr: NonNullable<RaceDebriefView['hr']> }) {
           <View key={label} className={`flex-row items-baseline justify-between py-3.5 ${i > 0 ? 'border-t border-fg/5' : ''}`}>
             <Text className="text-sm text-muted">{label}</Text>
             <View className="flex-row items-baseline gap-3">
-              <Text className="text-xs text-muted">{half.avgHr} bpm</Text>
+              <Text className="text-xs text-muted">{`${half.avgHr}${NBSP}bpm`}</Text>
               <Pace paceSec={half.officialPaceSec} />
             </View>
           </View>
         ))}
         {hr.driftSentence ? (
-          <Text className="mb-1 mt-1 border-t border-fg/5 pt-3 text-sm text-fg">{hr.driftSentence}</Text>
+          <Text className="mb-1 mt-1 border-t border-fg/5 pt-3 text-sm text-fg">{nbspUnits(hr.driftSentence)}</Text>
         ) : null}
       </Card>
     </View>
@@ -112,7 +114,7 @@ function DistanceNote({ note }: { note: NonNullable<RaceDebriefView['distanceNot
   return (
     <View className="mt-3">
       <View className="flex-row items-center gap-2">
-        <Text numberOfLines={1} className="shrink text-sm text-muted">{note.short}</Text>
+        <Text numberOfLines={1} className="shrink text-sm text-muted">{nbspUnits(note.short)}</Text>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Détail de la distance"
@@ -122,7 +124,7 @@ function DistanceNote({ note }: { note: NonNullable<RaceDebriefView['distanceNot
           <Text className="text-[11px] font-semibold text-muted">i</Text>
         </Pressable>
       </View>
-      {open ? <Text className="mt-2 text-sm text-muted">{note.detail}</Text> : null}
+      {open ? <Text className="mt-2 text-sm text-muted">{nbspUnits(note.detail)}</Text> : null}
     </View>
   );
 }
@@ -145,14 +147,14 @@ function ComparisonRow({ row, onOpen }: { row: RaceRow; onOpen: (id: string) => 
         </View>
         <Text className="mt-0.5 text-sm text-muted">
           {raceDistanceName(row.officialDistanceKm)}
-          {row.officialPaceSec !== undefined ? ` · ${formatPaceKm(row.officialPaceSec)} /km` : ''}
+          {row.officialPaceSec !== undefined ? ` · ${formatPaceKm(row.officialPaceSec)}${NBSP}/km` : ''}
         </Text>
       </View>
       <View className="items-end">
         {row.timeSec !== undefined ? (
           <Text className="text-base font-semibold text-fg">{formatRaceTime(row.timeSec)}</Text>
         ) : null}
-        {row.deltaSec !== undefined ? <Text className="mt-0.5 text-sm text-muted">{formatRaceDelta(row.deltaSec)}</Text> : null}
+        {row.deltaSec !== undefined ? <Text className="mt-0.5 text-sm text-muted">{nbspUnits(formatRaceDelta(row.deltaSec))}</Text> : null}
       </View>
     </Pressable>
   );
@@ -171,17 +173,21 @@ function Comparison({ rows, onOpen }: { rows: RaceRow[]; onOpen: (id: string) =>
   );
 }
 
+function OriginalTitle({ name }: { name: string }) {
+  return (
+    <View testID="original-title" className="mt-8 border-t border-fg/5 pt-4">
+      <Label>Titre d’origine</Label>
+      <Text className="mt-1 text-sm text-fg">{name}</Text>
+    </View>
+  );
+}
+
 export function RaceDebriefContent({ view, onOpenRace }: Props) {
   return (
     <View>
       <Text testID="race-title" numberOfLines={2} className="mt-6 text-3xl font-semibold tracking-tight text-fg">
         {view.title}
       </Text>
-      {view.originalName ? (
-        <Text testID="race-original-name" numberOfLines={1} className="mt-1 text-xs text-muted">
-          {view.originalName}
-        </Text>
-      ) : null}
       <Text className="mt-1 text-sm text-muted">{longDate(view.race.date)}</Text>
 
       {view.timeSec !== undefined ? (
@@ -191,24 +197,26 @@ export function RaceDebriefContent({ view, onOpenRace }: Props) {
       ) : null}
       {view.officialPaceSec !== undefined ? (
         <Text testID="race-pace" className="mt-1 text-base text-muted">
-          {formatPaceKm(view.officialPaceSec)} /km
+          {formatPaceKm(view.officialPaceSec)}{NBSP}/km
         </Text>
       ) : null}
       {view.distanceNote ? <DistanceNote note={view.distanceNote} /> : null}
 
       {view.pacing ? (
-        <Card className="mt-6">
-          <Text className="text-base font-semibold text-fg">{view.pacing.title}</Text>
-          <Text className="mt-1 text-sm text-muted">{view.pacing.message}</Text>
-          {view.pacing.extras.map((line) => (
-            <Text key={line} className="mt-2 text-sm text-muted">{line}</Text>
-          ))}
-        </Card>
+        <View className="mt-6">
+          <AdviceCard
+            source="data"
+            title={view.pacing.title}
+            summary={view.pacing.summary}
+            why={[view.pacing.message, ...view.pacing.extras, view.pacing.why]}
+          />
+        </View>
       ) : null}
 
       {view.bands.length > 0 ? <Bands view={view} /> : null}
       {view.hr ? <HeartRate hr={view.hr} /> : null}
       {view.comparison.length > 1 ? <Comparison rows={view.comparison} onOpen={onOpenRace} /> : null}
+      {view.originalName ? <OriginalTitle name={view.originalName} /> : null}
     </View>
   );
 }

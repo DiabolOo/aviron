@@ -11,7 +11,32 @@ import {
   formatKm,
   formatKmNumber,
   formatKmTotal,
+  nbspUnits,
 } from './sportFormat';
+
+describe('nbspUnits', () => {
+  it.each([
+    ['5:21 /km', '5:21\u00a0/km'],
+    ['+3,7 %', '+3,7\u00a0%'],
+    ['environ 2 min', 'environ 2\u00a0min'],
+    ['21,1 km · 21,9 km', '21,1\u00a0km · 21,9\u00a0km'],
+    ['FC moy. 158 bpm', 'FC moy. 158\u00a0bpm'],
+    ['21 km/h', '21\u00a0km/h'],
+  ])('%s', (input, expected) => {
+    expect(nbspUnits(input)).toBe(expected);
+  });
+
+  it('ne touche ni aux mots qui commencent par une unité, ni aux espaces sans nombre', () => {
+    expect(nbspUnits('2 minutes')).toBe('2 minutes');
+    expect(nbspUnits('Km 9 : plus de 5 kilomètres')).toBe('Km 9 : plus de 5 kilomètres');
+    expect(nbspUnits('Allure (min/km)')).toBe('Allure (min/km)');
+    expect(nbspUnits('au km 9')).toBe('au km 9');
+  });
+
+  it('est idempotent', () => {
+    expect(nbspUnits(nbspUnits('5:21 /km'))).toBe('5:21\u00a0/km');
+  });
+});
 
 describe('activityPace', () => {
   it('run et walk → min/km', () => {
@@ -67,7 +92,7 @@ describe('displayActivityName', () => {
   it.each([
     ['Morning Run', 'Course du matin'],
     ['Lunch run', 'Course du midi'],
-    ['Afternoon Run', "Course de l'après-midi"],
+    ['Afternoon Run', "Course de l'après\u2011midi"],
     ['Evening Run', 'Course du soir'],
     ['Night Walk', 'Marche du soir'],
     ['Lunch Swim', 'Nage du midi'],
@@ -84,13 +109,17 @@ describe('displayActivityName', () => {
     for (const name of [
       'Semi de Reims',
       'Course à pied du midi',
-      "Course à pied dans l'après-midi",
       'Triathlon de l’âme',
       'Morning coffee', // préfixe reconnu mais sport absent → inchangé
       'Evening yoga',
     ]) {
       expect(displayActivityName(name)).toBe(name);
     }
+  });
+
+  it('rend les traits d’union insécables, sans toucher au reste du titre', () => {
+    expect(displayActivityName("Course à pied dans l'après-midi")).toBe("Course à pied dans l'après\u2011midi");
+    expect(displayActivityName('Trail Saint-Malo')).toBe('Trail Saint\u2011Malo');
   });
 });
 
@@ -145,7 +174,7 @@ describe('durée affichée', () => {
   it('temps de déplacement en principal, écoulé en second s’il diffère d’au moins 1 min', () => {
     expect(activityDurationDisplay({ durationMin: 49.2167, movingTimeSec: 2718 })).toEqual({
       main: '45:18',
-      total: '49:13 au total',
+      total: '49:13\u00a0au\u00a0total',
     });
     expect(activityDurationDisplay({ durationMin: 45.5, movingTimeSec: 2718 })).toEqual({ main: '45:18' });
     expect(activityDurationDisplay({ durationMin: 50 })).toEqual({ main: '50:00' });

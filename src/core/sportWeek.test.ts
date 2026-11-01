@@ -1,5 +1,5 @@
 import { activityDurationDisplay, formatClock } from '@/src/core/sportFormat';
-import { groupByMonth, selectWeek, shiftWeek } from '@/src/core/sportWeek';
+import { groupByMonth, monthTotals, selectWeek, shiftWeek } from '@/src/core/sportWeek';
 import type { StravaActivity } from '@/src/core/types';
 
 const act = (id: string, date: string, distanceKm: number, durationMin: number): StravaActivity =>
@@ -48,5 +48,24 @@ describe('sportWeek', () => {
     const g = groupByMonth(list);
     expect(g.map((x) => x.key)).toEqual(['2025-03', '2025-02']);
     expect(g[0].items).toHaveLength(3);
+  });
+});
+
+describe('monthTotals', () => {
+  it('temps total de toutes les activités + distance par sport (sports sans distance omis)', () => {
+    const items = [
+      { ...act('r1', '2026-10-02', 10, 50), movingTimeSec: 3000 },
+      { ...act('r2', '2026-10-09', 5, 30), movingTimeSec: 1800 },
+      { ...act('b1', '2026-10-11', 42, 90), type: 'ride' as const, movingTimeSec: 5400 },
+      { ...act('s1', '2026-10-12', 1.5, 40), type: 'swim' as const, movingTimeSec: 2400 },
+      { ...act('m1', '2026-10-13', 0, 60), type: 'strength' as const, distanceKm: undefined },
+    ];
+    const totals = monthTotals(items);
+    expect(totals.durationSec).toBe(3000 + 1800 + 5400 + 2400 + 3600);
+    expect(totals.distances).toEqual([
+      { type: 'run', km: 15 },
+      { type: 'ride', km: 42 },
+      { type: 'swim', km: 1.5 },
+    ]);
   });
 });

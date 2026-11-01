@@ -150,7 +150,15 @@ export function fastStartCopy(p: { gapPct: number; firstPaceSec: number; secondP
 const QUARTER_NAMES = ['1er quart', '2e quart', '3e quart', 'dernier quart'];
 
 /** « environ 2 min » au-delà de 90 s, sinon « environ 45 s ». */
-const approxDuration = (sec: number): string => (sec < 90 ? `${Math.max(1, Math.round(sec))} s` : `${Math.round(sec / 60)} min`);
+export const approxDuration = (sec: number): string => (sec < 90 ? `${Math.max(1, Math.round(sec))} s` : `${Math.round(sec / 60)} min`);
+
+/** Une phrase avec le chiffre clé de la carte race_pacing (le détail reste dans « Pourquoi ? »). */
+export function pacingSummaryFr(p: { kind: 'fast' | 'cautious'; gapPct: number; gainSec?: number }): string {
+  const gain = p.gainSec !== undefined && p.gainSec > 0 ? ` Jusqu’à environ ${approxDuration(p.gainSec)} à gagner.` : '';
+  return p.kind === 'fast'
+    ? `Ta 2e moitié est ${pct(p.gapPct, 1)} plus lente que la 1re.${gain}`
+    : `Ton 1er quart est ${pct(p.gapPct, 1)} plus lent que ta moyenne.${gain}`;
+}
 
 export function cautiousStartCopy(p: {
   gapPct: number;
@@ -355,6 +363,11 @@ export type HighlightKind =
   | 'fastest_km'
   | 'negative_split'
   | 'steady'
+  | 'fastest_speed'
+  | 'fastest_swim'
+  | 'biggest_climb'
+  | 'longest_session'
+  | 'steady_month'
   | 'race_negative_split'
   | 'race_vs_last_year';
 
@@ -363,6 +376,27 @@ export interface HighlightText {
   value: string;
   detail: string;
 }
+
+/** « 23,4 km/h » depuis une allure en s/km. */
+const speedFr = (paceSecPerKm: number): string => `${nf(3600 / paceSecPerKm, 1)} km/h`;
+/** « 2:05 /100 m » depuis une allure en s/km. */
+const pace100Fr = (paceSecPerKm: number): string => {
+  const sec = Math.round(paceSecPerKm / 10);
+  return `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')} /100 m`;
+};
+/** Ligne de comparaison : « +12 % par rapport à ta médiane des 8 dernières semaines (8,2 km) ». */
+export function medianComparisonFr(c: { median: number; deltaPct: number; unit: 'km' | 'min'; weeks: number }): string {
+  const med = c.unit === 'km' ? km(c.median) : durationFr(c.median);
+  const period = `ta médiane des ${c.weeks} dernières semaines (${med})`;
+  if (Math.abs(c.deltaPct) < 3) return `Dans ${period}`;
+  return `${c.deltaPct > 0 ? '+' : '−'}${Math.abs(c.deltaPct)} % par rapport à ${period}`;
+}
+
+/** « 1 h 15 » ou « 45 min ». */
+const durationFr = (min: number): string => {
+  const total = Math.round(min);
+  return total >= 60 ? `${Math.floor(total / 60)} h ${String(total % 60).padStart(2, '0')}` : `${total} min`;
+};
 
 /** Jamais le mot « record » : les textes disent « la plus rapide depuis N mois ». */
 const monthsFr = (days: number): string => (days >= 330 ? '12 mois' : `${Math.round(days / 30)} mois`);
@@ -383,10 +417,51 @@ export function highlightCopyFr(
     /** écart de temps déjà formaté (« +2 min ») et chrono de l'an dernier (« 1h50:50 ») */
     deltaLabel?: string;
     lastYearTime?: string;
+    elevationM?: number;
+    durationMin?: number;
+    weeks?: number;
+    /** « sortie » (défaut) ou « séance » (nage, musculation) */
+    noun?: 'sortie' | 'séance';
   },
 ): HighlightText {
   const window = p.windowDays ?? 0;
+  const noun = p.noun ?? 'sortie';
+  const weeksLabel = `${Math.round(window / 7)} dernières semaines`;
   switch (kind) {
+    case 'fastest_speed':
+      return {
+        title: p.beginner ? 'Ta sortie la plus rapide' : 'Ta sortie la plus rapide sur cette distance',
+        value: speedFr(p.paceSec ?? 0),
+        detail: p.beginner
+          ? `Tu n’as jamais roulé aussi vite sur une distance comme celle-ci depuis ${monthsFr(window)}.`
+          : `Meilleure vitesse parmi ${p.comparable} sorties de distance comparable (±20 %) depuis ${monthsFr(window)}.`,
+      };
+    case 'fastest_swim':
+      return {
+        title: p.beginner ? 'Ta nage la plus rapide' : 'Ta nage la plus rapide sur cette distance',
+        value: pace100Fr(p.paceSec ?? 0),
+        detail: p.beginner
+          ? `Tu n’as jamais nagé aussi vite sur une distance comme celle-ci depuis ${monthsFr(window)}.`
+          : `Meilleure allure parmi ${p.comparable} séances de distance comparable (±20 %) depuis ${monthsFr(window)}.`,
+      };
+    case 'biggest_climb':
+      return {
+        title: 'Ton plus gros dénivelé',
+        value: `${Math.round(p.elevationM ?? 0)} m`,
+        detail: `Plus de dénivelé que toutes tes ${noun}s de ces ${weeksLabel}.`,
+      };
+    case 'longest_session':
+      return {
+        title: 'Ta séance la plus longue',
+        value: durationFr(p.durationMin ?? 0),
+        detail: `Plus longue que toutes tes séances de ces ${weeksLabel}.`,
+      };
+    case 'steady_month':
+      return {
+        title: p.beginner ? 'Tu es régulier' : 'Régularité du mois',
+        value: `${p.weeks} semaines`,
+        detail: `Au moins une séance chaque semaine depuis ${p.weeks} semaines.`,
+      };
     case 'fastest_comparable':
       return {
         title: p.beginner ? 'Ta sortie la plus rapide' : 'Ta sortie la plus rapide sur cette distance',
@@ -397,15 +472,15 @@ export function highlightCopyFr(
       };
     case 'longest':
       return {
-        title: 'Ta plus longue sortie',
+        title: `Ta plus longue ${noun}`,
         value: km(p.distanceKm ?? 0),
-        detail: `Plus longue que toutes tes sorties de ces ${Math.round(window / 7)} dernières semaines.`,
+        detail: `Plus longue que toutes tes ${noun}s de ces ${weeksLabel}.`,
       };
     case 'return':
       return {
         title: p.beginner ? 'Content de te revoir' : 'Retour après une coupure',
         value: `${p.gapDays} jours`,
-        detail: `Ta sortie précédente remontait à ${p.gapDays} jours. Reprendre, c’est déjà gagné.`,
+        detail: `Ta ${noun} précédente remontait à ${p.gapDays} jours. Reprendre, c’est déjà gagné.`,
       };
     case 'fastest_km':
       return {

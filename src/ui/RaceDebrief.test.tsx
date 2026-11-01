@@ -1,7 +1,9 @@
 import { fireEvent, render, screen } from '@testing-library/react-native';
+import { StyleSheet } from 'react-native';
 
 import { ConfirmRaceCard } from '@/components/race/ConfirmRaceCard';
 import { RaceDebriefBody } from '@/components/race/RaceDebriefBody';
+import { RaceInsightCards } from '@/components/race/RaceInsightCards';
 import { RacesSection } from '@/components/race/RacesSection';
 import { TargetRace } from '@/components/race/TargetRace';
 import { ActivityRow } from '@/components/sport/ActivityRow';
@@ -15,7 +17,7 @@ const mockBack = jest.fn();
 jest.mock('expo-router', () => ({
   router: { push: (...args: unknown[]) => mockPush(...args), back: () => mockBack() },
 }));
-jest.mock('lucide-react-native', () => ({ __esModule: true, ...Object.fromEntries(['TriangleAlert', 'RotateCcw', 'Activity', 'Bike', 'Dumbbell', 'Footprints', 'Mountain', 'Waves', 'ChevronRight'].map((n) => [n, () => null])) }));
+jest.mock('lucide-react-native', () => ({ __esModule: true, ...Object.fromEntries(['TriangleAlert', 'RotateCcw', 'Activity', 'Bike', 'Dumbbell', 'Footprints', 'Mountain', 'Waves', 'ChevronRight', 'ChevronDown', 'BarChart3', 'Sparkles'].map((n) => [n, () => null])) }));
 jest.mock('@react-native-async-storage/async-storage', () =>
   jest.requireActual('@react-native-async-storage/async-storage/jest/async-storage-mock'),
 );
@@ -64,20 +66,20 @@ describe('Débrief de course', () => {
   it('course avec FC (Reims 2025) : temps, allure, tranches sur une ligne, moitiés et phrase de dérive', async () => {
     await render(<RaceDebriefBody id="race-a25" />);
     expect(screen.getByTestId('race-time').props.children).toBe('1h50:50');
-    expect(screen.getByTestId('race-pace').props.children.join('')).toBe('5:15 /km');
+    expect(screen.getByTestId('race-pace').props.children.join('')).toBe('5:15\u00a0/km');
     expect(screen.getByText('Tranches')).toBeTruthy();
     expect(screen.getByText('Km 0 → 5,3')).toBeTruthy();
-    expect(screen.getAllByText(/\d{3} bpm/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/\d{3}\sbpm/).length).toBeGreaterThan(0);
     expect(screen.getByText('Moitiés')).toBeTruthy();
     expect(screen.queryByText('Dérive cardiaque')).toBeNull();
-    expect(screen.getByText(/Ta FC a grimpé de 13 bpm en 2e moitié/)).toBeTruthy();
+    expect(screen.getByText(/Ta FC a grimpé de 13\sbpm en 2e moitié/)).toBeTruthy();
     expect(screen.getAllByTestId('average-pace-line')).toHaveLength(4);
   });
 
   it('course sans FC (Reims 2026) : note de distance sur une ligne + (i), pas de moitiés ni de phrase de dérive', async () => {
     await render(<RaceDebriefBody id="race-a26" />);
     expect(screen.getByTestId('race-time').props.children).toBe('1h53:09');
-    const note = screen.getByText(/\+3,7 %/);
+    const note = screen.getByText(/\+3,7\s%/);
     expect(note.props.numberOfLines).toBe(1);
     expect(screen.queryByText(/trajectoire et de la précision du GPS/)).toBeNull();
     await fireEvent.press(screen.getByLabelText('Détail de la distance'));
@@ -87,6 +89,23 @@ describe('Débrief de course', () => {
     expect(screen.queryByText(/Ta FC/)).toBeNull();
     expect(screen.queryByText('–')).toBeNull();
     expect(screen.queryByText('—')).toBeNull();
+  });
+
+  it('conseil d’allure : titre + une phrase avec le chiffre clé, « Pourquoi ? » fermé par défaut, provenance « données »', async () => {
+    await render(<RaceDebriefBody id="race-a25" />);
+    expect(screen.getByTestId('advice-card-data')).toBeTruthy();
+    expect(screen.getByTestId('advice-source').props.children).toBe('D’après tes données');
+    expect(screen.getByText('Ton départ était un peu trop rapide')).toBeTruthy();
+    const summary = screen.getByTestId('advice-summary');
+    expect(summary.props.children).toMatch(/Ta 2e moitié est 9,9\u00a0% plus lente que la 1re\./);
+    expect(StyleSheet.flatten(summary.props.style).lineHeight).toBeCloseTo(15 * 1.45, 1);
+    expect(screen.queryByTestId('advice-why')).toBeNull();
+    await fireEvent.press(screen.getByText('Pourquoi ?'));
+    expect(screen.getByTestId('advice-why')).toBeTruthy();
+    expect(screen.getByText(/Vise 5:15\s\/km dès le départ/)).toBeTruthy();
+    expect(screen.getByText(/Un départ trop rapide se paie/)).toBeTruthy();
+    await fireEvent.press(screen.getByText('Pourquoi ?'));
+    expect(screen.queryByTestId('advice-why')).toBeNull();
   });
 
   it('« Toutes tes courses » : course affichée en évidence, badge meilleure, navigation', async () => {
@@ -99,10 +118,23 @@ describe('Débrief de course', () => {
     expect(mockPush).toHaveBeenCalledWith('/race/race-a25');
   });
 
-  it('le nom choisi à la confirmation sert de titre', async () => {
+  it('le nom choisi à la confirmation sert de titre unique (2 lignes max) ; titre d’origine en bas, sans troncature', async () => {
     usePulseFitStore.setState({ raceNames: { a25: 'Semi-marathon du 12 octobre 2025' } });
     await render(<RaceDebriefBody id="race-a25" />);
-    expect(screen.getAllByText('Semi-marathon du 12 octobre 2025').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Semi-marathon du 12 octobre 2025')).toHaveLength(1);
+    expect(screen.getByTestId('race-title').props.numberOfLines).toBe(2);
+    expect(screen.queryByTestId('race-original-name')).toBeNull();
+    const original = screen.getByTestId('original-title');
+    expect(original).toBeTruthy();
+    expect(screen.getByText('Titre d’origine')).toBeTruthy();
+    expect(screen.getByText('Semi Reims').props.numberOfLines).toBeUndefined();
+  });
+
+  it('sans nom choisi : suggestion avec la ville, date puis chrono sous le titre', async () => {
+    await render(<RaceDebriefBody id="race-a25" />);
+    expect(screen.getByTestId('race-title').props.children).toMatch(/^Semi-marathon /);
+    expect(screen.getByText('12 octobre 2025')).toBeTruthy();
+    expect(screen.getByTestId('race-time')).toBeTruthy();
   });
 
   it('course introuvable : écran d’erreur avec retour', async () => {
@@ -110,6 +142,57 @@ describe('Débrief de course', () => {
     expect(screen.getByText('Course introuvable')).toBeTruthy();
     await fireEvent.press(screen.getByText('Retour'));
     expect(mockBack).toHaveBeenCalled();
+  });
+});
+
+describe('Accueil : carte course', () => {
+  const setToday = (iso: string) =>
+    jest.useFakeTimers({
+      now: new Date(`${iso}T12:00:00`),
+      doNotFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval', 'setImmediate', 'clearImmediate', 'nextTick', 'queueMicrotask', 'requestAnimationFrame', 'cancelAnimationFrame', 'performance'],
+    });
+  const withGoal = (targetValue: string | undefined) =>
+    usePulseFitStore.setState({
+      profile: {
+        ...usePulseFitStore.getState().profile,
+        athleticGoal: targetValue
+          ? { type: 'race_prep', targetName: 'Semi-marathon', targetValue, targetDate: '2027-03-14', weeklySessionsCount: 4 }
+          : undefined,
+      },
+    });
+
+  beforeEach(() => withGoal(undefined));
+  afterEach(() => jest.useRealTimers());
+
+  it('nom, chrono et une ligne (gain estimé sans objectif) ; toute la carte ouvre le débrief, sans lien texte', async () => {
+    setToday('2026-10-14');
+    withGoal(undefined);
+    await render(<RaceInsightCards />);
+    expect(screen.getByTestId('race-card-time').props.children).toBe('1h53:09');
+    expect(screen.getByText(/Semi-marathon/)).toBeTruthy();
+    expect(screen.getByTestId('race-card-line').props.children).toMatch(/^Jusqu’à environ \d+\u00a0min à gagner/);
+    expect(screen.queryByText('Voir le débrief')).toBeNull();
+    await fireEvent.press(screen.getByTestId('race-card-time'));
+    expect(mockPush).toHaveBeenCalledWith('/race/race-a26');
+  });
+
+  it('avec un objectif de même distance : écart à l’objectif', async () => {
+    setToday('2026-10-14');
+    withGoal('1h45');
+    await render(<RaceInsightCards />);
+    expect(screen.getByTestId('race-card-line').props.children).toBe('+8\u00a0min par rapport à ton objectif (1h45)');
+  });
+
+  it('visible le 7e jour', async () => {
+    setToday('2026-10-18');
+    await render(<RaceInsightCards />);
+    expect(screen.getByTestId('race-card')).toBeTruthy();
+  });
+
+  it('masquée le 8e jour', async () => {
+    setToday('2026-10-19');
+    await render(<RaceInsightCards />);
+    expect(screen.queryByTestId('race-card')).toBeNull();
   });
 });
 
@@ -126,6 +209,7 @@ describe('Confirmation d’une course', () => {
     );
     await fireEvent.press(screen.getByText('Oui'));
     expect(screen.getByDisplayValue('Semi-marathon du 12 octobre 2025')).toBeTruthy();
+    expect(screen.getByTestId('original-title-ref')).toHaveTextContent('Titre d’origine : Semi Reims');
     await fireEvent.changeText(screen.getByLabelText('Nom de la course'), 'Reims 2025');
     await fireEvent.press(screen.getByText('Valider'));
     expect(usePulseFitStore.getState().confirmedRaceIds).toEqual(['a25']);

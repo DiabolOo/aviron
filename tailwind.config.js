@@ -1,4 +1,11 @@
-/** @type {import('tailwindcss').Config} */
+const plugin = require('tailwindcss/plugin');
+const { palettes } = require('./constants/theme.ts');
+
+/** Une seule source : `constants/theme.ts`. Les jetons hex deviennent des variables CSS (« r g b »), clair puis sombre. */
+const kebab = (key) => key.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`);
+const hexKeys = Object.keys(palettes.light).filter((key) => /^#[0-9a-f]{6}$/i.test(palettes.light[key]));
+const rgbTriple = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)).join(' ');
+const cssVars = (palette) => Object.fromEntries(hexKeys.map((key) => [`--${kebab(key)}`, rgbTriple(palette[key])]));
 const token = (name) => `rgb(var(--${name}) / <alpha-value>)`;
 
 module.exports = {
@@ -11,22 +18,7 @@ module.exports = {
   presets: [require('nativewind/preset')],
   theme: {
     extend: {
-      colors: {
-        canvas: token('canvas'),
-        surface: token('surface'),
-        fg: token('fg'),
-        muted: token('muted'),
-        accent: token('accent'),
-        'accent-fg': token('accent-fg'),
-        aqua: token('aqua'),
-        iris: token('iris'),
-        chip: token('chip'),
-        track: token('track'),
-        sport: token('sport'),
-        'sport-tint': token('sport-tint'),
-        nutri: token('nutri'),
-        'nutri-tint': token('nutri-tint'),
-      },
+      colors: Object.fromEntries(hexKeys.map((key) => [kebab(key), token(kebab(key))])),
       fontSize: {
         xs: ['13px', '18px'],
         sm: ['15px', '21px'],
@@ -42,5 +34,12 @@ module.exports = {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    plugin(({ addBase }) => {
+      addBase({
+        ':root': { '--css-interop-darkMode': 'class dark', ...cssVars(palettes.light) },
+        '.dark:root': cssVars(palettes.dark),
+      });
+    }),
+  ],
 };

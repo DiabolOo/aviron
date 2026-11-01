@@ -2,6 +2,7 @@ import { Flame, Sparkles } from 'lucide-react-native';
 import { View } from 'react-native';
 
 import { Text } from '@/components/ui/Text';
+import { nbspUnits } from '@/src/core/sportFormat';
 import type { Highlight } from '@/src/core/training/highlights';
 import { FadeSlide } from '@/src/ui/motion/FadeSlide';
 import { FLAME_GRADIENT } from '@/src/ui/theme/tokens';
@@ -29,9 +30,9 @@ export function HighlightLine({ highlight, showValue = true }: Props) {
           <Icon color={flame ? FLAME_GRADIENT[0] : colors.accent} size={22} strokeWidth={2} />
         </View>
         <Text testID="highlight-title" className="flex-1 text-lg text-fg">
-          {highlight.title}
+          {nbspUnits(highlight.title)}
           {showValue && highlight.value ? (
-            <Text testID="highlight-value" className="font-semibold">{` · ${highlight.value}`}</Text>
+            <Text testID="highlight-value" className="font-semibold">{` · ${nbspUnits(highlight.value)}`}</Text>
           ) : null}
         </Text>
       </View>

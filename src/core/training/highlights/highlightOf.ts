@@ -8,6 +8,7 @@ export interface HighlightActivity {
   type: string;
   date: string;
   distanceKm?: number;
+  elevationM?: number;
   durationMin: number;
   movingTimeSec?: number;
   movingTimeMin?: number;
@@ -37,6 +38,12 @@ export const FASTEST_MIN_MARGIN_PCT = 1;
 export const LONGEST_WINDOW_DAYS = 84;
 /** Au moins 3 sorties du même sport dans la fenêtre, sinon rien à dépasser. */
 export const LONGEST_MIN_ACTIVITIES = 3;
+/** « Plus longue », « plus gros dénivelé » : au moins 1 % d'avance sur la meilleure sortie de la fenêtre. */
+export const BEAT_MIN_MARGIN_PCT = 1;
+/** Dénivelé minimal pour parler de « plus gros dénivelé » : en dessous, ce n'est que du plat. */
+export const MIN_CLIMB_M = 50;
+/** Régularité de la muscu : au moins une séance dans chacune des 4 dernières semaines. */
+export const STEADY_MONTH_WEEKS = 4;
 /** Retour après au moins 14 jours sans aucune activité. */
 export const RETURN_GAP_DAYS = 14;
 /** « Km le plus rapide » : un split partiel de moins de 0,5 km n'est pas un kilomètre. */
@@ -135,7 +142,14 @@ function lastDateBefore(index: ComparablesIndex, date: string): string | undefin
   return lo > 0 ? index.sorted[lo - 1].date : undefined;
 }
 
-function fastestComparable(a: HighlightActivity, index: ComparablesIndex, beginner: boolean): Highlight | null {
+type FastestKind = 'fastest_comparable' | 'fastest_speed' | 'fastest_swim';
+
+function fastestComparable(
+  a: HighlightActivity,
+  index: ComparablesIndex,
+  beginner: boolean,
+  kind: FastestKind = 'fastest_comparable',
+): Highlight | null {
   const pace = paceOf(a, index);
   if (pace === undefined || !a.distanceKm) return null;
   const start = addDays(a.date, -FASTEST_WINDOW_DAYS);
@@ -146,31 +160,88 @@ function fastestComparable(a: HighlightActivity, index: ComparablesIndex, beginn
   const paces = comparable.map((h) => paceOf(h, index)).filter((p): p is number => p !== undefined);
   if (paces.length < FASTEST_MIN_COMPARABLE) return null;
   if (paces.some((p) => p * (1 - FASTEST_MIN_MARGIN_PCT / 100) <= pace)) return null;
-  const text = highlightCopyFr('fastest_comparable', {
+  const text = highlightCopyFr(kind, {
     beginner,
     paceSec: Math.round(pace),
     comparable: paces.length,
     windowDays: FASTEST_WINDOW_DAYS,
   });
-  return { kind: 'fastest_comparable', tone: 'flame', ...text };
+  return { kind, tone: 'flame', ...text };
 }
 
-function longest(a: HighlightActivity, index: ComparablesIndex, beginner: boolean): Highlight | null {
-  if (!a.distanceKm) return null;
+/** Plus grande valeur de la fenêtre de 12 semaines, avec au moins 1 % d'avance ; au moins 3 séances du même sport. */
+function beatsWindow(
+  a: HighlightActivity,
+  index: ComparablesIndex,
+  valueOf: (x: HighlightActivity) => number | undefined,
+): boolean {
+  const mine = valueOf(a);
+  if (!mine) return false;
   const start = addDays(a.date, -LONGEST_WINDOW_DAYS);
-  if (!coversWindow(index, start)) return null;
-  const same = sameTypeInWindow(a, index, start).filter((h) => h.distanceKm);
-  if (same.length < LONGEST_MIN_ACTIVITIES || same.some((h) => (h.distanceKm as number) >= a.distanceKm!)) return null;
-  const text = highlightCopyFr('longest', { beginner, distanceKm: a.distanceKm, windowDays: LONGEST_WINDOW_DAYS });
+  if (!coversWindow(index, start)) return false;
+  const others = sameTypeInWindow(a, index, start)
+    .map(valueOf)
+    .filter((v): v is number => !!v);
+  return others.length >= LONGEST_MIN_ACTIVITIES && others.every((v) => v * (1 + BEAT_MIN_MARGIN_PCT / 100) < mine);
+}
+
+const NOUN: Record<string, 'sortie' | 'séance'> = { swim: 'séance', strength: 'séance' };
+
+function longest(a: HighlightActivity, index: ComparablesIndex, beginner: boolean): Highlight | null {
+  if (!a.distanceKm || !beatsWindow(a, index, (x) => x.distanceKm)) return null;
+  const text = highlightCopyFr('longest', {
+    beginner,
+    distanceKm: a.distanceKm,
+    windowDays: LONGEST_WINDOW_DAYS,
+    noun: NOUN[a.type] ?? 'sortie',
+  });
   return { kind: 'longest', tone: 'flame', ...text };
 }
 
-function comeback(a: HighlightActivity, index: ComparablesIndex, beginner: boolean): Highlight | null {
-  const last = lastDateBefore(index, a.date);
+function biggestClimb(a: HighlightActivity, index: ComparablesIndex, beginner: boolean): Highlight | null {
+  if ((a.elevationM ?? 0) < MIN_CLIMB_M || !beatsWindow(a, index, (x) => x.elevationM)) return null;
+  const text = highlightCopyFr('biggest_climb', { beginner, elevationM: a.elevationM, windowDays: LONGEST_WINDOW_DAYS });
+  return { kind: 'biggest_climb', tone: 'accent', ...text };
+}
+
+function longestSession(a: HighlightActivity, index: ComparablesIndex, beginner: boolean): Highlight | null {
+  if (!beatsWindow(a, index, (x) => x.durationMin)) return null;
+  const text = highlightCopyFr('longest_session', { beginner, durationMin: a.durationMin, windowDays: LONGEST_WINDOW_DAYS });
+  return { kind: 'longest_session', tone: 'flame', ...text };
+}
+
+/** Retour : au moins 14 jours depuis la dernière activité (`sameSport` : depuis la dernière du même sport). */
+function comeback(a: HighlightActivity, index: ComparablesIndex, beginner: boolean, sameSport = false): Highlight | null {
+  let last: string | undefined;
+  if (sameSport) {
+    const bucket = index.byType.get(a.type) ?? [];
+    for (let i = bucket.length - 1; i >= 0; i--) {
+      if (bucket[i].date < a.date) {
+        last = bucket[i].date;
+        break;
+      }
+    }
+  } else {
+    last = lastDateBefore(index, a.date);
+  }
   if (last === undefined) return null;
   const gap = daysBetween(last, a.date);
   if (gap < RETURN_GAP_DAYS) return null;
-  return { kind: 'return', tone: 'accent', ...highlightCopyFr('return', { beginner, gapDays: gap }) };
+  const noun = sameSport ? (NOUN[a.type] ?? 'sortie') : 'sortie';
+  return { kind: 'return', tone: 'accent', ...highlightCopyFr('return', { beginner, gapDays: gap, noun }) };
+}
+
+/** Régularité du mois : au moins une séance dans chacune des 4 dernières semaines glissantes, séance du jour comprise. */
+function steadyMonth(a: HighlightActivity, index: ComparablesIndex, beginner: boolean): Highlight | null {
+  const start = addDays(a.date, -(STEADY_MONTH_WEEKS * 7 - 1));
+  if (!coversWindow(index, addDays(start, -1))) return null;
+  const dates = [a.date, ...sameTypeInWindow(a, index, start).map((h) => h.date)];
+  for (let w = 0; w < STEADY_MONTH_WEEKS; w++) {
+    const to = addDays(a.date, -7 * w);
+    const from = addDays(to, -6);
+    if (!dates.some((d) => d >= from && d <= to)) return null;
+  }
+  return { kind: 'steady_month', tone: 'accent', ...highlightCopyFr('steady_month', { beginner, weeks: STEADY_MONTH_WEEKS }) };
 }
 
 function fastestKm(a: HighlightActivity, beginner: boolean): Highlight | null {
@@ -233,15 +304,74 @@ export function highlightOfIndexed(
   opts: { beginner?: boolean } = {},
 ): Highlight | null {
   const beginner = opts.beginner ?? false;
-  return (
-    fastestComparable(activity, index, beginner) ??
-    longest(activity, index, beginner) ??
-    comeback(activity, index, beginner) ??
-    fastestKm(activity, beginner) ??
-    negativeSplit(activity, beginner) ??
-    steady(activity, beginner) ??
-    null
-  );
+  switch (activity.type) {
+    case 'run':
+      return (
+        fastestComparable(activity, index, beginner) ??
+        longest(activity, index, beginner) ??
+        comeback(activity, index, beginner) ??
+        fastestKm(activity, beginner) ??
+        negativeSplit(activity, beginner) ??
+        steady(activity, beginner) ??
+        null
+      );
+    case 'ride':
+      return (
+        longest(activity, index, beginner) ??
+        fastestComparable(activity, index, beginner, 'fastest_speed') ??
+        biggestClimb(activity, index, beginner)
+      );
+    case 'swim':
+      return longest(activity, index, beginner) ?? fastestComparable(activity, index, beginner, 'fastest_swim');
+    case 'walk':
+      return longest(activity, index, beginner) ?? biggestClimb(activity, index, beginner);
+    case 'strength':
+      return (
+        comeback(activity, index, beginner, true) ??
+        longestSession(activity, index, beginner) ??
+        steadyMonth(activity, index, beginner)
+      );
+    default:
+      return null;
+  }
+}
+
+/** Médiane des 8 dernières semaines du même sport (séances précédentes seulement). */
+export const MEDIAN_WINDOW_WEEKS = 8;
+/** Moins de 3 séances : une médiane ne veut rien dire. */
+export const MEDIAN_MIN_ACTIVITIES = 3;
+
+export interface MedianComparison {
+  /** valeur de la séance et médiane, dans la même unité (km, ou minutes pour la muscu) */
+  value: number;
+  median: number;
+  /** écart relatif en % (positif = au-dessus de la médiane) */
+  deltaPct: number;
+  unit: 'km' | 'min';
+  count: number;
+}
+
+/**
+ * Compare la séance à la médiane des 8 dernières semaines du même sport : distance pour les sports
+ * à distance, durée pour la musculation. Null sans assez de séances ou de valeur.
+ */
+export function medianComparison(a: HighlightActivity, index: ComparablesIndex): MedianComparison | null {
+  const unit = a.type === 'strength' ? 'min' : a.type === 'other' ? undefined : 'km';
+  if (!unit) return null;
+  const valueOf = (x: HighlightActivity) => (unit === 'km' ? x.distanceKm : x.durationMin);
+  const value = valueOf(a);
+  if (!value || value <= 0) return null;
+  const start = addDays(a.date, -MEDIAN_WINDOW_WEEKS * 7);
+  if (!coversWindow(index, start)) return null;
+  const others = sameTypeInWindow(a, index, start)
+    .filter((h) => h.date < a.date)
+    .map(valueOf)
+    .filter((v): v is number => !!v && v > 0)
+    .sort((x, y) => x - y);
+  if (others.length < MEDIAN_MIN_ACTIVITIES) return null;
+  const mid = Math.floor(others.length / 2);
+  const median = others.length % 2 ? others[mid] : (others[mid - 1] + others[mid]) / 2;
+  return { value, median, deltaPct: Math.round(((value - median) / median) * 100), unit, count: others.length };
 }
 
 /**

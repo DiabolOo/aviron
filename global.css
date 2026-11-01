@@ -2,37 +2,4 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --css-interop-darkMode: class dark;
-  --canvas: 245 246 248;
-  --surface: 255 255 255;
-  --fg: 14 17 22;
-  --muted: 75 85 99;
-  --chip: 233 236 241;
-  --track: 221 225 232;
-  --accent: 79 70 229;
-  --accent-fg: 255 255 255;
-  --sport: 79 70 229;
-  --sport-tint: 236 235 255;
-  --nutri: 255 122 89;
-  --nutri-tint: 255 233 224;
-  --aqua: 20 184 166;
-  --iris: 109 90 230;
-}
-
-.dark:root {
-  --canvas: 9 11 15;
-  --surface: 38 43 58;
-  --fg: 255 255 255;
-  --muted: 200 205 218;
-  --chip: 54 61 82;
-  --track: 67 74 96;
-  --accent: 181 176 255;
-  --accent-fg: 14 17 22;
-  --sport: 181 176 255;
-  --sport-tint: 43 46 77;
-  --nutri: 255 138 107;
-  --nutri-tint: 61 43 46;
-  --aqua: 45 212 191;
-  --iris: 167 155 255;
-}
+/* Variables de couleur générées depuis constants/theme.ts par tailwind.config.js (une seule source). */

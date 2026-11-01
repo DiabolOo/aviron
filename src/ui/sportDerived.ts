@@ -1,9 +1,12 @@
 import type { Activity } from '@/src/core/schemas';
 import type { AthleteProfile } from '@/src/core/training/types';
 import type { RaceCandidate } from '@/src/core/training/engine';
+import { medianComparisonFr } from '@/src/core/training/insights/copy.fr';
 import {
   comparablesIndex,
   highlightOfIndexed,
+  MEDIAN_WINDOW_WEEKS,
+  medianComparison,
   type Highlight,
   type HighlightActivity,
 } from '@/src/core/training/highlights';
@@ -40,6 +43,8 @@ export interface SportDerived {
   confirmedRaceMap: ReadonlyMap<string, string>;
   /** moment fort, mémoïsé par id d'activité sur l'index des comparables */
   highlightFor(activity: HighlightActivity): Highlight | null;
+  /** « +12 % par rapport à ta médiane des 8 dernières semaines (8,2 km) », null sans assez de séances */
+  comparisonFor(activity: HighlightActivity): string | null;
   raceDebrief(raceId: string | undefined): RaceDebriefView | undefined;
   raceSummaryFor(raceId: string | undefined): RaceSummary | undefined;
 }
@@ -93,6 +98,10 @@ export function sportDerived(key: SportSnapshot): SportDerived {
         highlights.set(activity.id, highlightOfIndexed(activity, index));
       }
       return highlights.get(activity.id) ?? null;
+    },
+    comparisonFor(activity) {
+      const c = medianComparison(activity, index);
+      return c ? medianComparisonFr({ ...c, weeks: MEDIAN_WINDOW_WEEKS }) : null;
     },
     raceDebrief(raceId) {
       if (raceId === undefined) return undefined;

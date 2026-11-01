@@ -3,14 +3,15 @@ import { useMemo } from 'react';
 import { usePulseFitStore } from '@/lib/store';
 import { toISODate } from '@/src/core/dates';
 import type { AthleteProfile, TrainingInsight } from '@/src/core/training/types';
-import type { RaceCandidate } from '@/src/core/training/engine';
+import { daysBetween, type RaceCandidate } from '@/src/core/training/engine';
 import type { Highlight, HighlightActivity } from '@/src/core/training/highlights';
 import { confirmRace } from '@/src/core/training/insights/rules/confirmRace';
-import { racePacing } from '@/src/core/training/insights/rules/racePacing';
 import {
+  HOME_RACE_MAX_AGE_DAYS,
+  homeRaceCard,
   isConfirmed,
-  racePacingExtras,
   suggestRaceName,
+  type RaceCardView,
   type RaceDebriefView,
 } from '@/src/core/training/raceView';
 import { sportDerived, type SportDerived } from '@/src/ui/sportDerived';
@@ -67,24 +68,30 @@ export function useRaceLists(): RaceLists {
 }
 
 export type RaceInsights = {
-  pacing?: { insight: TrainingInsight; raceId: string; extras: string[] };
+  race?: RaceCardView;
   confirm?: { insight: TrainingInsight; raceId: string; suggestedName: string };
 };
 
 const raceIdOf = (insight: TrainingInsight): string => insight.id.slice(insight.ruleId.length + 1);
 
-/** Cartes race_pacing et confirm_race de l'Accueil (règles du moteur, sans recalcul d'affichage). */
+/** Carte course (7 jours après la course, → débrief) et carte confirm_race de l'Accueil. */
 export function useRaceInsights(): RaceInsights {
   const derived = useSportDerived();
   return useMemo(() => {
     const { races, activities, confirmedIds, goal } = derived;
-    const ctx = { today: toISODate(new Date()), activities, profile: ATHLETE, races, confirmedIds };
+    const today = toISODate(new Date());
+    const ctx = { today, activities, profile: ATHLETE, races, confirmedIds };
     const out: RaceInsights = {};
 
-    const pacing = racePacing.evaluate(ctx);
-    const pacingRace = pacing && races.find((r) => r.id === raceIdOf(pacing));
-    if (pacing && pacingRace) {
-      out.pacing = { insight: pacing, raceId: pacingRace.id, extras: racePacingExtras(activities, pacingRace, goal) };
+    const recent = [...races].sort((a, b) => b.date.localeCompare(a.date));
+    for (const candidate of recent) {
+      if (daysBetween(candidate.date, today) > HOME_RACE_MAX_AGE_DAYS) break;
+      const view = isConfirmed(candidate, confirmedIds) ? derived.raceDebrief(candidate.id) : undefined;
+      const card = view && homeRaceCard(view, goal, today);
+      if (card) {
+        out.race = card;
+        break;
+      }
     }
     const confirm = confirmRace.evaluate(ctx);
     const confirmRaceCandidate = confirm && races.find((r) => r.id === raceIdOf(confirm));

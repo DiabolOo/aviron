@@ -1,28 +1,19 @@
-import { Activity, Bike, Dumbbell, Footprints, Mountain, Waves } from 'lucide-react-native';
 import { Pressable, View } from 'react-native';
 
+import { SPORT_ICONS } from '@/components/sport/sportIcons';
 import { Text } from '@/components/ui/Text';
 import { formatDayMonth } from '@/src/core/dates';
 import { activityDurationDisplay, activityPace, effortTimeSec, displayActivityName, formatKmNumber } from '@/src/core/sportFormat';
-import type { ActivityType, StravaActivity } from '@/src/core/types';
+import type { StravaActivity } from '@/src/core/types';
 import { openActivity, openRace } from '@/src/ui/nav';
 import { sportTokens } from '@/src/ui/theme/sportColors';
 import { useTheme } from '@/src/ui/useTheme';
-
-const ICONS: Record<ActivityType, typeof Footprints> = {
-  run: Footprints,
-  ride: Bike,
-  walk: Mountain,
-  swim: Waves,
-  strength: Dumbbell,
-  other: Activity,
-};
 
 type Props = { activity: StravaActivity; first: boolean; raceId?: string };
 
 export function ActivityRow({ activity, first, raceId }: Props) {
   const { colors } = useTheme();
-  const Icon = ICONS[activity.type];
+  const Icon = SPORT_ICONS[activity.type];
   const sport = sportTokens(colors, activity.type);
   const effort = activityPace(
     activity.type,

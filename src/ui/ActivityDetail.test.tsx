@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react-native';
+import { StyleSheet } from 'react-native';
 
 import { ActivityDetail } from '@/components/sport/ActivityDetail';
 import { axisKmLabel, monotonePath, paceCurveModel, tooltipLabel } from '@/src/core/paceCurve';
@@ -10,7 +11,7 @@ import type { StravaActivity } from '@/src/core/types';
 
 jest.mock('lucide-react-native', () => ({
   __esModule: true,
-  ...Object.fromEntries(['Flame', 'Sparkles', 'TriangleAlert', 'RotateCcw'].map((n) => [n, () => null])),
+  ...Object.fromEntries(['Flame', 'Sparkles', 'TriangleAlert', 'RotateCcw', 'Activity', 'Bike', 'Dumbbell', 'Footprints', 'Mountain', 'Waves'].map((n) => [n, () => null])),
 }));
 jest.mock('@/src/ui/motion/useReducedMotion', () => ({ useReducedMotion: () => true }));
 jest.mock('@/src/ui/motion/useAfterInteractions', () => ({ useAfterInteractions: () => true }));
@@ -62,12 +63,12 @@ function textOf(): string {
 describe('Détail d’activité — course à pied (15 octobre 2026)', () => {
   it('moment fort sur une ligne sous les chiffres clés, sans carte', async () => {
     await render(<ActivityDetail activity={RUN} highlight={FASTEST_KM} onOpenRace={noop} />);
-    expect(screen.getByText(/Ton kilomètre le plus rapide, en fin de sortie · 3:40 \/km/)).toBeTruthy();
+    expect(screen.getByText(/Ton kilomètre le plus rapide, en fin de sortie · 3:40\s\/km/)).toBeTruthy();
     expect(screen.getAllByTestId('highlight-title')).toHaveLength(1);
     expect(screen.queryByText(/Km 9 : tu as accéléré/)).toBeNull();
     expect(screen.getByText('9,1')).toBeTruthy();
     expect(screen.getByText('45:18')).toBeTruthy();
-    expect(screen.getByText('49:13 au total')).toBeTruthy();
+    expect(screen.getByText('49:13\u00a0au\u00a0total').props.numberOfLines).toBe(1);
     expect(screen.getByText('4:58')).toBeTruthy();
     expect(textOf()).not.toMatch(/NaN|undefined|Infinity/);
   });
@@ -106,6 +107,8 @@ describe('Détail d’activité — course confirmée (semi du 11 octobre 2026)'
   const SEMI: StravaActivity = { ...RUN, id: 'semi', name: 'Semi Reims', date: '2026-10-11', distanceKm: 21.876, durationMin: 113.15, movingTimeSec: 6785 };
   const race: RaceSummary = {
     raceId: 'race-semi',
+    title: 'Semi-marathon de Reims 2026',
+    originalName: 'Semi Reims',
     timeSec: 6789,
     officialPaceSec: 322,
     officialKm: 21.0975,
@@ -124,7 +127,7 @@ describe('Détail d’activité — course confirmée (semi du 11 octobre 2026)'
     await render(<ActivityDetail activity={SEMI} highlight={null} race={race} onOpenRace={onOpen} />);
     expect(screen.getByTestId('hero-value').props.children.props.value).toBe(6789);
     expect(screen.getByText('1h53:09')).toBeTruthy();
-    expect(screen.getByTestId('race-distance').props.children).toBe('21,1 km · 21,9 GPS');
+    expect(screen.getByTestId('race-distance').props.children).toBe('21,1\u00a0km · 21,9 GPS');
     expect(screen.getByText('5:22')).toBeTruthy();
     expect(screen.queryByText('Durée')).toBeNull();
     expect(screen.getAllByText('Voir le débrief')).toHaveLength(1);
@@ -132,9 +135,32 @@ describe('Détail d’activité — course confirmée (semi du 11 octobre 2026)'
     expect(onOpen).toHaveBeenCalledWith('race-semi');
   });
 
+  it('un seul titre en en-tête (nom de la course, 2 lignes max) ; titre d’origine en bas, sans troncature', async () => {
+    await render(<ActivityDetail activity={SEMI} highlight={null} race={race} onOpenRace={noop} />);
+    const title = screen.getByText('Semi-marathon de Reims 2026');
+    expect(title.props.numberOfLines).toBe(2);
+    expect(screen.getAllByText('Semi Reims')).toHaveLength(1);
+    expect(screen.getByTestId('original-title')).toBeTruthy();
+    expect(screen.getByText('Titre d’origine')).toBeTruthy();
+    expect(screen.getByText('Semi Reims').props.numberOfLines).toBeUndefined();
+  });
+
+  it('pas de ligne « Titre d’origine » quand il n’y a rien de différent', async () => {
+    await render(<ActivityDetail activity={SEMI} highlight={null} race={{ ...race, originalName: undefined }} onOpenRace={noop} />);
+    expect(screen.queryByTestId('original-title')).toBeNull();
+  });
+
   it('moment fort orienté course', async () => {
     await render(<ActivityDetail activity={SEMI} highlight={null} race={race} onOpenRace={noop} />);
-    expect(screen.getByText(/Par rapport à l’an dernier \(1h50:50\) · \+2 min/)).toBeTruthy();
+    expect(screen.getByText(/Par rapport à l’an dernier \(1h50:50\) · \+2\smin/)).toBeTruthy();
+  });
+
+  it('typographie : espace insécable avant l’unité (allure, FC, distance)', async () => {
+    await render(<ActivityDetail activity={SEMI} highlight={null} race={race} onOpenRace={noop} />);
+    expect(textOf()).toContain('\u00a0');
+    expect(textOf()).not.toMatch(/\d \/km|\d bpm/);
+    expect(screen.getByTestId('secondary-line').props.children).toMatch(/FC moy\. 158\u00a0bpm/);
+    expect(screen.getByTestId('race-distance').props.children).not.toMatch(/\d km/);
   });
 });
 
@@ -194,11 +220,55 @@ describe('Détail d’activité — pire cas', () => {
     expect(textOf()).not.toMatch(/NaN|Infinity/);
   });
 
-  it('autres sports : pas de moment fort pour l’instant', async () => {
+  it('marche : pas de courbe d’allure, moment fort et comparaison fournis par le calcul', async () => {
     const walk: StravaActivity = { ...RUN, id: 'walk', type: 'walk' };
-    await render(<ActivityDetail activity={walk} highlight={FASTEST_KM} onOpenRace={noop} />);
-    expect(screen.queryByTestId('highlight-title')).toBeNull();
+    await render(
+      <ActivityDetail activity={walk} highlight={LONGEST} comparison="+12 % par rapport à ta médiane" onOpenRace={noop} />,
+    );
+    expect(screen.getAllByTestId('highlight-title')).toHaveLength(1);
     expect(screen.queryByTestId('pace-curve')).toBeNull();
+    expect(screen.getByTestId('comparison-line')).toBeTruthy();
+  });
+});
+
+describe('Détail d’activité — squelette commun', () => {
+  const STRENGTH: StravaActivity = {
+    id: 'str',
+    name: 'Weight Training',
+    type: 'strength',
+    date: '2026-10-14',
+    startTime: '18:00:00',
+    durationMin: 62,
+    calories: 410,
+    avgHr: 121,
+    maxHr: 158,
+    hrStream: [],
+    polyline: [],
+    splits: [],
+  };
+
+  it('muscu : durée en chiffre principal, ligne secondaire calories + FC, icône du sport', async () => {
+    await render(<ActivityDetail activity={STRENGTH} highlight={null} onOpenRace={noop} />);
+    expect(screen.getByTestId('hero-value').props.children).toBe('1:02:00');
+    expect(screen.getByTestId('secondary-line').props.children).toBe('410 kcal · FC moy. 121\u00a0bpm · FC max 158\u00a0bpm');
+    expect(screen.getByTestId('sport-icon')).toBeTruthy();
+    expect(screen.queryByText('Calories')).toBeNull();
+  });
+
+  it('chiffres tabulaires pour le chiffre principal, quel que soit le sport', async () => {
+    await render(<ActivityDetail activity={STRENGTH} highlight={null} onOpenRace={noop} />);
+    expect(StyleSheet.flatten(screen.getByTestId('hero-value').props.style)).toEqual(expect.objectContaining({ fontVariant: ['tabular-nums'] }));
+  });
+
+  it('visualisation seulement à partir de 5 points', async () => {
+    const few = { ...STRENGTH, hrStream: [100, 110, 120, 130].map((bpm, i) => ({ t: i * 60, bpm })) };
+    await render(<ActivityDetail activity={few as unknown as StravaActivity} highlight={null} onOpenRace={noop} />);
+    expect(screen.queryByText('Fréquence cardiaque')).toBeNull();
+  });
+
+  it('ligne de comparaison avec la médiane, absente sur une course confirmée', async () => {
+    await render(<ActivityDetail activity={STRENGTH} highlight={null} comparison="Dans ta médiane" onOpenRace={noop} />);
+    expect(screen.getByTestId('comparison-line').props.children).toBe('Dans ta médiane');
   });
 });
 
@@ -237,9 +307,16 @@ describe('paceCurveModel', () => {
   it('interpolation monotone : jamais au-delà des points réels', () => {
     const pts = [0, 1, 2, 3, 4, 5].map((i) => ({ x: i * 50, y: [100, 40, 40, 90, 20, 60][i] }));
     const d = monotonePath(pts);
-    const ys = [...d.matchAll(/C([\d.]+),([\d.]+) ([\d.]+),([\d.]+)/g)].flatMap((m) => [Number(m[2]), Number(m[4])]);
-    expect(Math.min(...ys)).toBeGreaterThanOrEqual(20);
-    expect(Math.max(...ys)).toBeLessThanOrEqual(100);
+    const segs = [...d.matchAll(/C([\d.]+),([\d.]+) ([\d.]+),([\d.]+)/g)];
+    expect(segs).toHaveLength(pts.length - 1);
+    segs.forEach((m, i) => {
+      const lo = Math.min(pts[i].y, pts[i + 1].y);
+      const hi = Math.max(pts[i].y, pts[i + 1].y);
+      for (const y of [Number(m[2]), Number(m[4])]) {
+        expect(y).toBeGreaterThanOrEqual(lo - 0.1);
+        expect(y).toBeLessThanOrEqual(hi + 0.1);
+      }
+    });
   });
 
   it('libellés français : « km 21,9 », « arrivée », info-bulle avec FC', () => {

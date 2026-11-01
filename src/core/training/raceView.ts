@@ -4,8 +4,16 @@ import type { Activity } from '../schemas';
 import type { AthleticGoal } from '../types';
 import { daysBetween, detectRaces, raceDebrief, racePrep, type PaceBand, type RaceCandidate, type RaceDebrief } from './engine';
 import type { Highlight } from './highlights';
-import { distanceNoteFr, driftSentenceFr, highlightCopyFr, pacingExtrasFr } from './insights/copy.fr';
-import { targetPaceSec } from './insights/helpers';
+import {
+  approxDuration,
+  distanceNoteFr,
+  driftSentenceFr,
+  highlightCopyFr,
+  PACING_LABELS,
+  pacingExtrasFr,
+  pacingSummaryFr,
+} from './insights/copy.fr';
+import { parseTargetTime, targetPaceSec } from './insights/helpers';
 import { CONFIRM_RACE_MAX_AGE_DAYS } from './insights/thresholds';
 import { racePacing } from './insights/rules/racePacing';
 import type { AthleteProfile } from './types';
@@ -43,6 +51,12 @@ export type RacePacingView = {
   message: string;
   /** plus longue sortie des 8 semaines avant la course, allure nécessaire à l'objectif de temps */
   extras: string[];
+  /** une phrase avec le chiffre clé (affichée sous le titre) */
+  summary: string;
+  /** explication de la règle, pour le bloc « Pourquoi ? » */
+  why: string;
+  /** gain estimé (s) avec une allure régulière ; undefined s'il n'est pas calculable */
+  gainSec?: number;
 };
 
 export type RaceDebriefView = {
@@ -196,7 +210,68 @@ export function racePacingFor(
   today: string = race.date,
 ): RacePacingView | undefined {
   const insight = racePacing.evaluate({ today, activities, profile, races: [race], confirmedIds: [race.id] });
-  return insight ? { title: insight.title, message: insight.message, extras: racePacingExtras(activities, race, goal) } : undefined;
+  if (!insight) return undefined;
+  const activity = activities.find((a) => a.id === race.activityId);
+  const { halves, bands, officialPaceSec } = activity ? raceDebrief(race, activity) : { halves: undefined, bands: [], officialPaceSec: undefined };
+  const evidence = (label: string): number | undefined => insight.evidence.find((e) => e.label === label)?.numeric;
+  const fastGap = evidence(PACING_LABELS.gapHalves);
+  const cautiousGap = evidence(PACING_LABELS.gapQuarter);
+  const even = officialPaceSec ?? (halves ? Math.round((halves.first.officialPaceSec + halves.second.officialPaceSec) / 2) : undefined);
+  const q1 = bands[0]?.officialPaceSec;
+  let gainSec: number | undefined;
+  if (fastGap !== undefined && halves && even !== undefined) gainSec = (halves.second.officialPaceSec - even) * (race.officialDistanceKm / 2);
+  else if (cautiousGap !== undefined && q1 !== undefined && even !== undefined) gainSec = (q1 - even) * (race.officialDistanceKm / 4);
+  const gapPct = fastGap ?? cautiousGap;
+  return {
+    title: insight.title,
+    message: insight.message,
+    extras: racePacingExtras(activities, race, goal),
+    summary:
+      gapPct !== undefined
+        ? pacingSummaryFr({ kind: fastGap !== undefined ? 'fast' : 'cautious', gapPct, gainSec })
+        : insight.message,
+    why: insight.why,
+    gainSec: gainSec !== undefined && gainSec > 0 ? gainSec : undefined,
+  };
+}
+
+/** Une carte de l'Accueil reste affichée 7 jours après la course, puis disparaît. */
+export const HOME_RACE_MAX_AGE_DAYS = 7;
+
+export type RaceCardView = {
+  raceId: string;
+  title: string;
+  timeSec: number;
+  /** écart à l'objectif s'il existe, sinon gain estimé ; absent si aucun des deux n'est calculable */
+  line?: string;
+};
+
+/** Écart (s) entre le chrono et l'objectif de temps, si l'objectif vise la même distance et se lit sans ambiguïté. */
+export function goalGapSec(view: RaceDebriefView, goal: AthleticGoal | undefined): number | undefined {
+  if (view.timeSec === undefined || goalDistanceKm(goal) !== view.race.officialDistanceKm) return undefined;
+  const target = parseTargetTime(goal?.targetValue, view.race.officialDistanceKm);
+  return target === undefined ? undefined : view.timeSec - target;
+}
+
+/** Carte de l'Accueil : undefined si la course n'est pas confirmée, sans chrono, future ou trop ancienne. */
+export function homeRaceCard(
+  view: RaceDebriefView,
+  goal: AthleticGoal | undefined,
+  today: string,
+): RaceCardView | undefined {
+  const age = daysBetween(view.race.date, today);
+  if (!view.confirmed || view.timeSec === undefined || view.race.status !== 'completed' || age < 0 || age > HOME_RACE_MAX_AGE_DAYS) {
+    return undefined;
+  }
+  const gap = goalGapSec(view, goal);
+  const gain = view.pacing?.gainSec;
+  const line =
+    gap !== undefined
+      ? `${formatRaceDelta(gap)} par rapport à ton objectif (${goal?.targetValue})`
+      : gain !== undefined
+        ? `Jusqu’à environ ${approxDuration(gain)} à gagner avec une allure plus régulière`
+        : undefined;
+  return { raceId: view.race.id, title: view.title, timeSec: view.timeSec, line };
 }
 
 function comparisonRows(race: RaceCandidate, races: RaceCandidate[], confirmedIds: readonly string[]): RaceRow[] {
@@ -328,6 +403,10 @@ export function raceHighlight(view: RaceDebriefView): Highlight | null {
 
 export interface RaceSummary {
   raceId: string;
+  /** nom de la course (choisi par l'utilisateur, sinon suggestion avec la ville) */
+  title: string;
+  /** titre d'origine de l'activité, s'il diffère du nom affiché */
+  originalName?: string;
   /** chrono (temps écoulé) */
   timeSec?: number;
   /** allure officielle : chrono / distance officielle */
@@ -342,6 +421,8 @@ export interface RaceSummary {
 export function raceSummary(view: RaceDebriefView): RaceSummary {
   return {
     raceId: view.race.id,
+    title: view.title,
+    originalName: view.originalName,
     timeSec: view.timeSec,
     officialPaceSec: view.officialPaceSec,
     officialKm: view.race.officialDistanceKm,
