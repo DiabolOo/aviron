@@ -2,7 +2,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
-import { useProposalStore } from '@/lib/proposalStore';
 import { agent } from '@/src/agent';
 import { getDailyBalance, type DailyBalance } from '@/src/core/balance';
 import { addDaysISO, toISODate } from '@/src/core/dates';
@@ -169,7 +168,6 @@ export const usePulseFitStore = create<PulseFitState>()(
             // garde les valeurs en mémoire plutôt qu'un écran blanc
           }
           set({ dataReady: true });
-          void useProposalStore.getState().load();
         },
         themePreference: 'light',
         setThemePreference: (value) => set({ themePreference: value }),

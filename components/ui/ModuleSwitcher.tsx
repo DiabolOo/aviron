@@ -1,11 +1,26 @@
-import { Fragment } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react-native';
+import { Fragment, useEffect, useState } from 'react';
 import { View } from 'react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import Animated, {
+  Easing,
+  interpolate,
+  useAnimatedStyle,
+  useSharedValue,
+  withDelay,
+  withSequence,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated';
+import { scheduleOnRN } from 'react-native-worklets';
 
 import { ModuleTabs } from '@/components/ui/ModuleTabs';
 import { MODULES } from '@/src/modules';
 import { collectSections, type ModuleSection } from '@/src/modules/registry';
 import { useIsModuleEnabled } from '@/src/modules/useModules';
+import { useReducedMotion } from '@/src/ui/motion/useReducedMotion';
 import { useModuleChoice } from '@/src/ui/useModuleChoice';
+import { useTheme } from '@/src/ui/useTheme';
 
 type ModuleSwitcherProps = {
   scope: string;
@@ -13,14 +28,72 @@ type ModuleSwitcherProps = {
   order: string[];
 };
 
+const SPRING = { damping: 20, stiffness: 260, mass: 0.7 };
+const EDGE_RESISTANCE = 0.25;
+const NUDGE = 28;
+const nudged = new Set<string>();
+
 export function ModuleSwitcher({ scope, section, order }: ModuleSwitcherProps) {
+  const { colors } = useTheme();
   const isEnabled = useIsModuleEnabled();
+  const reduced = useReducedMotion();
   const sections = collectSections(MODULES, isEnabled, section, order);
-  const [value, choose] = useModuleChoice(
-    scope,
-    sections.map((s) => s.id),
-  );
+  const ids = sections.map((s) => s.id);
+  const [value, choose] = useModuleChoice(scope, ids);
   const current = sections.find((s) => s.id === value);
+  const [width, setWidth] = useState(0);
+  const drag = useSharedValue(0);
+  const offset = useSharedValue(0);
+  const index = ids.indexOf(value);
+  const last = ids.length - 1;
+  const multi = ids.length > 1;
+
+  useEffect(() => {
+    if (!multi || reduced || nudged.has(scope)) return;
+    nudged.add(scope);
+    const dir = index < last ? -1 : 1;
+    offset.set(
+      withDelay(
+        700,
+        withSequence(
+          withTiming(dir * NUDGE, { duration: 260, easing: Easing.out(Easing.cubic) }),
+          withSpring(0, SPRING),
+        ),
+      ),
+    );
+  }, [multi, reduced, scope, index, last, offset]);
+
+  const gesture = Gesture.Pan()
+    .enabled(multi)
+    .activeOffsetX([-12, 12])
+    .failOffsetY([-16, 16])
+    .onUpdate((e) => {
+      'worklet';
+      const blocked = (e.translationX > 0 && index <= 0) || (e.translationX < 0 && index >= last);
+      const dx = blocked ? e.translationX * EDGE_RESISTANCE : e.translationX;
+      drag.set(dx);
+      if (!reduced) offset.set(dx);
+    })
+    .onEnd((e) => {
+      'worklet';
+      const dir = e.translationX < 0 ? 1 : -1;
+      const next = ids[index + dir];
+      const committed =
+        next !== undefined && (Math.abs(e.translationX) > width * 0.25 || Math.abs(e.velocityX) > 500);
+      if (!committed) {
+        offset.set(reduced ? 0 : withSpring(0, SPRING));
+        drag.set(reduced ? 0 : withSpring(0, SPRING));
+        return;
+      }
+      scheduleOnRN(choose, next);
+      offset.set(reduced ? 0 : -dir * width * 0.25);
+      if (!reduced) offset.set(withSpring(0, SPRING));
+    });
+
+  const contentStyle = useAnimatedStyle(() => ({ transform: [{ translateX: offset.get() }] }));
+  const leftHint = useAnimatedStyle(() => ({
+    opacity: interpolate(Math.abs(offset.get()), [0, 40], [0.55, 0], 'clamp'),
+  }));
 
   return (
     <View className="gap-3.5">
@@ -33,12 +106,36 @@ export function ModuleSwitcher({ scope, section, order }: ModuleSwitcherProps) {
         }))}
         value={value}
         onChange={choose}
+        drag={drag}
+        dragWidth={width}
       />
-      {current ? (
-        <Fragment key={current.id}>
-          <current.Component />
-        </Fragment>
-      ) : null}
+      <GestureDetector gesture={gesture}>
+        <View onLayout={(e) => setWidth(e.nativeEvent.layout.width)}>
+          {current ? (
+            <Animated.View style={contentStyle}>
+              <Fragment key={current.id}>
+                <current.Component />
+              </Fragment>
+            </Animated.View>
+          ) : null}
+          {multi && index > 0 ? (
+            <Animated.View
+              pointerEvents="none"
+              className="absolute left-0 top-20 h-14 w-5 items-center justify-center rounded-r-full bg-fg/5"
+              style={leftHint}>
+              <ChevronLeft color={colors.muted} size={16} strokeWidth={2.4} />
+            </Animated.View>
+          ) : null}
+          {multi && index < last ? (
+            <Animated.View
+              pointerEvents="none"
+              className="absolute right-0 top-20 h-14 w-5 items-center justify-center rounded-l-full bg-fg/5"
+              style={leftHint}>
+              <ChevronRight color={colors.muted} size={16} strokeWidth={2.4} />
+            </Animated.View>
+          ) : null}
+        </View>
+      </GestureDetector>
     </View>
   );
 }

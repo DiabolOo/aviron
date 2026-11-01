@@ -96,6 +96,8 @@ export interface LifeModule {
 | 18 | Récompenses (optionnel) | ⏳ |
 | 19 | Ouverture : MCP, API, widgets, mode coach | ⏳ |
 
+**🎯 Voie MVP (chemin critique, voir section dédiée)** : M1 Moteur d'analyse ⏳ · M2 Écran d'analyse sur données réelles ⏳ · M3 Coach IA ⏳ (🚪 porte 1) · M4 Données testeurs ⏳ · M5 Profils, consentements, programmes sans IA ⏳ (🚪 porte 2) · M6 Bêta privée ⏳ (🚪 porte 3).
+
 **Correspondance avec l'ancienne roadmap** : ancien J3 → J5 · J4 → J7 · J5 → J8 · J6 → J11 · J7 → J9 · J8 → J9 (objectif de course) · J9 → J10 · J10 → J12 · J11 → J14/J15 · J12 → J18 · J13 → J16 · J14 → J17.
 
 ---
@@ -124,6 +126,132 @@ export interface LifeModule {
 - **Critère de sortie** : tu l'utilises tous les jours pendant 2 semaines sans ouvrir une autre app pour le sport et la nutrition.
 - **Volontairement reporté** : comptes, Supabase, RGPD, paywall, Strava, brief par cron serveur (donc pas de brief automatique à heure fixe), multi-appareils.
 - **Passage à la béta publique** : reprendre les jalons J5 (backend UE + RLS + consentement), J6 complet, J8 complet, J11, J12.
+
+---
+
+# 🎯 Voie MVP — Analyse IA sur données réelles & bêta privée (jalons M1 à M6)
+
+> **Objectif** : un premier visuel d'analyse IA sur **tes vraies données** (~2 semaines de dev), puis une bêta privée de 10 à 15 testeurs (~2 à 3 semaines plus tard). Sources : [`Semi en 1h45 & intégration de l'analyse dans PulseFit`] et [`PulseFit — plan MVP analyse IA sur données réelles et bêta`] (analyses Claude du 2026-11-01).
+> **Cette voie remplace la « Voie rapide — Alpha perso » comme chemin critique** et réutilise les jalons J5/J6/J8/J9/J11/J12 en les allégeant. Numérotation **M1–M6** pour ne pas casser les références J0–J19. Ne pas ouvrir M(n+1) tant que la porte de M(n) n'est pas franchie.
+> **Priorité** : la voie MVP passe avant la fin du J4 (UX v2). Seuls restent à faire du J4 les écrans que M3 réutilise (Accueil, Suivi, Stats).
+
+## Principe : trois niveaux de personnalisation
+Un moteur de règles sert tous les profils ; le coach IA est une couche **optionnelle**. Chaque niveau est proposé, jamais exigé, modifiable dans Profil.
+
+| Niveau | L'utilisateur partage | Où ça tourne | Il reçoit |
+|---|---|---|---|
+| 0 — Profil déclaré | Réponses d'onboarding : niveau, objectif, jours dispos, matériel | Règles + bibliothèque de programmes, sur le téléphone | Un programme adapté, réajusté chaque semaine par un check-in de 3 questions |
+| 1 — Données d'activité | Apple Santé / Health Connect, ou import Strava (fichier) | Moteur d'analyse déterministe, sur le téléphone | Programme ajusté sur le réel + cartes de constats rédigées par modèles de texte |
+| 2 — Coach IA | Accord explicite pour envoyer un résumé sans nom ni identifiant | Edge Function → Claude (Bedrock UE à terme) | Analyses rédigées, débriefs de course, questions, plan révisé |
+
+Aux niveaux 0 et 1, **aucune donnée d'activité ne quitte le téléphone**. Le serveur ne stocke que profil, consentements et retours de bêta. Le vocabulaire suit le profil (« ralentis un peu » pour un débutant, « reste sous 150 bpm » pour un sportif).
+
+| Profil testeur | Point d'entrée | Ce qui compte |
+|---|---|---|
+| Veut s'y mettre | Niveau 0, programme « Débuter » (marche/course) | Séances courtes, régularité, aucun jargon |
+| Coureur du dimanche | Niveau 0 ; niveau 1 proposé | Objectif 5/10 km, 2–3 séances/sem, reprise douce |
+| Sportif équipé (Garmin, COROS, Strava) | Niveau 1 dès l'onboarding ; niveau 2 proposé | Analyse fine : intensités, charge, débrief, préparation d'objectif |
+
+## Règles d'architecture propres à cette voie
+- Le moteur d'analyse vit dans **`src/core/training/`** (convention du repo ; le plan source disait `src/domain/training/`) : TypeScript pur, sans React Native ni réseau. **Le même code tourne sur le téléphone et dans l'Edge Function.**
+- **Cadre légal Strava** : seul un **fichier exporté et importé par l'utilisateur** est envisagé (≠ API Strava, interdite pour l'IA). Tant que l'**ADR-004** n'a pas tranché, **aucune donnée Strava (même résumée) dans un prompt** (règle 9 d'AGENTS.md). Le moteur local (niveaux 0–1) n'est pas concerné.
+- **Données personnelles** : le snapshot issu de ton export (`fixtures/*.snapshot.json`) et le zip Strava sont **gitignorés, jamais committés**. Les tests du moteur s'appuient sur un jeu **synthétique** reproduisant les chiffres de référence ; le test sur ta vraie donnée est local seulement (`npm run test:local`, ignoré en CI).
+- Tout `AthleteSummary` envoyé à un LLM : < 2 000 tokens, agrégé, sans nom ni identifiant, validé par Zod ; sortie `CoachResponse` validée par Zod (1 retry, repli propre).
+
+## Prérequis à lancer dès maintenant (comptes à délai de validation)
+- [ ] Apple Developer Program (~99 €/an) : obligatoire pour HealthKit et TestFlight
+- [ ] Google Play Console (25 $) — seulement si ≥ 3 testeurs Android (sinon bêta iPhone seule, Health Connect reporté après la bêta)
+- [ ] Clé API Anthropic pour le dev de M3 (**uniquement côté serveur / `.env` local non committé**)
+- [ ] Compte AWS + modèles Claude activés dans Bedrock région UE, avant M6
+- [ ] Projet Supabase région UE ; comptes PostHog (UE) et Sentry
+- [ ] Liste de 10 à 15 testeurs : profil, iPhone/Android, montre
+
+## Jalon M1 — Moteur d'analyse sur tes données ⏳ (2 à 3 jours)
+> Réutilise J3 (schémas Zod) et amorce `core/load` de J8.
+- [ ] **ADR-004 (version courte)** : autoriser l'import de fichier utilisateur pour le moteur local ; décider si un résumé agrégé issu de cet import peut alimenter le coach (sinon M3 fonctionne sur Apple Santé / FIT seulement)
+- [ ] `src/core/training/types.ts` (+ schémas Zod) : `Activity`, `Split`, `DailyMetrics`, `Race`, `AthleteProfile`, `Insight` (réutiliser les entités existantes de J3 plutôt que dupliquer)
+- [ ] `scripts/import-strava.ts` (Node) : lit le zip, parse `activities.csv` (dates en français, colonnes en double) et les FIT (`fit-file-parser`, ajout de dépendance → mini-ADR), écrit `fixtures/julien.snapshot.json` (**gitignoré**)
+- [ ] `src/core/training/engine/` (fonctions pures) : volume par semaine / mois, régularité et coupures, zones de FC (FC max configurable), répartition des intensités, efficacité aérobie par trimestre, détection de courses + débrief (allure et FC par tranche, dérive cardiaque, recalage sur distance officielle), préparation sur 8 semaines
+- [ ] `src/core/training/insights/` : règles → `Insight` (gravité, titre, texte version débutant / version sportif, chiffres à l'appui, « Pourquoi ? »)
+- [ ] Tests : jeu synthétique + test local sur tes données avec les valeurs de référence (53 % des sorties > 160 bpm de moyenne, Reims 2025 en 1h50:50, Paris 2024 en 1h48:16, FC max observée 201 bpm, etc.)
+- **Fini quand** les tests passent et le snapshot local est généré.
+
+## Jalon M2 — L'écran d'analyse avec tes vraies données ⏳ (3 à 4 jours)
+> Réutilise Accueil / Suivi / Stats du J4. Expo Go suffit.
+- [ ] Charger le snapshot dans le store derrière un drapeau de dev `EXPO_PUBLIC_USE_FIXTURE` (via un adaptateur de repository, pas d'import direct dans l'UI)
+- [ ] **Stats / Suivi › Sport** : volume par semaine, répartition des intensités, tendance d'efficacité aérobie
+- [ ] **Accueil** : carte « Analyse » avec les 2–3 constats prioritaires
+- [ ] Écran **Débrief de course** (`app/race/[id].tsx`) : allure et FC par tranche, comparaison avec les courses précédentes
+- [ ] Pouce haut / bas sur chaque carte, stocké en local (champ ajouté à `partialize`)
+- **Fini quand** tu vois tes données et tes constats sur ton téléphone.
+
+## Jalon M3 — Coach IA ⏳ (3 jours) — 🚪 Porte 1
+> Version minimale de J6 + première tranche de J9.
+- [ ] Projet Supabase UE, Edge Function `coach` (aucune donnée stockée côté serveur à ce stade)
+- [ ] Entrée `AthleteSummary` (calculé par le moteur, < 2 000 tokens, sans identifiant) ; sortie `CoachResponse` Zod (résumé, constats, recommandations, alertes) ; garde-fous : pas d'allégation médicale, pas de conseil en cas de douleur
+- [ ] Prompts v1 versionnés dans `supabase/functions/coach/prompts/` : analyse du jour, bilan hebdo, débrief de course
+- [ ] Fournisseur : API Anthropic en dev sur tes propres données, Bedrock UE avant d'inviter des testeurs ; même interface, bascule par variable d'environnement
+- [ ] Cache d'une analyse par jour et par utilisateur ; plafond de coût ; journal de coût (sans contenu des prompts)
+- [ ] Carte « Coach » dans Accueil avec pouce haut / bas
+- [ ] (Si ADR-004 OK) Objectif « semi en 1h45 » : bloc de 12 semaines proposé en `Proposal`, **validé par `core/planValidator`** (hausse ≤ 10 %/sem, semaine allégée toutes les 3–4 sem.)
+- **Fini quand** tu lis sur ton téléphone une analyse IA de tes vraies données. **Porte 1.**
+
+## Jalon M4 — Les données des testeurs ⏳ (5 à 7 jours, parallèle de M5)
+> Allège J8 (pas d'API Strava, pas d'API Garmin/COROS directes).
+- [ ] Build de dev EAS (HealthKit / Health Connect indisponibles dans Expo Go)
+- [ ] Interfaces `ActivityProvider` / `HealthProvider` ; adaptateur **HealthKit** (`@kingstinct/react-native-healthkit`, compatibilité SDK 57/58 à vérifier) : séances, FC, distance, sommeil, FC repos, HRV, poids ; 12 mois d'historique puis synchro incrémentale
+- [ ] Adaptateur **Health Connect** (seulement si ≥ 3 testeurs Android)
+- [ ] Import allégé du fichier Strava : `activities.csv` seul d'abord (volume, durée, FC moyenne), FIT ensuite ; écran Profil → « Importer mon historique »
+- [ ] Écran d'aide « Synchroniser ta montre » (Garmin Connect, COROS, Samsung → Apple Santé / Health Connect)
+- [ ] Dédoublonnage entre sources : départ à 2 min près, distance à 3 % près
+- [ ] (Optionnel, après la bêta) connexion COROS via MCP + export du bloc d'entraînement vers la montre
+- **Fini quand** un testeur iPhone (et Android le cas échéant) voit son historique dans Suivi.
+
+## Jalon M5 — Profils, consentements, programmes sans IA ⏳ (5 jours, parallèle de M4) — 🚪 Porte 2
+> Allège J2/J5/J9 : tout fonctionne sans IA ni compte.
+- [ ] Bloc « Sport » dans l'onboarding : sports, niveau, objectif (me mettre au sport, 5 km, 10 km, semi, forme générale, muscu), jours disponibles, durée par séance, montre ou non ; rappel « consulte un médecin en cas de doute » pour les débutants
+- [ ] Écran de consentement aux 3 niveaux, **versionné et horodaté**, modifiable dans Profil (table `consents` en M6)
+- [ ] Bibliothèque de programmes JSON : Débuter (marche/course, 8 sem.), 5 km, 10 km, semi 12 sem., reprise après coupure, renforcement 2×/sem.
+- [ ] Générateur déterministe (`src/core/training/programs/`) : choix du modèle et du calibre selon volume déclaré ou mesuré + jours dispos → affiché dans Plan
+- [ ] Règles d'ajustement : +10 % de volume max/sem., séance manquée décalée, semaine allégée toutes les 3–4 sem.
+- [ ] Check-in hebdo niveau 0 en 3 taps : séances faites, fatigue 1–5, envie de continuer
+- **Fini quand** un débutant sans données et un sportif équipé obtiennent chacun un plan qui leur parle. **Porte 2.**
+
+## Jalon M6 — Bêta privée ⏳ (3 jours) — 🚪 Porte 3
+> Version minimale de J5 + J12 (pas de paywall J11 pendant la bêta).
+- [ ] Auth Supabase (Sign in with Apple + lien magique), **RLS sur toutes les tables + tests des politiques** (profil, consentements, retours)
+- [ ] Distribution : TestFlight (iOS) ; test interne Google Play / APK EAS si Android
+- [ ] PostHog (UE) + Sentry avec **scrubbing** (aucun contenu de prompt ni donnée de santé)
+- [ ] Bouton « Un retour ? » sur chaque écran (texte + capture), pouces remontés au serveur
+- [ ] Page de confidentialité, suppression du compte et des données depuis l'app, export RGPD
+- [ ] Verrou 18+ pour les objectifs de perte de poids ; consentement données de santé (AIPD à rédiger)
+- **Fini quand** 10 testeurs ont installé l'app, répartis sur les 3 profils. **Porte 3.**
+
+## Bêta : 4 semaines pour apprendre
+10 à 15 testeurs, une question précise par profil : *Veut s'y mettre* → Débuter les fait-il démarrer puis tenir 3 semaines ? · *Coureur du dimanche* → check-in + ajustements suffisent-ils sans montre ? · *Sportif équipé* → l'analyse apprend-elle quelque chose que Garmin/Strava ne donnent pas ? acceptent-ils le coach IA ?
+
+**Déroulé** : S0 appel de 15 min par testeur (observer sans aider) · S1–4 groupe WhatsApp, une question chaque lundi + bouton de retour · fin S2 : 5 entretiens de 10 min · fin S4 : questionnaire de 5 questions (« Serais-tu déçu si l'app disparaissait ? », « Combien la paierais-tu par mois ? »).
+
+| Mesure | Source | Seuil d'alerte |
+|---|---|---|
+| Rétention 7 et 28 jours | PostHog | < 50 % actifs à 7 jours |
+| Séances du plan réalisées | Check-in / données | < la moitié |
+| Cartes jugées utiles | Pouces | < 60 % de pouces hauts |
+| Passage au coach IA | Consentements | < 1/3 des sportifs équipés |
+
+**Décisions après 4 semaines** : débutants qui décrochent → simplifier, rappels et séries avant toute nouvelle fonction · sportifs sans valeur perçue → approfondir l'analyse (charge, débrief) et brancher COROS/Garmin en direct · peu d'acceptation du coach IA → retravailler l'apport et la présentation · demande transverse (muscu, nutrition, sommeil) → jalon suivant. L'app n'émet aucun conseil en cas de douleur : elle oriente vers un professionnel.
+
+## Articulation avec les jalons existants
+| Voie MVP | Jalons réutilisés | Reporté après la bêta |
+|---|---|---|
+| M1 | J3, `core/load` de J8 | — |
+| M2 | J4 (Accueil, Suivi, Stats) | Animations, test des 5 secondes |
+| M3 | J6 minimal, J9 (analyse, débrief, plan par intention) | Brief cron, évals complètes |
+| M4 | J8 (HealthKit, FIT/CSV) | API Strava, Garmin/COROS directs |
+| M5 | J2, J9 (plan sans IA) | Nutrition périodisée (J10) |
+| M6 | J5, J12 (béta) | Paywall (J11), nutrition IA (J7), Phase 2 |
+
+**Nutrition / scan d'assiette (J7, J10)** : hors périmètre de la bêta MVP ; ne démarrent qu'après lecture des résultats de la bêta (une demande nutrition récurrente en fait le jalon suivant).
 
 ---
 
@@ -172,9 +300,9 @@ export interface LifeModule {
 - [ ] ADR-009 : navigation `Accueil · Plan · Agent · Suivi · Stats` (profil via le prénom, onglet Moi supprimé) — amende ADR-002
 - [x] Thème **Aurore** (jetons clair / sombre, Inter, barre à pad glissant, `HoldToConfirmCard`) — voir `docs/UX-V2.md` §12
 - [ ] **Onglet Stats** : page unique (période Semaine / Mois / Année), une carte par module actif (Sport : total + histogramme ; Nutrition : moyenne kcal vs cible ; Forme), carte « Analyse de l'Agent » (placeholder) ; chiffres calculés dans `src/core/`
-- [ ] **Profil via le prénom cliquable** (dégradé, relief, chevron) ; écrans Profil et Profil › Modules ; retrait de l'onglet Moi
-- [ ] **Modules activables** : écran Profil › Modules (bascules), feature flags câblés au registre ; sélecteur à icônes (souligné glissant) dans Plan et Suivi, masqué si un seul module ; dernier choix mémorisé par onglet
-- [ ] **Navigation glissée** entre modules (balayage horizontal, souligné qui suit le doigt, ressort léger) + respect de `prefers-reduced-motion`
+- [x] **Profil via le prénom cliquable** (dégradé, relief, chevron) ; écrans Profil et Profil › Modules ; retrait de l'onglet Moi
+- [x] **Modules activables** : écran Profil › Modules (bascules), feature flags câblés au registre ; sélecteur à icônes (souligné glissant) dans Plan et Suivi, masqué si un seul module ; dernier choix mémorisé par onglet
+- [x] **Navigation glissée** entre modules (balayage horizontal, souligné qui suit le doigt, ressort léger) + respect de `prefers-reduced-motion`
 - [ ] **Plan › Sport** : afficher le plan (objectif + semaine) ; écran « sans plan » (création via l'Agent + modèles) ; plus de champ texte dans Plan
 - [ ] **Plan › Nutrition** : cibles du jour (calculées par le code) + semaine de repas ; bouton « Planifier avec l'Agent »
 - [ ] **Accueil « nutrition seule »** : carte « Ce soir · Dîner » (mock) quand le module Sport est désactivé
@@ -394,7 +522,11 @@ export interface LifeModule {
 | 2026-10-31 | J4 — thème « Aurore » (jetons clair/sombre, Inter), barre à pad glissant, `HoldToConfirmCard`, écrans Accueil / Agent / Plan / Suivi / Moi refaits d'après la maquette |
 | 2026-10-31 | J4 — rôles et IA : une seule saisie (Agent en 3 zones, exemples par domaine), titres + phrases de rôle, Plan sans zone de texte (« Modifier / Planifier avec l'Agent », écran sans plan), action `create_program` |
 | 2026-10-31 | Maquette v2.1 : onglet Moi → Stats, profil via le prénom, sélecteur de modules à icônes, Plan › Nutrition, accueil nutrition seule, Agent en 3 zones, une seule saisie IA (voir `docs/UX-V2-CHANGES.md`) ; roadmap mise à jour (ADR-009, ADR-010) |
+| 2026-10-31 | J4 — navigation glissée entre modules (balayage, souligné qui suit le doigt, ressort, `reduced motion`) dans Plan et Suivi |
+| 2026-11-01 | **Voie MVP** ajoutée (M1–M6) : moteur d'analyse sur données réelles, coach IA, programmes sans IA, bêta privée de 10–15 testeurs ; sources : analyses Claude « Semi en 1h45 » et « plan MVP » |
 
 ## ▶️ Prochaine étape
-Terminer le **Jalon 4** dans l'ordre : (1) ADR-009 + navigation `Accueil · Plan · Agent · Suivi · Stats` et profil via le prénom ; (2) Agent en 3 zones et suppression du champ texte de Plan ; (3) modules activables + sélecteur à icônes ; (4) Plan › Sport / Nutrition ; (5) Stats ; (6) animations et test des 5 secondes. Détail et maquettes : `docs/UX-V2.md` et `docs/UX-V2-CHANGES.md`.
+**Chemin critique : Voie MVP.** (1) Lancer les prérequis de comptes (Apple Developer, Anthropic, Supabase UE) ; (2) rédiger l'ADR-004 courte (import de fichier utilisateur) ; (3) démarrer **M1** sur la branche `jalon-m1-moteur-analyse` : types → import Strava local → moteur → insights → tests. Ne démarrer M1 que sur demande explicite.
+
+Reste du **Jalon 4** (à ne finir que pour ce dont M2 dépend) — ordre initial : (1) ADR-009 + navigation `Accueil · Plan · Agent · Suivi · Stats` et profil via le prénom ; (2) Agent en 3 zones et suppression du champ texte de Plan ; (3) modules activables + sélecteur à icônes ; (4) Plan › Sport / Nutrition ; (5) Stats ; (6) animations et test des 5 secondes. Détail et maquettes : `docs/UX-V2.md` et `docs/UX-V2-CHANGES.md`.
 En parallèle (hors code) : lire l'accord API Strava complet et ouvrir l'**ADR-004** avant le Jalon 8 ; vérifier les conditions des sources nutrition (ADR-010) avant le Jalon 7.

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import Animated, {
   Easing,
+  type SharedValue,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
@@ -24,11 +25,13 @@ type ModuleTabsProps = {
   tabs: ModuleTab[];
   value: string;
   onChange: (id: string) => void;
+  drag?: SharedValue<number>;
+  dragWidth?: number;
 };
 
 const SLIDE = Easing.bezier(0.3, 1.3, 0.5, 1);
 
-export function ModuleTabs({ tabs, value, onChange }: ModuleTabsProps) {
+export function ModuleTabs({ tabs, value, onChange, drag, dragWidth = 0 }: ModuleTabsProps) {
   const { colors } = useTheme();
   const reduced = useReducedMotion();
   const [width, setWidth] = useState(0);
@@ -38,10 +41,17 @@ export function ModuleTabs({ tabs, value, onChange }: ModuleTabsProps) {
 
   useEffect(() => {
     const target = index * slot + 12;
+    if (drag && dragWidth > 0 && x.get() !== 0) {
+      x.set(x.get() + (-drag.get() / dragWidth) * slot);
+      drag.set(0);
+    }
     x.set(reduced || x.get() === 0 ? target : withTiming(target, { duration: 600, easing: SLIDE }));
-  }, [index, slot, reduced, x]);
+  }, [index, slot, reduced, x, drag, dragWidth]);
 
-  const underline = useAnimatedStyle(() => ({ transform: [{ translateX: x.get() }] }));
+  const underline = useAnimatedStyle(() => {
+    const follow = drag && dragWidth > 0 ? (-drag.get() / dragWidth) * slot : 0;
+    return { transform: [{ translateX: x.get() + follow }] };
+  });
 
   if (tabs.length < 2) return null;
 

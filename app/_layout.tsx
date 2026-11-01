@@ -11,8 +11,10 @@ import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { colorScheme } from 'nativewind';
 import { useEffect, useMemo, useState } from 'react';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-reanimated';
 
+import { useProposalStore } from '@/lib/proposalStore';
 import { usePulseFitStore } from '@/lib/store';
 import { useTheme } from '@/src/ui/useTheme';
 
@@ -68,9 +70,16 @@ export default function RootLayout() {
     }
   }, [hydrated, dataReady]);
 
+  useEffect(() => {
+    if (dataReady) {
+      void useProposalStore.getState().load();
+    }
+  }, [dataReady]);
+
   if (!fontsLoaded || !hydrated || !dataReady) return null;
 
   return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
     <ThemeProvider value={navigationTheme}>
       <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
       <Stack
@@ -93,5 +102,6 @@ export default function RootLayout() {
         </Stack.Protected>
       </Stack>
     </ThemeProvider>
+    </GestureHandlerRootView>
   );
 }
