@@ -148,3 +148,19 @@ export function racePrepPastCopy(p: {
     why: `Les sorties longues habituent le corps à tenir la durée de la course. En dessous de 60 % de la distance, la fin de course peut devenir plus difficile. Ce bilan porte sur tes courses des ${p.weeks} semaines précédant la course.`,
   };
 }
+
+// ─── gap_resume ───────────────────────────────────────────────────────────────
+
+export const GAP_LABELS = {
+  days: 'Jours depuis ta dernière activité',
+  before: (weeks: number) => `Séances sur les ${weeks} semaines avant la coupure`,
+};
+
+export function gapResumeCopy(p: { days: number; lastDate: string; firstSessionMin: number }): InsightCopy {
+  return {
+    title: 'Reprends en douceur',
+    beginnerText: `Ça fait ${p.days} jours sans activité enregistrée. Reprends par une sortie facile de ${p.firstSessionMin} minutes.`,
+    athleteText: `${p.days} jours depuis ta dernière activité (${dateFr(p.lastDate)}). Reprends par ${p.firstSessionMin} min à allure facile, sans chercher la performance.`,
+    why: 'Après une coupure, le corps perd un peu de forme et a besoin de se réadapter. Une première séance courte et facile te remet en route sans te mettre en difficulté. Rien ne presse : tu pourras ensuite augmenter progressivement.',
+  };
+}

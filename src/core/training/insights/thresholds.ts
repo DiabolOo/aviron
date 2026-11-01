@@ -41,3 +41,12 @@ export const PREP_LONGEST_RUN_RATIO = 0.6;
 export const PREP_MIN_SESSIONS = 2;
 /** À moins de 10 jours de la course il est trop tard pour allonger : le conseil change. */
 export const PREP_TOO_LATE_DAYS = 10;
+
+/** Deux semaines sans activité : assez pour parler d'une coupure, pas d'un simple jour de repos. */
+export const GAP_RESUME_MIN_DAYS = 14;
+/** Il faut avoir déjà ≥ 3 activités enregistrées pour parler de « reprise » (sinon null). */
+export const GAP_MIN_PRIOR_ACTIVITIES = 3;
+/** Durée conseillée de la séance de reprise, volontairement courte. */
+export const GAP_FIRST_SESSION_MIN = 20;
+/** Fenêtre précédant la coupure, pour rappeler le niveau d'activité d'avant. */
+export const GAP_CONTEXT_WEEKS = 8;

@@ -3,6 +3,7 @@ import { dataQualityNoHr } from './dataQualityNoHr';
 import { intensityTooHigh } from './intensityTooHigh';
 import { racePacing } from './racePacing';
 import { racePrepRule } from './racePrep';
+import { gapResume } from './gapResume';
 
 /** Ordre = priorité à gravité égale. */
-export const INSIGHT_RULES: InsightRuleDef[] = [dataQualityNoHr, intensityTooHigh, racePacing, racePrepRule];
+export const INSIGHT_RULES: InsightRuleDef[] = [dataQualityNoHr, intensityTooHigh, racePacing, racePrepRule, gapResume];
