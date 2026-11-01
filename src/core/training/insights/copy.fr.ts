@@ -181,3 +181,40 @@ export function volumeRampCopy(p: { weekKm: number; baselineKm: number; rampPct:
     why: `Une hausse rapide du volume demande au corps de s’adapter plus vite qu’il ne peut. Revenir à un volume proche de ta moyenne laisse le temps d’assimiler l’effort. Le calcul compare tes 7 derniers jours à la moyenne hebdomadaire des ${p.weeks} semaines précédentes.`,
   };
 }
+
+// ─── consistency ──────────────────────────────────────────────────────────────
+
+export const CONSISTENCY_LABELS = {
+  active: (weeks: number) => `Semaines actives (${weeks} dernières)`,
+  sessions: (weeks: number) => `Séances sur ${weeks} semaines`,
+};
+
+export type ConsistencyTier = 'good' | 'building' | 'restart';
+
+const plural = (n: number, word: string): string => `${n} ${word}${n > 1 ? 's' : ''}`;
+
+export function consistencyCopy(p: { tier: ConsistencyTier; active: number; window: number; sessions: number }): InsightCopy {
+  const why = `La régularité compte plus que l’intensité d’une séance isolée : c’est elle qui fait progresser sur la durée. Une semaine est « active » dès qu’elle contient au moins une séance, tous sports confondus. Ce décompte porte sur les ${p.window} dernières semaines.`;
+  if (p.tier === 'good') {
+    return {
+      title: 'Belle régularité ces dernières semaines',
+      beginnerText: `Tu as bougé ${p.active} semaines sur ${p.window}, bravo. Garde les mêmes jours pour tes séances.`,
+      athleteText: `${p.active} semaines actives sur ${p.window} (${p.sessions} séances). Garde les mêmes créneaux pour tes séances.`,
+      why,
+    };
+  }
+  if (p.tier === 'building') {
+    return {
+      title: 'Tu as une bonne base à consolider',
+      beginnerText: `Tu as été actif ${p.active} semaines sur ${p.window}, c’est un bon début. Fixe un créneau par semaine, même court, pour installer l’habitude.`,
+      athleteText: `${p.active} semaines actives sur ${p.window} (${p.sessions} séances). Bloque un créneau fixe par semaine pour viser ${p.active + 1} sur ${p.window}.`,
+      why,
+    };
+  }
+  return {
+    title: 'Chaque petite séance compte',
+    beginnerText: `Tu as été actif ${plural(p.active, 'semaine')} sur ${p.window}. Une marche de 20 minutes par semaine suffit pour relancer l’habitude.`,
+    athleteText: `${plural(p.active, 'semaine active')} sur ${p.window} (${p.sessions} séances). Programme une séance courte par semaine pour relancer.`,
+    why,
+  };
+}

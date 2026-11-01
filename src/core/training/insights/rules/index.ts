@@ -5,6 +5,7 @@ import { racePacing } from './racePacing';
 import { racePrepRule } from './racePrep';
 import { gapResume } from './gapResume';
 import { volumeRamp } from './volumeRamp';
+import { consistency } from './consistency';
 
 /** Ordre = priorité à gravité égale. */
-export const INSIGHT_RULES: InsightRuleDef[] = [dataQualityNoHr, intensityTooHigh, racePacing, racePrepRule, gapResume, volumeRamp];
+export const INSIGHT_RULES: InsightRuleDef[] = [dataQualityNoHr, intensityTooHigh, racePacing, racePrepRule, gapResume, volumeRamp, consistency];

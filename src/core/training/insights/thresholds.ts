@@ -63,3 +63,10 @@ export const VOLUME_BASELINE_WEEKS = 4;
 export const VOLUME_MIN_BASELINE_RUNS = 4;
 /** Volume conseillé la semaine suivante : moyenne de référence + 10 %. */
 export const VOLUME_NEXT_WEEK_FACTOR = 1.1;
+
+/** Fenêtre de régularité : 8 semaines glissantes de 7 jours. */
+export const CONSISTENCY_WINDOW_WEEKS = 8;
+/** ≥ 6 semaines actives sur 8 : régularité à saluer. En dessous, ton encourageant. */
+export const CONSISTENCY_GOOD_WEEKS = 6;
+/** Minimum de séances dans la fenêtre pour afficher le décompte (sinon null). */
+export const CONSISTENCY_MIN_SESSIONS = 3;
