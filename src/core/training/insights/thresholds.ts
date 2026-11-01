@@ -70,3 +70,8 @@ export const CONSISTENCY_WINDOW_WEEKS = 8;
 export const CONSISTENCY_GOOD_WEEKS = 6;
 /** Minimum de séances dans la fenêtre pour afficher le décompte (sinon null). */
 export const CONSISTENCY_MIN_SESSIONS = 3;
+
+/** Variation d'efficacité aérobie entre deux trimestres jugée significative : 5 %, au-dessus du bruit habituel. */
+export const AEROBIC_TREND_MIN_PCT = 5;
+/** Minimum de séances (≥ 3 par trimestre, comme `reliable` de l'engine) pour comparer deux trimestres. */
+export const AEROBIC_TREND_MIN_SESSIONS = 6;

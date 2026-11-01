@@ -218,3 +218,31 @@ export function consistencyCopy(p: { tier: ConsistencyTier; active: number; wind
     why,
   };
 }
+
+// ─── aerobic_trend ────────────────────────────────────────────────────────────
+
+export const AEROBIC_LABELS = {
+  efficiency: (quarter: string) => `Efficacité aérobie ${quarterLabel(quarter)}`,
+  variation: 'Variation',
+};
+
+export function aerobicTrendCopy(p: { variationPct: number; latest: string; base: string }): InsightCopy {
+  const abs = Math.abs(p.variationPct);
+  const periods = `${quarterLabel(p.latest)} vs ${quarterLabel(p.base)}`;
+  const how =
+    'L’efficacité aérobie compare ta vitesse à ton effort cardiaque : plus elle monte, plus tu avances vite pour le même effort. Elle est calculée trimestre par trimestre, sur tes sorties avec mesure cardiaque.';
+  if (p.variationPct > 0) {
+    return {
+      title: 'Tu progresses à effort égal',
+      beginnerText: 'À effort égal, tu cours un peu plus vite qu’avant. Garde des sorties tranquilles pour continuer sur cette lancée.',
+      athleteText: `Efficacité aérobie +${pct(abs, 1)} (${periods}), à FC égale. Garde une majorité de sorties faciles pour consolider.`,
+      why: `${how} Une hausse est un bon signe de progression de ton endurance.`,
+    };
+  }
+  return {
+    title: 'À effort égal, tu vas un peu moins vite',
+    beginnerText: 'À effort égal, tu cours un peu moins vite que sur la période précédente. Ajoute une sortie facile cette semaine, sans te chronométrer.',
+    athleteText: `Efficacité aérobie −${pct(abs, 1)} (${periods}), à FC égale. Ajoute une sortie facile cette semaine pour relancer la dynamique.`,
+    why: `${how} Une baisse peut venir de la chaleur, de la fatigue ou d’une coupure : elle ne signifie pas forcément une perte de forme.`,
+  };
+}
