@@ -32,6 +32,9 @@ export interface FitRecord {
   distance?: number; // m
   heart_rate?: number;
   altitude?: number; // m
+  /** en semicircles dans le fichier FIT ; fit-file-parser les rend en degrés */
+  position_lat?: number;
+  position_long?: number;
 }
 
 export interface FitData {
@@ -75,10 +78,12 @@ function lapsToSplits(laps: FitLap[]): Split[] | undefined {
     if (!dist || !dur || dist <= 0) continue;
     cumKm += dist / 1000;
     const paceSec = dur / (dist / 1000);
+    const elapsed = lap.total_elapsed_time;
     splits.push({
       km: Math.round(cumKm * 100) / 100,
       pace: formatPace(paceSec),
       paceSec: Math.round(paceSec),
+      elapsedPaceSec: elapsed ? Math.round(elapsed / (dist / 1000)) : undefined,
       elevationGain: lap.total_ascent ?? 0,
       avgHr: lap.avg_heart_rate,
     });

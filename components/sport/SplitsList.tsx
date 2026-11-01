@@ -1,45 +1,67 @@
-import { Zap } from 'lucide-react-native';
-import { View } from 'react-native';
-import { Text } from '@/components/ui/Text';
+import { useWindowDimensions, View } from 'react-native';
 
 import { Card } from '@/components/ui/Card';
+import { Text } from '@/components/ui/Text';
+import { analyzeSplits } from '@/src/core/sportFormat';
 import type { ActivitySplit } from '@/src/core/types';
-import { useTheme } from '@/src/ui/useTheme';
+
+const TABULAR = { fontVariant: ['tabular-nums' as const] };
+const BODY = 'text-[16px]';
+const HEAD = 'text-[12px] text-muted';
+const BAR_MIN_SCREEN_WIDTH = 380;
 
 export function SplitsList({ splits }: { splits: ActivitySplit[] }) {
-  const { colors } = useTheme();
+  const { width } = useWindowDimensions();
   if (splits.length === 0) return null;
-  const fastest = Math.min(...splits.map((s) => s.paceSec));
-  const slowest = Math.max(...splits.map((s) => s.paceSec));
+  const showBar = width >= BAR_MIN_SCREEN_WIDTH;
+  const { stops, fastest, slowest } = analyzeSplits(splits);
 
   return (
     <Card className="mt-3">
-      <View className="flex-row pb-3">
-        <Text className="w-10 text-[13px] text-muted">Km</Text>
-        <Text className="flex-1 text-[13px] text-muted">Allure</Text>
-        <Text className="w-14 text-right text-[13px] text-muted">D+</Text>
-        <Text className="w-14 text-right text-[13px] text-muted">FC</Text>
+      <View className="flex-row items-center gap-3 pb-3">
+        <Text numberOfLines={1} ellipsizeMode="clip" className={`w-8 ${HEAD}`}>Km</Text>
+        <Text numberOfLines={1} ellipsizeMode="clip" className={`flex-1 ${HEAD}`}>Allure (min/km)</Text>
+        <Text numberOfLines={1} ellipsizeMode="clip" className={`w-14 text-right ${HEAD}`}>D+</Text>
+        <Text numberOfLines={1} ellipsizeMode="clip" className={`w-10 text-right ${HEAD}`}>FC</Text>
       </View>
       {splits.map((split) => {
-        const isFastest = split.paceSec === fastest;
-        const ratio = slowest === fastest ? 1 : 1 - (split.paceSec - fastest) / (slowest - fastest);
+        const stopped = stops.has(split.km);
+        const isFastest = !stopped && split.paceSec === fastest;
+        const ratio =
+          fastest === undefined || slowest === undefined || slowest === fastest
+            ? 1
+            : 1 - (split.paceSec - fastest) / (slowest - fastest);
         return (
-          <View key={split.km} className="flex-row items-center border-t border-fg/5 py-3">
-            <Text className="w-10 text-xs text-muted">{`${split.km}`.padStart(2, '0')}</Text>
-            <View className="flex-1 flex-row items-center gap-3 pr-3">
-              <Text className={`w-11 text-base ${isFastest ? 'font-semibold text-fg' : 'text-fg'}`}>
-                {split.pace}
+          <View key={split.km} className="flex-row items-center gap-3 border-t border-fg/5 py-3">
+            <Text numberOfLines={1} ellipsizeMode="clip" style={TABULAR} className={`w-8 text-muted ${BODY}`}>
+              {`${split.km}`.padStart(2, '0')}
+            </Text>
+            <View className="flex-1 flex-row items-center gap-3">
+              <Text
+                numberOfLines={1}
+                ellipsizeMode="clip"
+                style={TABULAR}
+                className={`w-14 ${BODY} ${stopped ? 'text-muted' : isFastest ? 'font-semibold text-fg' : 'text-fg'}`}>
+                {stopped ? 'arrêt' : split.pace}
               </Text>
-              <View className="h-1.5 flex-1 overflow-hidden rounded-full bg-fg/5">
-                <View
-                  className={`h-full rounded-full ${isFastest ? 'bg-accent' : 'bg-fg/30'}`}
-                  style={{ width: `${30 + ratio * 70}%` }}
-                />
-              </View>
-              {isFastest ? <Zap color={colors.accent} size={14} strokeWidth={2} /> : <View className="w-3.5" />}
+              {showBar ? (
+                <View className="h-1.5 flex-1 overflow-hidden rounded-full bg-fg/5">
+                  {stopped ? null : (
+                    <View
+                      testID="split-bar"
+                      className={`h-full rounded-full ${isFastest ? 'bg-accent' : 'bg-fg/30'}`}
+                      style={{ width: `${30 + ratio * 70}%` }}
+                    />
+                  )}
+                </View>
+              ) : null}
             </View>
-            <Text className="w-14 text-right text-sm text-muted">{split.elevationGain} m</Text>
-            <Text className="w-14 text-right text-sm text-muted">{split.avgHr ?? '–'}</Text>
+            <Text numberOfLines={1} ellipsizeMode="clip" style={TABULAR} className={`w-14 text-right text-muted ${BODY}`}>
+              {split.elevationGain} m
+            </Text>
+            <Text numberOfLines={1} ellipsizeMode="clip" style={TABULAR} className={`w-10 text-right text-muted ${BODY}`}>
+              {split.avgHr ?? ''}
+            </Text>
           </View>
         );
       })}

@@ -19,10 +19,12 @@ export function activityToStrava(activity: Activity): StravaActivity {
       activity.movingTimeSec !== undefined
         ? Math.round(activity.movingTimeSec / 6) / 10
         : undefined,
+    movingTimeSec: activity.movingTimeSec,
     elevationM: activity.elevationM,
     calories: activity.calories,
     avgHr: activity.avgHr,
     maxHr: activity.maxHr,
+    startCity: activity.startCity,
     splits: activity.splits ?? [],
     hrStream: activity.hrStream ?? [],
     polyline: activity.polyline ?? [],
@@ -38,12 +40,14 @@ export function stravaToActivity(activity: StravaActivity): Activity {
     startTime: activity.startTime,
     durationMin: activity.durationMin,
     movingTimeSec:
-      activity.movingTimeMin !== undefined ? Math.round(activity.movingTimeMin * 60) : undefined,
+      activity.movingTimeSec ??
+      (activity.movingTimeMin !== undefined ? Math.round(activity.movingTimeMin * 60) : undefined),
     distanceKm: activity.distanceKm,
     elevationM: activity.elevationM,
     calories: activity.calories,
     avgHr: activity.avgHr,
     maxHr: activity.maxHr,
+    startCity: activity.startCity,
     source: 'strava',
     splits: activity.splits,
     hrStream: activity.hrStream,

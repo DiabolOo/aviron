@@ -89,6 +89,39 @@ export function confirmRaceCopy(p: { distanceKm: number; date: string }): Insigh
   };
 }
 
+/** Note du débrief : distance mesurée (trace) contre distance officielle — une ligne + un détail derrière le (i). */
+export function distanceNoteFr(p: { measuredKm: number; officialKm: number; gapPct: number }): { short: string; detail: string } {
+  const sign = p.gapPct > 0 ? '+' : '−';
+  return {
+    short: `Mesurée ${km(p.measuredKm, 2)} (${sign}${nf(Math.abs(p.gapPct), 1)} %)`,
+    detail: `Distance mesurée : ${km(p.measuredKm, 2)} contre ${km(p.officialKm, 2)} officiels. L’allure officielle est calculée sur la distance officielle ; l’écart vient de la trajectoire et de la précision du GPS.`,
+  };
+}
+
+/** Écart minimal de FC (bpm) entre les deux moitiés pour parler d'endurance. */
+export const DRIFT_HR_BPM = 5;
+/** Ralentissement minimal (s/km) pour parler de fatigue musculaire quand la FC est stable. */
+export const DRIFT_PACE_SEC = 3;
+
+/** Phrase de lecture de la dérive cardiaque ; undefined si ni l'un ni l'autre cas ne s'applique. */
+export function driftSentenceFr(d: { hrBpm: number; paceSecPerKm: number }): string | undefined {
+  if (d.hrBpm >= DRIFT_HR_BPM) return `Ta FC a grimpé de ${d.hrBpm} bpm en 2e moitié : ton endurance a été le facteur limitant.`;
+  if (d.paceSecPerKm >= DRIFT_PACE_SEC) {
+    return `Ta FC est restée stable alors que tu as ralenti de ${d.paceSecPerKm} s/km : plutôt de la fatigue musculaire qu’un effort trop intense.`;
+  }
+  return undefined;
+}
+
+/** Lignes ajoutées à la carte race_pacing. */
+export function pacingExtrasFr(p: { longestRunKm?: number; neededPaceSec?: number; targetValue?: string }): string[] {
+  const lines: string[] = [];
+  if (p.longestRunKm !== undefined) lines.push(`Plus longue sortie des 8 semaines avant la course : ${km(p.longestRunKm)}.`);
+  if (p.neededPaceSec !== undefined) {
+    lines.push(`Allure nécessaire pour ton objectif${p.targetValue ? ` (${p.targetValue})` : ''} : ${paceFr(p.neededPaceSec)}.`);
+  }
+  return lines;
+}
+
 // ─── race_pacing ──────────────────────────────────────────────────────────────
 
 export const PACING_LABELS = {

@@ -1,5 +1,10 @@
 import {
   activityPace,
+  activityDurationDisplay,
+  analyzeSplits,
+  formatClock,
+  effortTimeSec,
+  formatSecAsClock,
   displayActivityName,
   formatDayLong,
   formatHour,
@@ -86,5 +91,67 @@ describe('displayActivityName', () => {
     ]) {
       expect(displayActivityName(name)).toBe(name);
     }
+  });
+});
+
+describe('allure sur le temps de déplacement (valeurs réelles du snapshot)', () => {
+  it('nage du 8 mars 2024 → 2:48 /100 m', () => {
+    const a = { durationMin: 37.667, movingTimeSec: 1892 };
+    expect(activityPace('swim', 1.125, effortTimeSec(a))).toEqual({ label: 'Allure', value: '2:48', unit: '/100 m' });
+  });
+
+  it('courses d’octobre 2026 → 5:00 et 4:58 /km (jamais 4:60)', () => {
+    expect(activityPace('run', 9.155, effortTimeSec({ durationMin: 50.667, movingTimeSec: 2742 }))?.value).toBe('5:00');
+    expect(activityPace('run', 9.111, effortTimeSec({ durationMin: 49.217, movingTimeSec: 2718 }))?.value).toBe('4:58');
+    expect(formatSecAsClock(299.5)).toBe('5:00');
+  });
+
+  it('marche et vélo utilisent aussi le temps de déplacement ; repli sur le temps écoulé', () => {
+    const walk = { durationMin: 392.65, movingTimeSec: 8468 };
+    expect(activityPace('walk', 9.178, effortTimeSec(walk))?.value).toBe('15:23');
+    expect(activityPace('ride', 30, effortTimeSec({ durationMin: 100, movingTimeSec: 3600 }))?.value).toBe('30,0');
+    expect(effortTimeSec({ durationMin: 50 })).toBe(3000);
+    expect(effortTimeSec({ durationMin: 50, movingTimeMin: 48 })).toBe(2880);
+  });
+});
+
+describe('analyzeSplits', () => {
+  it('marque arrêt un split > 3 × la médiane et l’exclut de l’échelle', () => {
+    const splits = [
+      { km: 1, paceSec: 800 },
+      { km: 2, paceSec: 830 },
+      { km: 3, paceSec: 2600 },
+      { km: 4, paceSec: 780 },
+    ];
+    const scale = analyzeSplits(splits);
+    expect([...scale.stops]).toEqual([3]);
+    expect(scale.fastest).toBe(780);
+    expect(scale.slowest).toBe(830);
+  });
+
+  it('sans arrêt ni donnée', () => {
+    expect(analyzeSplits([]).fastest).toBeUndefined();
+    expect(analyzeSplits([{ km: 1, paceSec: 300 }, { km: 2, paceSec: 330 }]).stops.size).toBe(0);
+  });
+});
+
+describe('durée affichée', () => {
+  it('formate en mm:ss et h:mm:ss', () => {
+    expect(formatClock(45 * 60 + 18)).toBe('45:18');
+    expect(formatClock(9 * 60 + 5)).toBe('9:05');
+    expect(formatClock(3725)).toBe('1:02:05');
+  });
+
+  it('temps de déplacement en principal, écoulé en second s’il diffère d’au moins 1 min', () => {
+    expect(activityDurationDisplay({ durationMin: 49.2167, movingTimeSec: 2718 })).toEqual({
+      main: '45:18',
+      total: '49:13 au total',
+    });
+    expect(activityDurationDisplay({ durationMin: 45.5, movingTimeSec: 2718 })).toEqual({ main: '45:18' });
+    expect(activityDurationDisplay({ durationMin: 50 })).toEqual({ main: '50:00' });
+  });
+
+  it('une course garde le temps écoulé (chrono)', () => {
+    expect(activityDurationDisplay({ durationMin: 110.8333, movingTimeSec: 6645 }, true)).toEqual({ main: '1:50:50' });
   });
 });

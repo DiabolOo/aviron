@@ -9,14 +9,14 @@ import { SplitsList } from '@/components/sport/SplitsList';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { Label } from '@/components/ui/Label';
 import { Screen } from '@/components/ui/Screen';
-import { formatDuration } from '@/src/core/format';
-import { activityPace, displayActivityName, formatDayLong, formatHour, formatKmNumber } from '@/src/core/sportFormat';
+import { activityDurationDisplay, activityLayout, activityPace, effortTimeSec, displayActivityName, formatDayLong, formatHour, formatKmNumber } from '@/src/core/sportFormat';
 import { usePulseFitStore } from '@/lib/store';
+import { useConfirmedRaceId } from '@/src/ui/useRaces';
 import { useTheme } from '@/src/ui/useTheme';
 
 const STRAVA_COLOR = '#FC4C02';
 
-function Metric({ label, value, unit }: { label: string; value: string; unit?: string }) {
+function Metric({ label, value, unit, sub }: { label: string; value: string; unit?: string; sub?: string }) {
   return (
     <View className="w-1/3 py-4">
       <Label>{label}</Label>
@@ -24,6 +24,7 @@ function Metric({ label, value, unit }: { label: string; value: string; unit?: s
         {value}
         {unit ? <Text className="text-xs font-normal text-muted"> {unit}</Text> : null}
       </Text>
+      {sub ? <Text className="mt-0.5 text-xs text-muted">{sub}</Text> : null}
     </View>
   );
 }
@@ -32,6 +33,7 @@ export default function ActivityScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const activity = usePulseFitStore((s) => s.activities.find((item) => item.id === id));
   const { colors } = useTheme();
+  const raceId = useConfirmedRaceId(id);
 
   const header = (
     <View className="flex-row items-center justify-between">
@@ -64,13 +66,15 @@ export default function ActivityScreen() {
   }
 
   const distanceKm = activity.distanceKm ?? 0;
-  const hasDistance = distanceKm > 0;
-  const hasHr = (activity.avgHr ?? 0) > 0 || (activity.maxHr ?? 0) > 0;
+  const layout = activityLayout(activity.type);
+  const hasDistance = layout.showDistance && distanceKm > 0;
+  const hasHrCurve = activity.hrStream.length >= 2;
   const effort = activityPace(
     activity.type,
     activity.distanceKm,
-    (activity.movingTimeMin ?? activity.durationMin) * 60,
+    effortTimeSec(activity),
   );
+  const duration = activityDurationDisplay(activity, raceId !== undefined);
   const date = formatDayLong(activity.date);
 
   return (
@@ -85,20 +89,21 @@ export default function ActivityScreen() {
 
       <View className="mt-6 flex-row items-end">
         <Text className="text-6xl font-semibold tracking-tighter text-fg">
-          {hasDistance ? formatKmNumber(distanceKm) : formatDuration(activity.durationMin)}
+          {hasDistance ? formatKmNumber(distanceKm) : duration.main}
         </Text>
         {hasDistance ? (
           <Text className="mb-2 ml-2 text-sm font-medium text-muted">km</Text>
         ) : null}
       </View>
+      {!hasDistance && duration.total ? <Text className="mt-1 text-sm text-muted">{duration.total}</Text> : null}
 
       <View className="mt-2 flex-row flex-wrap">
-        {hasDistance ? <Metric label="Durée" value={formatDuration(activity.durationMin)} /> : null}
+        {hasDistance ? <Metric label="Durée" value={duration.main} sub={duration.total} /> : null}
         {effort ? <Metric label={effort.label} value={effort.value} unit={effort.unit} /> : null}
-        {activity.elevationM !== undefined ? (
+        {layout.showElevation && (activity.elevationM ?? 0) > 0 ? (
           <Metric label="Dénivelé" value={`${activity.elevationM}`} unit="m" />
         ) : null}
-        {activity.calories !== undefined ? (
+        {(activity.calories ?? 0) > 0 ? (
           <Metric label="Calories" value={`${activity.calories}`} unit="kcal" />
         ) : null}
         {(activity.avgHr ?? 0) > 0 ? (
@@ -109,6 +114,14 @@ export default function ActivityScreen() {
         ) : null}
       </View>
 
+      {raceId ? (
+        <Pressable
+          onPress={() => router.push(`/race/${raceId}`)}
+          className="mt-6 h-[52px] items-center justify-center rounded-full bg-chip active:opacity-70">
+          <Text className="text-[17px] font-semibold text-fg">Voir le débrief</Text>
+        </Pressable>
+      ) : null}
+
       {activity.polyline.length >= 2 ? (
         <View className="mt-8">
           <Label>Parcours</Label>
@@ -116,14 +129,14 @@ export default function ActivityScreen() {
         </View>
       ) : null}
 
-      {hasHr ? (
+      {hasHrCurve ? (
         <View className="mt-8">
           <Label>Fréquence cardiaque</Label>
-          <HeartRateChart stream={activity.hrStream} avgHr={activity.avgHr} maxHr={activity.maxHr} />
+          <HeartRateChart stream={activity.hrStream} avgHr={activity.avgHr} />
         </View>
       ) : null}
 
-      {activity.splits.length > 0 ? (
+      {layout.showSplits && activity.splits.length > 0 ? (
         <View className="mt-8">
           <Label>Splits</Label>
           <SplitsList splits={activity.splits} />

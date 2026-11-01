@@ -9,19 +9,20 @@ import { Glow } from '@/components/ui/Glow';
 import { Label } from '@/components/ui/Label';
 import { Text } from '@/components/ui/Text';
 import { usePulseFitStore } from '@/lib/store';
-import { formatDuration } from '@/src/core/format';
-import { formatKmTotal } from '@/src/core/sportFormat';
+import { activityDurationSec, formatClock, formatKmTotal } from '@/src/core/sportFormat';
 import { groupByMonth } from '@/src/core/sportWeek';
 import type { StravaActivity } from '@/src/core/types';
+import { useConfirmedRaceMap } from '@/src/ui/useRaces';
 import { useTheme } from '@/src/ui/useTheme';
 
 type Item =
-  | { kind: 'header'; key: string; label: string; km: number; durationMin: number }
+  | { kind: 'header'; key: string; label: string; km: number; durationSec: number }
   | { kind: 'row'; key: string; activity: StravaActivity; first: boolean };
 
 export default function ActivitiesScreen() {
   const activities = usePulseFitStore((s) => s.activities);
   const { colors } = useTheme();
+  const raceMap = useConfirmedRaceMap();
 
   const items = useMemo<Item[]>(
     () =>
@@ -31,7 +32,7 @@ export default function ActivitiesScreen() {
           key: `h-${group.key}`,
           label: group.label,
           km: group.items.reduce((sum, a) => sum + (a.distanceKm ?? 0), 0),
-          durationMin: group.items.reduce((sum, a) => sum + a.durationMin, 0),
+          durationSec: group.items.reduce((sum, a) => sum + activityDurationSec(a, raceMap.has(a.id)), 0),
         },
         ...group.items.map((activity, index) => ({
           kind: 'row' as const,
@@ -40,7 +41,7 @@ export default function ActivitiesScreen() {
           first: index === 0,
         })),
       ]),
-    [activities],
+    [activities, raceMap],
   );
 
   return (
@@ -66,11 +67,11 @@ export default function ActivitiesScreen() {
               <View className="mt-8 flex-row items-center justify-between">
                 <Label>{item.label}</Label>
                 <Text className="font-mono text-[13px] text-muted">
-                  {formatKmTotal(item.km)} · {formatDuration(item.durationMin)}
+                  {formatKmTotal(item.km)} · {formatClock(item.durationSec)}
                 </Text>
               </View>
             ) : (
-              <ActivityRow activity={item.activity} first={item.first} />
+              <ActivityRow activity={item.activity} first={item.first} raceId={raceMap.get(item.activity.id)} />
             )
           }
         />

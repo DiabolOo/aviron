@@ -1,10 +1,8 @@
-import { ChevronLeft, ChevronRight } from 'lucide-react-native';
 import { Fragment, useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   Easing,
-  interpolate,
   useAnimatedStyle,
   useSharedValue,
   withDelay,
@@ -20,7 +18,6 @@ import { collectSections, type ModuleSection } from '@/src/modules/registry';
 import { useIsModuleEnabled } from '@/src/modules/useModules';
 import { useReducedMotion } from '@/src/ui/motion/useReducedMotion';
 import { useModuleChoice } from '@/src/ui/useModuleChoice';
-import { useTheme } from '@/src/ui/useTheme';
 
 type ModuleSwitcherProps = {
   scope: string;
@@ -34,7 +31,6 @@ const NUDGE = 28;
 const nudged = new Set<string>();
 
 export function ModuleSwitcher({ scope, section, order }: ModuleSwitcherProps) {
-  const { colors } = useTheme();
   const isEnabled = useIsModuleEnabled();
   const reduced = useReducedMotion();
   const sections = collectSections(MODULES, isEnabled, section, order);
@@ -91,9 +87,6 @@ export function ModuleSwitcher({ scope, section, order }: ModuleSwitcherProps) {
     });
 
   const contentStyle = useAnimatedStyle(() => ({ transform: [{ translateX: offset.get() }] }));
-  const leftHint = useAnimatedStyle(() => ({
-    opacity: interpolate(Math.abs(offset.get()), [0, 40], [0.55, 0], 'clamp'),
-  }));
 
   return (
     <View className="gap-3.5">
@@ -116,22 +109,6 @@ export function ModuleSwitcher({ scope, section, order }: ModuleSwitcherProps) {
               <Fragment key={current.id}>
                 <current.Component />
               </Fragment>
-            </Animated.View>
-          ) : null}
-          {multi && index > 0 ? (
-            <Animated.View
-              pointerEvents="none"
-              className="absolute left-0 top-20 h-14 w-5 items-center justify-center rounded-r-full bg-fg/5"
-              style={leftHint}>
-              <ChevronLeft color={colors.muted} size={16} strokeWidth={2.4} />
-            </Animated.View>
-          ) : null}
-          {multi && index < last ? (
-            <Animated.View
-              pointerEvents="none"
-              className="absolute right-0 top-20 h-14 w-5 items-center justify-center rounded-l-full bg-fg/5"
-              style={leftHint}>
-              <ChevronRight color={colors.muted} size={16} strokeWidth={2.4} />
             </Animated.View>
           ) : null}
         </View>

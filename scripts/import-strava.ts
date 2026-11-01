@@ -7,6 +7,8 @@
  * fusionne les fichiers FIT (.fit / .fit.gz) et GPX pointés par la colonne
  * « Nom du fichier », puis écrit un snapshot validé par ActivitySchema.
  * hrStream et polyline ne sont jamais inclus.
+ * Pour les seules candidates courses : le premier point GPS de la trace est
+ * géocodé en ville de départ (startCity) ; aucune coordonnée n'est stockée.
  */
 import { gunzipSync } from 'node:zlib';
 import { mkdir, readdir, writeFile } from 'node:fs/promises';
@@ -17,9 +19,11 @@ import FitParser from 'fit-file-parser';
 import GpxParser from 'gpxparser';
 import { z } from 'zod';
 import { ActivitySchema, type Activity } from '../src/core/schemas';
+import { detectRaces } from '../src/core/training/engine';
 import { parseActivitiesCsv } from '../src/core/training/import/stravaCsv';
 import { mergeFitData, type FitData } from '../src/core/training/import/fit';
 import { mergeGpxData, type GpxTrackPoint } from '../src/core/training/import/gpx';
+import { firstFitPoint, firstGpxPoint, nearestCityName, type LatLon } from '../src/core/training/import/startCity';
 
 const DEFAULT_OUT = 'fixtures/julien.snapshot.json';
 
@@ -85,6 +89,8 @@ async function main() {
   const stats = { filesRead: 0, fit: 0, gpx: 0, fitSplits: 0, gpxSplits: 0 };
   const fileErrors: { file: string; reason: string }[] = [];
   const activities: Activity[] = [];
+  // Premier point GPS par activité — utilisé pour startCity, jamais persisté.
+  const firstPoints = new Map<string, LatLon>();
 
   for (let i = 0; i < rows.length; i++) {
     let { activity } = rows[i];
@@ -96,11 +102,17 @@ async function main() {
         const raw = await entry.buffer();
         if (/\.fit(\.gz)?$/i.test(base)) {
           const buf = base.toLowerCase().endsWith('.gz') ? gunzipSync(raw) : raw;
-          activity = mergeFitData(activity, await parseFit(buf));
+          const fit = await parseFit(buf);
+          const p0 = firstFitPoint(fit);
+          if (p0) firstPoints.set(activity.id, p0);
+          activity = mergeFitData(activity, fit);
           stats.fit++;
           if (activity.splits?.length) stats.fitSplits++;
         } else if (/\.gpx$/i.test(base)) {
-          activity = mergeGpxData(activity, parseGpx(raw.toString('utf8')));
+          const pts = parseGpx(raw.toString('utf8'));
+          const p0 = firstGpxPoint(pts);
+          if (p0) firstPoints.set(activity.id, p0);
+          activity = mergeGpxData(activity, pts);
           stats.gpx++;
           if (activity.splits?.length) stats.gpxSplits++;
         }
@@ -112,6 +124,24 @@ async function main() {
     }
     activities.push(activity);
     if ((i + 1) % 50 === 0) console.log(`  ${i + 1}/${rows.length} activités…`);
+  }
+
+  // Ville de départ : candidates courses uniquement, aucune coordonnée gardée.
+  const raceIds = new Set(
+    detectRaces(activities)
+      .map((r) => r.activityId)
+      .filter((id): id is string => id !== undefined),
+  );
+  let cities = 0;
+  for (const a of activities) {
+    if (!raceIds.has(a.id)) continue;
+    const p = firstPoints.get(a.id);
+    if (!p) continue;
+    const city = nearestCityName(p);
+    if (city) {
+      a.startCity = city;
+      cities++;
+    }
   }
 
   const validated = z.array(ActivitySchema).safeParse(activities);
@@ -135,6 +165,7 @@ async function main() {
       ` · erreurs : ${fileErrors.length} · lignes CSV ignorées : ${skipped.length}`,
   );
   console.log(`  Splits : ${stats.fitSplits} FIT + ${stats.gpxSplits} GPX · activités sans FC : ${noHr}`);
+  console.log(`  Courses détectées : ${raceIds.size} · villes de départ résolues : ${cities}`);
   if (skipped.length) console.log('  Ignorées :', skipped.slice(0, 10));
   if (fileErrors.length) console.log('  Fichiers en erreur :', fileErrors);
 }

@@ -6,10 +6,10 @@ import { ActivityRow } from '@/components/sport/ActivityRow';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Label } from '@/components/ui/Label';
 import { Text } from '@/components/ui/Text';
-import { formatDuration } from '@/src/core/format';
-import { formatKmTotal } from '@/src/core/sportFormat';
+import { formatClock, formatKmTotal } from '@/src/core/sportFormat';
 import type { WeekSummary } from '@/src/core/sportWeek';
 import type { StravaActivity } from '@/src/core/types';
+import { useConfirmedRaceMap } from '@/src/ui/useRaces';
 
 type ActivityHistoryProps = {
   week: WeekSummary;
@@ -19,13 +19,14 @@ type ActivityHistoryProps = {
 };
 
 export function ActivityHistory({ week, activities, connected, lastActivityLabel }: ActivityHistoryProps) {
+  const raceMap = useConfirmedRaceMap();
   return (
     <View className="mt-10">
       <View className="flex-row items-center justify-between">
         <Label>Activités</Label>
         {connected && week.count > 0 ? (
           <Text className="font-mono text-[13px] text-muted">
-            {formatKmTotal(week.km)} · {formatDuration(week.durationMin)}
+            {formatKmTotal(week.km)} · {formatClock(week.durationSec)}
           </Text>
         ) : null}
       </View>
@@ -55,7 +56,7 @@ export function ActivityHistory({ week, activities, connected, lastActivityLabel
             </View>
           ) : (
             week.activities.map((activity, index) => (
-              <ActivityRow key={activity.id} activity={activity} first={index === 0} />
+              <ActivityRow key={activity.id} activity={activity} first={index === 0} raceId={raceMap.get(activity.id)} />
             ))
           )}
           <Pressable

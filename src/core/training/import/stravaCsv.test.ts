@@ -65,3 +65,15 @@ describe('parseActivitiesCsv', () => {
     expect(activities.map((a) => a.activity.id)).toEqual(['125', '124', '123']);
   });
 });
+
+describe('temps de déplacement', () => {
+  it('lit la colonne « Durée de déplacement » des exports FR récents', () => {
+    const csv = [
+      "ID d'activité,Date de l'activité,Nom de l'activité,Type d'activité,Temps écoulé,Durée de déplacement,Distance",
+      '9,"8 mars 2024, 11:01:21",Lunch Swim,Natation,2260,1892,"1125,0"',
+    ].join('\n');
+    const { activities } = parseActivitiesCsv(csv);
+    expect(activities[0].activity.movingTimeSec).toBe(1892);
+    expect(activities[0].activity.durationMin).toBeCloseTo(2260 / 60);
+  });
+});

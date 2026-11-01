@@ -5,8 +5,9 @@ import { parseISODate } from './dates';
 // Allure ou vitesse = temps en mouvement / distance quand il existe.
 
 export function formatSecAsClock(sec: number): string {
-  const m = Math.floor(sec / 60);
-  const s = Math.round(sec % 60);
+  const total = Math.round(sec);
+  const m = Math.floor(total / 60);
+  const s = total % 60;
   return `${m}:${`${s}`.padStart(2, '0')}`;
 }
 
@@ -41,6 +42,101 @@ export function activityPace(
     return { label: 'Allure', value: formatSecAsClock(timeSec / (distanceKm * 10)), unit: '/100 m' };
   }
   return undefined;
+}
+
+/** Temps de référence de l'allure/vitesse : temps de déplacement (en secondes) quand il existe, sinon temps écoulé. */
+export function effortTimeSec(a: {
+  movingTimeSec?: number;
+  movingTimeMin?: number;
+  durationMin: number;
+}): number {
+  if (a.movingTimeSec !== undefined && a.movingTimeSec > 0) return a.movingTimeSec;
+  return (a.movingTimeMin ?? a.durationMin) * 60;
+}
+
+/** « 45:18 » ou « 1:02:05 » : h:mm:ss, ou mm:ss sous l'heure. */
+export function formatClock(totalSec: number): string {
+  const sec = Math.round(totalSec);
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  const ss = `${sec % 60}`.padStart(2, '0');
+  return h > 0 ? `${h}:${`${m}`.padStart(2, '0')}:${ss}` : `${m}:${ss}`;
+}
+
+export interface DurationDisplay {
+  main: string;
+  /** « 49:13 au total » — seulement si le temps écoulé dépasse d'au moins 1 min le temps de déplacement */
+  total?: string;
+}
+
+/**
+ * Durée affichée : temps de déplacement en principal, temps écoulé en second s'il en diffère d'au moins 1 min.
+ * Les courses (`race`) gardent le temps écoulé : c'est le chrono officiel.
+ */
+export function activityDurationDisplay(
+  a: { movingTimeSec?: number; movingTimeMin?: number; durationMin: number },
+  race = false,
+): DurationDisplay {
+  const elapsed = Math.round(a.durationMin * 60);
+  const main = activityDurationSec(a, race);
+  return { main: formatClock(main), total: elapsed - main >= 60 ? `${formatClock(elapsed)} au total` : undefined };
+}
+
+/** Durée principale en secondes, même règle que `activityDurationDisplay` (sert aux totaux). */
+export function activityDurationSec(
+  a: { movingTimeSec?: number; movingTimeMin?: number; durationMin: number },
+  race = false,
+): number {
+  const hasMoving = (a.movingTimeSec ?? 0) > 0 || (a.movingTimeMin ?? 0) > 0;
+  return race || !hasMoving ? Math.round(a.durationMin * 60) : Math.round(effortTimeSec(a));
+}
+
+/** Un split plus de 3 fois plus lent que la médiane est un arrêt (feu, pause, café…). */
+export const STOP_FACTOR = 3;
+
+export interface SplitScale {
+  median: number;
+  /** km des splits considérés comme arrêts */
+  stops: Set<number>;
+  /** extrêmes des splits en mouvement (hors arrêts), undefined s'il n'y en a aucun */
+  fastest?: number;
+  slowest?: number;
+}
+
+export function analyzeSplits(splits: { km: number; paceSec: number }[]): SplitScale {
+  const sorted = splits.map((s) => s.paceSec).sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  const median = sorted.length === 0 ? 0 : sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+  const stops = new Set(splits.filter((s) => median > 0 && s.paceSec > STOP_FACTOR * median).map((s) => s.km));
+  const moving = splits.filter((s) => !stops.has(s.km)).map((s) => s.paceSec);
+  return {
+    median,
+    stops,
+    fastest: moving.length ? Math.min(...moving) : undefined,
+    slowest: moving.length ? Math.max(...moving) : undefined,
+  };
+}
+
+export interface ActivityLayout {
+  /** distance en grand titre (sinon la durée) */
+  showDistance: boolean;
+  showElevation: boolean;
+  showSplits: boolean;
+}
+
+/** Ce que le détail d'une activité affiche selon le sport (allure : voir activityPace). */
+export function activityLayout(type: Activity['type']): ActivityLayout {
+  switch (type) {
+    case 'run':
+    case 'walk':
+      return { showDistance: true, showElevation: true, showSplits: true };
+    case 'ride':
+      return { showDistance: true, showElevation: true, showSplits: false };
+    case 'swim':
+      return { showDistance: true, showElevation: false, showSplits: false };
+    default:
+      return { showDistance: false, showElevation: false, showSplits: false };
+  }
 }
 
 /** « 9,1 » — virgule décimale française, une décimale. */

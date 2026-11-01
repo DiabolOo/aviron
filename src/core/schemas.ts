@@ -67,6 +67,8 @@ export const SplitSchema = z.object({
   km: z.number().nonnegative(),
   pace: z.string(),
   paceSec: z.number().nonnegative(),
+  /** allure sur le temps écoulé (arrêts compris) — le chrono des courses ; absente si inconnue */
+  elapsedPaceSec: z.number().nonnegative().optional(),
   elevationGain: z.number(),
   avgHr: z.number().nonnegative().optional(),
 });
@@ -86,6 +88,9 @@ export const ActivitySchema = z.object({
   distanceKm: z.number().nonnegative().optional(),
   /** distance brute de la trace (GPS/FIT) — peut différer du CSV Strava */
   traceDistanceKm: z.number().positive().optional(),
+  /** ville de départ — courses uniquement (géocodée à l'import, aucune coordonnée stockée ;
+   *  exclue des résumés envoyés au coach IA, voir ADR-004) */
+  startCity: z.string().optional(),
   elevationM: z.number().nonnegative().optional(),
   calories: z.number().nonnegative().optional(),
   avgHr: z.number().nonnegative().optional(),

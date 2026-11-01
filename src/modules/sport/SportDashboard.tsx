@@ -2,12 +2,14 @@ import { ChevronLeft, ChevronRight } from 'lucide-react-native';
 import { useState } from 'react';
 import { Pressable, View } from 'react-native';
 
+import { RacesSection } from '@/components/race/RacesSection';
 import { ActivityHistory } from '@/components/sport/ActivityHistory';
 import { Label } from '@/components/ui/Label';
 import { Text } from '@/components/ui/Text';
 import { usePulseFitStore } from '@/lib/store';
 import { formatDayMonth } from '@/src/core/dates';
 import { latestActivityDate, selectWeek, shiftWeek, weekStartISO } from '@/src/core/sportWeek';
+import { useConfirmedRaceMap } from '@/src/ui/useRaces';
 import { useTheme } from '@/src/ui/useTheme';
 
 export function SportDashboard() {
@@ -18,7 +20,8 @@ export function SportDashboard() {
   const currentStart = weekStartISO();
   const [start, setStart] = useState(currentStart);
 
-  const week = selectWeek(activities, start);
+  const raceMap = useConfirmedRaceMap();
+  const week = selectWeek(activities, start, new Set(raceMap.keys()));
   const isCurrent = week.start === currentStart;
   const last = latestActivityDate(activities);
   const rangeLabel = isCurrent ? 'Cette semaine' : `${formatDayMonth(week.start)} – ${formatDayMonth(week.end)}`;
@@ -57,6 +60,7 @@ export function SportDashboard() {
         connected={stravaConnected}
         lastActivityLabel={last ? formatDayMonth(last) : undefined}
       />
+      <RacesSection />
     </View>
   );
 }

@@ -47,6 +47,11 @@ type PulseFitState = {
   toggleStrava: () => void;
   toggleWatch: () => void;
   activities: StravaActivity[];
+  confirmedRaceIds: string[];
+  rejectedRaceIds: string[];
+  raceNames: Record<string, string>;
+  confirmRace: (activityId: string, name?: string) => void;
+  rejectRace: (activityId: string) => void;
   weather: Weather | null;
   sessions: WorkoutSession[];
   meals: Meal[];
@@ -87,6 +92,9 @@ type PersistedState = Pick<
   | 'stravaConnected'
   | 'watchConnected'
   | 'activeWorkoutProgram'
+  | 'confirmedRaceIds'
+  | 'raceNames'
+  | 'rejectedRaceIds'
 >;
 
 type LegacyPersistedState = Partial<PersistedState> & {
@@ -219,6 +227,20 @@ export const usePulseFitStore = create<PulseFitState>()(
         toggleStrava: () => set({ stravaConnected: !get().stravaConnected }),
         toggleWatch: () => set({ watchConnected: !get().watchConnected }),
         activities: [],
+        confirmedRaceIds: [],
+        rejectedRaceIds: [],
+        raceNames: {},
+        confirmRace: (activityId, name) =>
+          set({
+            raceNames: name?.trim() ? { ...get().raceNames, [activityId]: name.trim() } : get().raceNames,
+            confirmedRaceIds: [...new Set([...get().confirmedRaceIds, activityId])],
+            rejectedRaceIds: get().rejectedRaceIds.filter((id) => id !== activityId),
+          }),
+        rejectRace: (activityId) =>
+          set({
+            rejectedRaceIds: [...new Set([...get().rejectedRaceIds, activityId])],
+            confirmedRaceIds: get().confirmedRaceIds.filter((id) => id !== activityId),
+          }),
         weather: null,
         sessions: [],
         meals: [],
@@ -328,6 +350,9 @@ export const usePulseFitStore = create<PulseFitState>()(
         stravaConnected: state.stravaConnected,
         watchConnected: state.watchConnected,
         activeWorkoutProgram: state.activeWorkoutProgram,
+        confirmedRaceIds: state.confirmedRaceIds,
+        rejectedRaceIds: state.rejectedRaceIds,
+        raceNames: state.raceNames,
       }),
       merge: (persisted, current) => {
         const saved = (persisted ?? {}) as LegacyPersistedState;

@@ -1,9 +1,11 @@
 import { Target } from 'lucide-react-native';
 import { View } from 'react-native';
 
+import { TargetRace } from '@/components/race/TargetRace';
 import { Card } from '@/components/ui/Card';
 import { Text } from '@/components/ui/Text';
 import type { LifeModule } from '@/src/modules/types';
+import { usePulseFitStore } from '@/lib/store';
 import { useTheme } from '@/src/ui/useTheme';
 
 function ComingSoon() {
@@ -21,6 +23,11 @@ function ComingSoon() {
   );
 }
 
+function GoalsDashboard() {
+  const isRaceGoal = usePulseFitStore((s) => s.profile.athleticGoal?.type === 'race_prep');
+  return isRaceGoal ? <TargetRace /> : <ComingSoon />;
+}
+
 export const goalsModule: LifeModule = {
   id: 'goals',
   title: 'Objectifs',
@@ -31,7 +38,7 @@ export const goalsModule: LifeModule = {
   entities: [],
   todayWidgets: [],
   plans: [{ id: 'goals-plan', title: 'Objectifs', Component: ComingSoon }],
-  dashboards: [{ id: 'goals', title: 'Objectifs', Component: ComingSoon }],
+  dashboards: [{ id: 'goals', title: 'Objectifs', Component: GoalsDashboard }],
   agentTools: [],
   analyzers: [],
 };

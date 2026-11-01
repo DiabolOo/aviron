@@ -36,7 +36,7 @@ describe('activityToStrava / stravaToActivity', () => {
 
   it('fait un aller-retour sans perte', () => {
     const roundTrip = activityToStrava(stravaToActivity(strava));
-    expect(roundTrip).toEqual(strava);
+    expect(roundTrip).toEqual({ ...strava, movingTimeSec: 2880 });
   });
 
   it('fournit des valeurs par défaut pour les champs optionnels, sans 0', () => {

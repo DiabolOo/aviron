@@ -101,6 +101,8 @@ export function detectRaces(activities: Activity[], opts: DetectRacesOptions = {
       name: a.name,
       date: a.date,
       activityId: a.id,
+      startTime: a.startTime,
+      startCity: a.startCity,
       officialDistanceKm: nearestStandard(d) ?? d,
       measuredDistanceKm: a.traceDistanceKm ?? d,
       timeSec: Math.round(a.durationMin * 60),
@@ -121,6 +123,8 @@ export interface PaceBand {
   paceSec?: number;
   /** allure recalée : paceSec × distance mesurée / distance officielle */
   officialPaceSec?: number;
+  /** temps de la tranche (s), calé pour que les quatre tranches redonnent exactement le chrono */
+  timeSec?: number;
   avgHr?: number;
 }
 
@@ -136,7 +140,11 @@ export interface RaceDebrief {
   };
   /** dérive cardiaque : FC moyenne 2e moitié − 1re moitié, et allure perdue (recalée) */
   cardiacDrift?: { hrBpm: number; paceSecPerKm: number };
+  /** présent seulement si la distance mesurée s'écarte d'au moins 1 % de l'officielle (gapPct signé) */
+  distance?: { measuredKm: number; officialKm: number; gapPct: number };
 }
+
+const DISTANCE_NOTE_MIN_GAP_PCT = 1;
 
 function bandStats(
   splits: { km: number; paceSec: number; avgHr?: number }[],
@@ -177,8 +185,10 @@ export function raceDebrief(race: Race, activity: Activity): RaceDebrief {
   const officialPaceSec =
     race.timeSec !== undefined ? Math.round(race.timeSec / distanceKm) : undefined;
 
-  const splits = activity.splits ?? [];
+  // Temps écoulé (arrêts compris) : les tranches et moitiés suivent le chrono officiel.
+  const splits = (activity.splits ?? []).map((s) => ({ ...s, paceSec: s.elapsedPaceSec ?? s.paceSec }));
   const bands: PaceBand[] = [];
+  const quarterKm = distanceKm / 4;
   for (let i = 0; i < 4; i++) {
     const fromKm = (distanceKm / 4) * i;
     const toKm = (distanceKm / 4) * (i + 1);
@@ -191,6 +201,11 @@ export function raceDebrief(race: Race, activity: Activity): RaceDebrief {
       officialPaceSec: paceSec !== undefined ? Math.round(paceSec * officialRatio) : undefined,
       avgHr,
     });
+  }
+  const totalSec = race.timeSec ?? activity.durationMin * 60;
+  const rawSec = bands.reduce((sum, b) => sum + (b.paceSec ?? 0) * quarterKm, 0);
+  if (bands.every((b) => b.paceSec !== undefined) && rawSec > 0) {
+    for (const b of bands) b.timeSec = ((b.paceSec as number) * quarterKm * totalSec) / rawSec;
   }
 
   // Moitiés : le split qui chevauche la borne est réparti proportionnellement.
@@ -232,7 +247,10 @@ export function raceDebrief(race: Race, activity: Activity): RaceDebrief {
         }
       : undefined;
 
-  return { race, officialPaceSec, measuredPaceSec, bands, halves, cardiacDrift };
+  const gapPct = Math.round((officialRatio - 1) * 1000) / 10;
+  const distance = Math.abs(gapPct) >= DISTANCE_NOTE_MIN_GAP_PCT ? { measuredKm: measuredKm, officialKm: distanceKm, gapPct } : undefined;
+
+  return { race, officialPaceSec, measuredPaceSec, bands, halves, cardiacDrift, distance };
 }
 
 // ─── Préparation sur 8 semaines ───────────────────────────────────────────────

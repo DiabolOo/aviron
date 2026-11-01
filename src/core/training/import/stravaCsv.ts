@@ -47,7 +47,7 @@ const COLUMNS: Record<ColumnKey, string[]> = {
   type: ["Type d'activité", 'Activity Type'],
   filename: ['Nom du fichier', 'Filename', 'Fichier'],
   elapsed: ['Temps écoulé', 'Elapsed Time'],
-  moving: ['Temps de déplacement', 'Temps de trajet', 'Moving Time'],
+  moving: ['Durée de déplacement', 'Temps de déplacement', 'Temps de trajet', 'Moving Time'],
   distance: ['Distance'],
   elevation: ['Dénivelé', 'Elevation Gain'],
   avgHr: ['FC moyenne', 'Fréquence cardiaque moyenne', 'Average Heart Rate'],

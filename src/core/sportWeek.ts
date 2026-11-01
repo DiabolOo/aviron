@@ -1,4 +1,5 @@
 import { addDaysISO, parseISODate, startOfWeek, toISODate } from '@/src/core/dates';
+import { activityDurationSec } from '@/src/core/sportFormat';
 import type { StravaActivity } from '@/src/core/types';
 
 export type WeekSummary = {
@@ -7,7 +8,8 @@ export type WeekSummary = {
   activities: StravaActivity[];
   count: number;
   km: number;
-  durationMin: number;
+  /** somme des durées affichées (déplacement ; chrono pour les courses confirmées) */
+  durationSec: number;
 };
 
 export function weekStartISO(date: Date = new Date()): string {
@@ -23,7 +25,11 @@ export function latestActivityDate(activities: StravaActivity[]): string | undef
 }
 
 /** Sélecteur unique : la liste et le compteur de la semaine (lundi → dimanche) en dérivent. */
-export function selectWeek(activities: StravaActivity[], startISO: string): WeekSummary {
+export function selectWeek(
+  activities: StravaActivity[],
+  startISO: string,
+  raceActivityIds: ReadonlySet<string> = new Set(),
+): WeekSummary {
   const start = toISODate(startOfWeek(parseISODate(startISO)));
   const end = addDaysISO(start, 6);
   const inWeek = activities
@@ -35,11 +41,13 @@ export function selectWeek(activities: StravaActivity[], startISO: string): Week
     activities: inWeek,
     count: inWeek.length,
     km: inWeek.reduce((sum, a) => sum + (a.distanceKm ?? 0), 0),
-    durationMin: inWeek.reduce((sum, a) => sum + a.durationMin, 0),
+    durationSec: inWeek.reduce((sum, a) => sum + activityDurationSec(a, raceActivityIds.has(a.id)), 0),
   };
 }
 
-export function groupByMonth(activities: StravaActivity[]): { key: string; label: string; items: StravaActivity[] }[] {
+export function groupByMonth(
+  activities: StravaActivity[],
+): { key: string; label: string; items: StravaActivity[] }[] {
   const sorted = [...activities].sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
   const groups: { key: string; label: string; items: StravaActivity[] }[] = [];
   for (const activity of sorted) {

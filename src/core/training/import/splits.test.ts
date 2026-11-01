@@ -25,6 +25,46 @@ describe('splitsFromPoints', () => {
   });
 });
 
+/** Trace à 1 point/s, à 5:00/km (1000/300 m/s), avec des pauses optionnelles { atM, forS } sans avancer. */
+function steadyTrace(totalM: number, pauses: { atM: number; forS: number }[] = []) {
+  const pts: { distM: number; timeS: number }[] = [];
+  const v = 1000 / 300;
+  let t = 0;
+  let d = 0;
+  const pending = [...pauses].sort((a, b) => a.atM - b.atM);
+  pts.push({ distM: 0, timeS: 0 });
+  while (d < totalM) {
+    if (pending.length && d >= pending[0].atM) {
+      const p = pending.shift()!;
+      t += p.forS;
+      pts.push({ distM: d + 0.5, timeS: t });
+      d += 0.5;
+      continue;
+    }
+    d = Math.min(totalM, d + v);
+    t += 1;
+    pts.push({ distM: d, timeS: t });
+  }
+  return pts;
+}
+
+describe('splitsFromPoints — temps de déplacement', () => {
+  it('une pause de 60 s au milieu d’un km n’allonge pas le split', () => {
+    const splits = splitsFromPoints(steadyTrace(3000, [{ atM: 1500, forS: 60 }]))!;
+    expect(splits.map((s) => s.paceSec)).toEqual([300, 300, 300]);
+  });
+
+  it('un trou de plus de 10 s sans déplacement est exclu, comme un arrêt de plusieurs secondes enchaînées', () => {
+    const splits = splitsFromPoints(steadyTrace(2000, [{ atM: 500, forS: 35 }, { atM: 1500, forS: 90 }]))!;
+    expect(splits.every((s) => Math.abs(s.paceSec - 300) <= 2)).toBe(true);
+  });
+
+  it('un ralentissement bref (bruit GPS) reste compté', () => {
+    const splits = splitsFromPoints(steadyTrace(2000, [{ atM: 500, forS: 5 }]))!;
+    expect(splits[0].paceSec).toBe(305);
+  });
+});
+
 describe('fit records', () => {
   const fit: FitData = {
     sessions: [{ start_time: new Date('2025-03-02T09:00:00Z'), total_calories: 700, avg_heart_rate: 150 }],

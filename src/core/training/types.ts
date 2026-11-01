@@ -44,6 +44,10 @@ export const RaceSchema = z.object({
   name: z.string(),
   date: DateStr,
   activityId: z.string().optional(),
+  /** heure de départ « HH:mm[:ss] » (activité liée) */
+  startTime: z.string().optional(),
+  /** ville de départ (activité liée, géocodée à l'import) */
+  startCity: z.string().optional(),
   officialDistanceKm: z.number().positive(),
   measuredDistanceKm: z.number().positive().optional(),
   timeSec: z.number().positive().optional(),

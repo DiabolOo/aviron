@@ -1,5 +1,6 @@
 import { Footprints } from 'lucide-react-native';
 
+import { RaceInsightCards } from '@/components/race/RaceInsightCards';
 import { WorkoutWidget } from '@/components/dashboard/WorkoutWidget';
 import { usePulseFitStore, useTodayStats } from '@/lib/store';
 import { SportDashboard } from '@/src/modules/sport/SportDashboard';
@@ -36,6 +37,7 @@ export const sportModule: LifeModule = {
   entities: [PlannedWorkoutSchema, ActivitySchema, TrainingPlanSchema, GoalSchema],
   todayWidgets: [
     { id: 'workout', order: 10, Component: Workout },
+    { id: 'race-insights', order: 15, Component: RaceInsightCards },
   ],
   plans: [{ id: 'sport-plan', title: 'Sport', Component: SportPlan }],
   dashboards: [{ id: 'sport', title: 'Sport', Component: SportDashboard }],

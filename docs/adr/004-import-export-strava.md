@@ -16,3 +16,8 @@ Le moteur d'analyse (M1) doit tourner sur de vraies données. L'archive Strava d
 - Un utilisateur dont l'historique est sur Strava le récupère via HealthFit (vers Apple Santé) ; une page web d'import est envisagée après la bêta, selon la demande.
 - Le parseur reste en TypeScript pur dans `src/core/training`, donc réutilisable par cette page.
 - Ajouter `fit-file-parser` (script d'import uniquement, devDependency) fait l'objet d'une ligne dans cet ADR plutôt que d'un second ADR.
+
+## Amendement — 2026-11-01 : ville de départ des courses (`startCity`)
+- **Courses uniquement** : le géocodage ne s'applique qu'aux activités détectées comme courses candidates (ou confirmées). Rien n'est calculé pour les entraînements.
+- **Ville uniquement** : le script lit le premier point GPS de la trace (GPX, ou `position_lat`/`position_long` FIT en semicircles), cherche la ville la plus proche dans une liste embarquée (`src/core/training/import/cities-fr.ts`, GeoNames cities1000 filtré sur la France) et n'écrit que `startCity` (nom). Aucune coordonnée n'est stockée dans le snapshot ni ailleurs.
+- **Jamais vers le coach** : `startCity` est exclu de `AthleteSummary` et de tout envoi au coach IA.

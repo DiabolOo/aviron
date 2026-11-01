@@ -184,6 +184,14 @@ describe('races', () => {
     expect(d.cardiacDrift).toEqual({ hrBpm: 14, paceSecPerKm: 30 });
   });
 
+  it('notes measured vs official distance only when the gap is >= 1 %', () => {
+    const race = detectRaces(acts, { maxHr: 201 })[0];
+    const d = raceDebrief(race, raceAct);
+    expect(d.distance).toMatchObject({ measuredKm: 21.34, officialKm: 21.0975, gapPct: 1.1 });
+    const exact = raceDebrief({ ...race, measuredDistanceKm: 21.0975 }, raceAct);
+    expect(exact.distance).toBeUndefined();
+  });
+
   it('debriefs a no-HR race without throwing', () => {
     const noHr: Activity = { ...raceAct, id: 'r2', splits: raceAct.splits!.map((s) => ({ ...s, avgHr: undefined })) };
     const race = detectRaces([noHr], { confirmedIds: ['r2'] })[0];

@@ -113,10 +113,14 @@ export type StravaActivity = {
   durationMin: number;
   /** temps de déplacement — sert l'allure/vitesse affichée quand il existe */
   movingTimeMin?: number;
+  /** temps de déplacement exact (secondes) — priorité sur movingTimeMin */
+  movingTimeSec?: number;
   elevationM?: number;
   calories?: number;
   avgHr?: number;
   maxHr?: number;
+  /** ville de départ — courses uniquement (import Strava, ADR-004) */
+  startCity?: string;
   splits: ActivitySplit[];
   hrStream: number[];
   polyline: RoutePoint[];
@@ -126,6 +130,7 @@ export type ActivitySplit = {
   km: number;
   pace: string;
   paceSec: number;
+  elapsedPaceSec?: number;
   elevationGain: number;
   avgHr?: number;
 };
