@@ -69,4 +69,10 @@ describe('intensity_too_high', () => {
     const ctx = ctxOf(TODAY, runs([170, 175, 150, 148, 145]), { profile: { maxHr: 180, maxHrSource: 'estimated', ageYears: 40 } });
     expect(intensityTooHigh.evaluate(ctx)!.athleteText).toContain('environ');
   });
+
+  it('returns null when the athlete has no HR device', () => {
+    const acts = runs([170, 175, 150, 148, 145]);
+    expect(intensityTooHigh.evaluate(ctxOf(TODAY, acts, { profile: { hasHrDevice: false } }))).toBeNull();
+    expect(intensityTooHigh.evaluate(ctxOf(TODAY, acts, { profile: { hasHrDevice: true } }))).not.toBeNull();
+  });
 });

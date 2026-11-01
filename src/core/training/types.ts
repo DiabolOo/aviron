@@ -66,6 +66,8 @@ export const AthleteProfileSchema = z.object({
   maxHr: z.number().int().min(100).max(230).optional(),
   maxHrSource: z.enum(['observed', 'configured', 'estimated']).optional(),
   restingHr: z.number().int().min(25).max(120).optional(),
+  // Réponse « montre ou capteur cardiaque » de l'onboarding ; false = les règles basées sur la FC se taisent.
+  hasHrDevice: z.boolean().optional(),
   athleticGoal: ProfileSchema.shape.athleticGoal,
   // level (expérience d'entraînement) ≠ activityLevel (dépense quotidienne, pour les calories).
   level: z.enum(['beginner', 'regular', 'advanced']).default('beginner'),

@@ -168,6 +168,25 @@ describe('synthetic profiles', () => {
   });
 });
 
+describe('HR signal lost', () => {
+  const acts = [...block([[0, 8, 145], [3, 8, 150]], 6, addDays(TODAY, -40)), ...block([[0, 9, undefined], [3, 9, undefined]], 6)];
+
+  it('experienced runner with 12 recent runs without HR: the data quality card', () => {
+    const out = evaluateInsights(ctxOf(TODAY, acts, { profile: { level: 'advanced' } }));
+    const card = out.find((i) => i.ruleId === 'data_quality_no_hr')!;
+    expect(card).toBeDefined();
+    expect(card.evidence[1].numeric).toBe(12);
+    lintInsight(card, TODAY);
+  });
+
+  it('beginner or no HR device: no HR-based card at all', () => {
+    for (const profile of [{ level: 'beginner' as const }, { hasHrDevice: false }]) {
+      const ids = evaluateInsights(ctxOf(TODAY, acts, { profile })).map((i) => i.ruleId);
+      for (const r of ['data_quality_no_hr', ...FC_RULES]) expect(ids).not.toContain(r);
+    }
+  });
+});
+
 describe('break in training', () => {
   it('shows gap_resume and drops consistency, which would otherwise fire', () => {
     const acts = block([[0, 8, 145], [3, 8, 145]], 12, addDays(TODAY, -20));

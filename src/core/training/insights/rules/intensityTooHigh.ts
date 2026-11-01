@@ -1,5 +1,5 @@
 import { INTENSITY_LABELS, intensityTooHighCopy, nf } from '../copy.fr';
-import { buildInsight, effectiveMaxHr, hasHr, pastRuns } from '../helpers';
+import { buildInsight, effectiveMaxHr, hasHr, hrRulesDisabled, pastRuns } from '../helpers';
 import {
   INTENSITY_EASY_HR_RATIO,
   INTENSITY_HIGH_HR_RATIO,
@@ -17,11 +17,12 @@ export const RULE_ID = 'intensity_too_high';
 /**
  * Sur 12 semaines : ≥ 4 courses > 5 km avec FC, dont ≥ 40 % à plus de 80 % de la FC max.
  * FC max effective : configurée, sinon max(observée, Tanaka) ; textes en « environ » si estimée.
- * Null sans FC max connue ou estimable, ou sans assez de courses avec FC.
+ * Null si hasHrDevice vaut false, sans FC max connue ou estimable, ou sans assez de courses avec FC.
  */
 export const intensityTooHigh: InsightRuleDef = {
   ruleId: RULE_ID,
   evaluate(ctx) {
+    if (hrRulesDisabled(ctx)) return null;
     const resolved = effectiveMaxHr(ctx);
     if (!resolved) return null;
     const { maxHr, approx } = resolved;

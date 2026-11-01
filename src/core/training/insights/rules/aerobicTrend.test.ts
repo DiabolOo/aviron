@@ -50,4 +50,10 @@ describe('aerobic_trend', () => {
     const out = aerobicTrend.evaluate(ctxOf(TODAY, [...quarter('q2-', ['2026-04-10', '2026-05-10', '2026-06-10'], 6), ...q3(5), ...q4Short]))!;
     expect(out.id).toBe('aerobic_trend:2026-Q3');
   });
+
+  it('returns null when the athlete has no HR device', () => {
+    const acts = [...q3(5.5), ...q4(5)];
+    expect(aerobicTrend.evaluate(ctxOf(TODAY, acts, { profile: { hasHrDevice: false } }))).toBeNull();
+    expect(aerobicTrend.evaluate(ctxOf(TODAY, acts, { profile: { hasHrDevice: true } }))).not.toBeNull();
+  });
 });

@@ -4,6 +4,8 @@
 export const NO_HR_WINDOW_RUNS = 5;
 /** Au moins 3 courses sur 5 sans FC : assez pour que ce ne soit pas un oubli isolé. */
 export const NO_HR_MIN_MISSING = 3;
+/** Il faut déjà ≥ 5 séances avec FC dans l'historique : en dessous, on ne peut pas parler de mesure « perdue ». */
+export const NO_HR_MIN_HR_SESSIONS = 5;
 
 /** Fenêtre d'analyse de l'intensité : 12 semaines, assez longue pour lisser un bloc ponctuel. */
 export const INTENSITY_WINDOW_WEEKS = 12;
@@ -90,5 +92,8 @@ export const CONFIRM_RACE_MAX_AGE_DAYS = 28;
 /** Allure visée plausible : entre 2:30 et 10:00 par km, sinon le temps saisi est ignoré. */
 export const TARGET_PACE_MIN_SEC = 150;
 export const TARGET_PACE_MAX_SEC = 600;
-/** Les refus de confirmation de course sont définitifs (rejectedIds de detectRaces), jamais masqués 28 jours. */
-export const NEVER_MUTED_RULE_IDS: readonly string[] = ['confirm_race'];
+/**
+ * Règles jamais masquées 28 jours : leur refus est définitif.
+ * confirm_race : via rejectedIds de detectRaces ; data_quality_no_hr : via rankInsights({ rejectedForever }).
+ */
+export const NEVER_MUTED_RULE_IDS: readonly string[] = ['confirm_race', 'data_quality_no_hr'];

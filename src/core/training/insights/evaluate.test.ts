@@ -28,6 +28,14 @@ describe('rankInsights', () => {
     expect(list).toEqual(copy);
   });
 
+  it('drops rules rejected forever, whatever the id and the mute list', () => {
+    const list = [ins('data_quality_no_hr', 'warning', '2026-11-01', '2026-09-10'), ins('b', 'info')];
+    expect(rankInsights(list, { rejectedForever: ['data_quality_no_hr'] }).map((i) => i.ruleId)).toEqual(['b']);
+    expect(rankInsights(list).map((i) => i.ruleId)).toEqual(['data_quality_no_hr', 'b']);
+    const other = [ins('data_quality_no_hr', 'info', '2026-11-01', '2026-10-30')];
+    expect(rankInsights(other, { rejectedForever: ['data_quality_no_hr'], mutedRuleIds: new Set() })).toEqual([]);
+  });
+
   it('drops muted rules whatever the insight id', () => {
     const list = [ins('a', 'warning', '2026-11-01', 'x'), ins('b', 'info'), ins('c', 'notice')];
     expect(rankInsights(list, { mutedRuleIds: new Set(['a']) }).map((i) => i.ruleId)).toEqual(['c', 'b']);
@@ -54,6 +62,13 @@ describe('computeMutedRuleIds', () => {
     expect(muted.has('confirm_race')).toBe(false);
     const list = [ins('confirm_race', 'info', '2026-11-01', 'race-row-2')];
     expect(rankInsights(list, { mutedRuleIds: new Set(['confirm_race']) })).toHaveLength(1);
+  });
+
+  it('keeps data_quality_no_hr out of the 28-day mute: its refusal is permanent (rejectedForever)', () => {
+    const rejected = [{ insightId: 'data_quality_no_hr:2026-09-10', rejectedAt: '2026-10-30' }];
+    expect(computeMutedRuleIds(rejected, '2026-11-01').size).toBe(0);
+    const list = [ins('data_quality_no_hr', 'notice')];
+    expect(rankInsights(list, { mutedRuleIds: new Set(['data_quality_no_hr']) })).toHaveLength(1);
   });
 
   it('unmutes after 28 days', () => {

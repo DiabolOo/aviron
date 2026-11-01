@@ -1,5 +1,5 @@
 import { AEROBIC_LABELS, aerobicTrendCopy, nf } from '../copy.fr';
-import { buildInsight, pastRuns, round1 } from '../helpers';
+import { buildInsight, hrRulesDisabled, pastRuns, round1 } from '../helpers';
 import { AEROBIC_TREND_MIN_PCT, AEROBIC_TREND_MIN_SESSIONS } from '../thresholds';
 import type { InsightRuleDef } from '../types';
 import { aerobicEfficiency, quarterKey } from '../../engine';
@@ -19,6 +19,7 @@ function previousQuarter(key: string): string {
 export const aerobicTrend: InsightRuleDef = {
   ruleId: RULE_ID,
   evaluate(ctx) {
+    if (hrRulesDisabled(ctx)) return null;
     const quarters = aerobicEfficiency(pastRuns(ctx), { types: ['run'] });
     const byKey = new Map(quarters.map((q) => [q.quarter, q]));
     const current = quarterKey(ctx.today);

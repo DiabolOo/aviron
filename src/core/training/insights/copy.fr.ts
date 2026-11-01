@@ -35,11 +35,11 @@ export const EVIDENCE_LABELS = {
 export function dataQualityNoHrCopy(p: { missing: number; window: number; streak: number; since: string }): InsightCopy {
   const athlete =
     p.streak >= p.missing
-      ? `${p.streak} courses sans FC depuis le ${dateFr(p.since)}. Active l’enregistrement cardiaque sur ta montre.`
-      : `${p.missing} de tes ${p.window} dernières courses sont sans FC. Active l’enregistrement cardiaque sur ta montre.`;
+      ? `${p.streak} courses sans FC depuis le ${dateFr(p.since)}. Active l’enregistrement sur ta montre ou ton capteur cardiaque.`
+      : `${p.missing} de tes ${p.window} dernières courses sont sans FC. Active l’enregistrement sur ta montre ou ton capteur cardiaque.`;
   return {
     title: 'Tes courses n’ont pas de mesure cardiaque',
-    beginnerText: 'Tes dernières sorties n’ont pas de mesure du cœur. Active-la sur ta montre pour suivre tes progrès.',
+    beginnerText: 'Tes dernières sorties n’ont pas de mesure du cœur. Active-la sur ta montre ou ton capteur cardiaque pour suivre tes progrès.',
     athleteText: athlete,
     why: 'Sans fréquence cardiaque, impossible de juger si tes sorties sont assez faciles ni de suivre ta progression. Les conseils d’intensité et de tendance restent donc muets tant que la mesure manque. Tes distances et tes temps, eux, sont bien pris en compte.',
   };

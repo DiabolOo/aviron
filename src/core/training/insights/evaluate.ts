@@ -49,6 +49,8 @@ export interface RankOptions {
   seenIds?: ReadonlySet<string>;
   /** règles masquées (voir `computeMutedRuleIds`) : retirées quel que soit l'id de l'insight */
   mutedRuleIds?: ReadonlySet<string>;
+  /** règles refusées définitivement par l'utilisateur : toujours retirées, sans limite de durée */
+  rejectedForever?: readonly string[];
 }
 
 /**
@@ -59,6 +61,7 @@ export function rankInsights(list: readonly TrainingInsight[], opts: RankOptions
   const max = opts.max ?? 3;
   const seen = opts.seenIds;
   const sorted = list
+    .filter((insight) => !opts.rejectedForever?.includes(insight.ruleId))
     .filter((insight) => NEVER_MUTED_RULE_IDS.includes(insight.ruleId) || !opts.mutedRuleIds?.has(insight.ruleId))
     .map((insight, index) => ({ insight, index }))
     .sort(

@@ -6,6 +6,9 @@ import type { BuildInsightInput, InsightContext } from './types';
 
 export const hasHr = (a: Activity): boolean => a.avgHr !== undefined && a.avgHr > 0;
 
+/** L'athlète a répondu « pas de montre ni de capteur cardiaque » : les règles basées sur la FC se taisent. */
+export const hrRulesDisabled = (ctx: InsightContext): boolean => ctx.profile.hasHrDevice === false;
+
 /** Activités jusqu'à `today` inclus, de la plus ancienne à la plus récente. */
 export function pastActivities(ctx: InsightContext): Activity[] {
   return ctx.activities
