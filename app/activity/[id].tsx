@@ -64,6 +64,8 @@ export default function ActivityScreen() {
   }
 
   const isRide = activity.type === 'ride';
+  const hasDistance = activity.distanceKm > 0;
+  const hasHr = activity.avgHr > 0 || activity.maxHr > 0;
   const date = parseISODate(activity.date).toLocaleDateString('fr-FR', {
     weekday: 'long',
     day: 'numeric',
@@ -80,41 +82,51 @@ export default function ActivityScreen() {
 
       <View className="mt-6 flex-row items-end">
         <Text className="text-6xl font-semibold tracking-tighter text-fg">
-          {activity.distanceKm.toFixed(1)}
+          {hasDistance ? activity.distanceKm.toFixed(1) : formatDuration(activity.movingTimeMin)}
         </Text>
-        <Text className="mb-2 ml-2 text-sm font-medium text-muted">km</Text>
+        {hasDistance ? (
+          <Text className="mb-2 ml-2 text-sm font-medium text-muted">km</Text>
+        ) : null}
       </View>
 
       <View className="mt-2 flex-row flex-wrap">
-        <Metric label="Durée" value={formatDuration(activity.movingTimeMin)} />
-        <Metric
-          label={isRide ? 'Vitesse' : 'Allure'}
-          value={(isRide
-            ? formatSpeed(activity.distanceKm, activity.movingTimeMin)
-            : formatPace(activity.distanceKm, activity.movingTimeMin)
-          ).replace(/ \/?(km\/h|km)$/, '')}
-          unit={isRide ? 'km/h' : 'min/km'}
-        />
+        {hasDistance ? <Metric label="Durée" value={formatDuration(activity.movingTimeMin)} /> : null}
+        {hasDistance ? (
+          <Metric
+            label={isRide ? 'Vitesse' : 'Allure'}
+            value={(isRide
+              ? formatSpeed(activity.distanceKm, activity.movingTimeMin)
+              : formatPace(activity.distanceKm, activity.movingTimeMin)
+            ).replace(/ \/?(km\/h|km)$/, '')}
+            unit={isRide ? 'km/h' : 'min/km'}
+          />
+        ) : null}
         <Metric label="Dénivelé" value={`${activity.elevationM}`} unit="m" />
         <Metric label="Calories" value={`${activity.calories}`} unit="kcal" />
         <Metric label="FC moy." value={`${activity.avgHr}`} unit="bpm" />
         <Metric label="FC max" value={`${activity.maxHr}`} unit="bpm" />
       </View>
 
-      <View className="mt-8">
-        <Label>Parcours</Label>
-        <RouteMap polyline={activity.polyline} />
-      </View>
+      {activity.polyline.length >= 2 ? (
+        <View className="mt-8">
+          <Label>Parcours</Label>
+          <RouteMap polyline={activity.polyline} />
+        </View>
+      ) : null}
 
-      <View className="mt-8">
-        <Label>Fréquence cardiaque</Label>
-        <HeartRateChart stream={activity.hrStream} avgHr={activity.avgHr} maxHr={activity.maxHr} />
-      </View>
+      {hasHr ? (
+        <View className="mt-8">
+          <Label>Fréquence cardiaque</Label>
+          <HeartRateChart stream={activity.hrStream} avgHr={activity.avgHr} maxHr={activity.maxHr} />
+        </View>
+      ) : null}
 
-      <View className="mt-8">
-        <Label>Splits</Label>
-        <SplitsList splits={activity.splits} />
-      </View>
+      {activity.splits.length > 0 ? (
+        <View className="mt-8">
+          <Label>Splits</Label>
+          <SplitsList splits={activity.splits} />
+        </View>
+      ) : null}
     </Screen>
   );
 }

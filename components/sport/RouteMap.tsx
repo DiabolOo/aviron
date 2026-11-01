@@ -11,6 +11,8 @@ const PAD = 28;
 
 export function RouteMap({ polyline }: { polyline: RoutePoint[] }) {
   const { colors } = useTheme();
+  // Import de fichier (snapshot) : pas de trace GPS — rien à dessiner.
+  if (polyline.length < 2) return null;
   const points = polyline.map((pt) => ({
     x: PAD + pt.x * (WIDTH - PAD * 2),
     y: PAD + pt.y * (HEIGHT - PAD * 2),

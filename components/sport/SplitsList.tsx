@@ -8,6 +8,7 @@ import { useTheme } from '@/src/ui/useTheme';
 
 export function SplitsList({ splits }: { splits: ActivitySplit[] }) {
   const { colors } = useTheme();
+  if (splits.length === 0) return null;
   const fastest = Math.min(...splits.map((s) => s.paceSec));
   const slowest = Math.max(...splits.map((s) => s.paceSec));
 
