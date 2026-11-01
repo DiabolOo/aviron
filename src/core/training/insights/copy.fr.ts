@@ -240,7 +240,7 @@ export function aerobicTrendCopy(p: { variationPct: number; latest: string; base
     };
   }
   return {
-    title: 'À effort égal, tu vas un peu moins vite',
+    title: 'À effort égal, tu vas moins vite',
     beginnerText: 'À effort égal, tu cours un peu moins vite que sur la période précédente. Ajoute une sortie facile cette semaine, sans te chronométrer.',
     athleteText: `Efficacité aérobie −${pct(abs, 1)} (${periods}), à FC égale. Ajoute une sortie facile cette semaine pour relancer la dynamique.`,
     why: `${how} Une baisse peut venir de la chaleur, de la fatigue ou d’une coupure : elle ne signifie pas forcément une perte de forme.`,

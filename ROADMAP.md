@@ -172,7 +172,7 @@ Aux niveaux 0 et 1, **aucune donnée d'activité ne quitte le téléphone**. Le 
 - [x] `src/core/training/types.ts` (+ schémas Zod) : `Activity`, `Split`, `DailyMetrics`, `Race`, `AthleteProfile`, `Insight` (réutiliser les entités existantes de J3 plutôt que dupliquer)
 - [x] `scripts/import-strava.ts` (Node) : lit le zip, parse `activities.csv` (dates en français, colonnes en double) et les FIT (`fit-file-parser`, ajout de dépendance → mini-ADR), écrit `fixtures/julien.snapshot.json` (**gitignoré**)
 - [x] `src/core/training/engine/` (fonctions pures) : volume par semaine / mois, régularité et coupures, zones de FC (FC max configurable), répartition des intensités, efficacité aérobie par trimestre, détection de courses + débrief (allure et FC par tranche, dérive cardiaque, recalage sur distance officielle), préparation sur 8 semaines
-- [ ] `src/core/training/insights/` : règles → `Insight` (gravité, titre, texte version débutant / version sportif, chiffres à l'appui, « Pourquoi ? »)
+- [x] `src/core/training/insights/` : règles → `Insight` (gravité, titre, texte version débutant / version sportif, chiffres à l'appui, « Pourquoi ? »)
 - [ ] Tests : jeu synthétique + test local sur tes données avec les valeurs de référence (53 % des sorties > 160 bpm de moyenne, Reims 2025 en 1h50:50, Paris 2024 en 1h48:16, FC max observée 201 bpm, etc.)
 - **Fini quand** les tests passent et le snapshot local est généré.
 
@@ -535,3 +535,4 @@ Aux niveaux 0 et 1, **aucune donnée d'activité ne quitte le téléphone**. Le 
 
 Reste du **Jalon 4** (à ne finir que pour ce dont M2 dépend) — ordre initial : (1) ADR-009 + navigation `Accueil · Plan · Agent · Suivi · Stats` et profil via le prénom ; (2) Agent en 3 zones et suppression du champ texte de Plan ; (3) modules activables + sélecteur à icônes ; (4) Plan › Sport / Nutrition ; (5) Stats ; (6) animations et test des 5 secondes. Détail et maquettes : `docs/UX-V2.md` et `docs/UX-V2-CHANGES.md`.
 En parallèle (hors code) : lire l'accord API Strava complet et ouvrir l'**ADR-004** avant le Jalon 8 ; vérifier les conditions des sources nutrition (ADR-010) avant le Jalon 7.
+| 2026-11-01 | M1 — `src/core/training/insights/` : 8 règles pures (data_quality_no_hr, intensity_too_high, race_pacing, race_prep, gap_resume, volume_ramp, consistency, aerobic_trend), `evaluateInsights` / `rankInsights`, textes FR débutant / sportif + lint, catalogue `docs/insights-catalog.md` |
