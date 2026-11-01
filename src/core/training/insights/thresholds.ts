@@ -50,3 +50,16 @@ export const GAP_MIN_PRIOR_ACTIVITIES = 3;
 export const GAP_FIRST_SESSION_MIN = 20;
 /** Fenêtre précédant la coupure, pour rappeler le niveau d'activité d'avant. */
 export const GAP_CONTEXT_WEEKS = 8;
+
+/** Hausse de volume jugée rapide : > 30 % au-dessus de la moyenne hebdomadaire récente. */
+export const VOLUME_RAMP_PCT = 30;
+/** Au-delà de +50 %, la carte passe en gravité « warning ». */
+export const VOLUME_RAMP_WARNING_PCT = 50;
+/** En dessous de 10 km sur 7 jours, une hausse en pourcentage n'est pas significative. */
+export const VOLUME_MIN_WEEK_KM = 10;
+/** Nombre de semaines de référence précédant la semaine courante. */
+export const VOLUME_BASELINE_WEEKS = 4;
+/** Minimum de courses dans les 4 semaines de référence, sinon la moyenne n'est pas fiable (null). */
+export const VOLUME_MIN_BASELINE_RUNS = 4;
+/** Volume conseillé la semaine suivante : moyenne de référence + 10 %. */
+export const VOLUME_NEXT_WEEK_FACTOR = 1.1;

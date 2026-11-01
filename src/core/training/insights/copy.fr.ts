@@ -164,3 +164,20 @@ export function gapResumeCopy(p: { days: number; lastDate: string; firstSessionM
     why: 'Après une coupure, le corps perd un peu de forme et a besoin de se réadapter. Une première séance courte et facile te remet en route sans te mettre en difficulté. Rien ne presse : tu pourras ensuite augmenter progressivement.',
   };
 }
+
+// ─── volume_ramp ──────────────────────────────────────────────────────────────
+
+export const VOLUME_LABELS = {
+  week: 'Volume des 7 derniers jours',
+  baseline: (weeks: number) => `Moyenne hebdo (${weeks} semaines avant)`,
+  ramp: 'Variation',
+};
+
+export function volumeRampCopy(p: { weekKm: number; baselineKm: number; rampPct: number; nextWeekKm: number; weeks: number }): InsightCopy {
+  return {
+    title: 'Ton volume a beaucoup augmenté',
+    beginnerText: `Tu as couru nettement plus cette semaine que d’habitude. Garde la semaine prochaine plus calme, autour de ${km(p.nextWeekKm, 0)}.`,
+    athleteText: `${km(p.weekKm)} sur 7 jours, soit +${pct(p.rampPct)} par rapport à ta moyenne de ${km(p.baselineKm)} (${p.weeks} semaines précédentes). Reste autour de ${km(p.nextWeekKm, 0)} la semaine prochaine.`,
+    why: `Une hausse rapide du volume demande au corps de s’adapter plus vite qu’il ne peut. Revenir à un volume proche de ta moyenne laisse le temps d’assimiler l’effort. Le calcul compare tes 7 derniers jours à la moyenne hebdomadaire des ${p.weeks} semaines précédentes.`,
+  };
+}

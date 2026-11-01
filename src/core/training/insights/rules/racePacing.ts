@@ -1,5 +1,5 @@
 import { cautiousStartCopy, fastStartCopy, nf, PACING_LABELS, paceFr } from '../copy.fr';
-import { buildInsight } from '../helpers';
+import { buildInsight, round1 } from '../helpers';
 import { PACING_GAP_PCT, PACING_MAX_AGE_DAYS, PACING_MIN_COVERAGE, PACING_MIN_SPLITS } from '../thresholds';
 import type { InsightRuleDef } from '../types';
 import { daysBetween, raceDebrief } from '../../engine';
@@ -41,7 +41,7 @@ export const racePacing: InsightRuleDef = {
       const evenPace = Math.round((first + second) / 2);
       const common = { ctx, ruleId: RULE_ID, periodKey: race.id, source: 'coach' as const, sessionsUsed: 1, minSessions: 1 };
 
-      const slowdown = (second / first - 1) * 100;
+      const slowdown = round1((second / first - 1) * 100);
       if (slowdown > PACING_GAP_PCT) {
         return buildInsight({
           ...common,
@@ -50,12 +50,12 @@ export const racePacing: InsightRuleDef = {
           evidence: [
             { label: PACING_LABELS.firstHalf, value: paceFr(first), numeric: first },
             { label: PACING_LABELS.secondHalf, value: paceFr(second), numeric: second },
-            { label: PACING_LABELS.gapHalves, value: `+${nf(slowdown, 1)} %`, numeric: Math.round(slowdown * 10) / 10 },
+            { label: PACING_LABELS.gapHalves, value: `+${nf(slowdown, 1)} %`, numeric: slowdown },
           ],
         });
       }
 
-      const cautious = (q1 / evenPace - 1) * 100;
+      const cautious = round1((q1 / evenPace - 1) * 100);
       if (cautious > PACING_GAP_PCT) {
         return buildInsight({
           ...common,
@@ -64,7 +64,7 @@ export const racePacing: InsightRuleDef = {
           evidence: [
             { label: PACING_LABELS.firstQuarter, value: paceFr(q1), numeric: q1 },
             { label: PACING_LABELS.average, value: paceFr(evenPace), numeric: evenPace },
-            { label: PACING_LABELS.gapQuarter, value: `+${nf(cautious, 1)} %`, numeric: Math.round(cautious * 10) / 10 },
+            { label: PACING_LABELS.gapQuarter, value: `+${nf(cautious, 1)} %`, numeric: cautious },
           ],
         });
       }
