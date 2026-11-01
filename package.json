@@ -66,6 +66,9 @@
   },
   "jest": {
     "preset": "jest-expo",
+    "setupFilesAfterEnv": [
+      "<rootDir>/jest.setup.js"
+    ],
     "testMatch": [
       "**/src/**/*.test.{ts,tsx}"
     ],

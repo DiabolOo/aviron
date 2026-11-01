@@ -1,14 +1,45 @@
+import { useEffect } from 'react';
 import { useWindowDimensions, View } from 'react-native';
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withDelay,
+  withTiming,
+} from 'react-native-reanimated';
 
 import { Card } from '@/components/ui/Card';
 import { Text } from '@/components/ui/Text';
+import { staggerDelay } from '@/src/core/motion';
 import { analyzeSplits } from '@/src/core/sportFormat';
 import type { ActivitySplit } from '@/src/core/types';
+import { useReducedMotion } from '@/src/ui/motion/useReducedMotion';
 
 const TABULAR = { fontVariant: ['tabular-nums' as const] };
 const BODY = 'text-[16px]';
 const HEAD = 'text-[12px] text-muted';
 const BAR_MIN_SCREEN_WIDTH = 380;
+
+function SplitBar({ widthPct, fastest, index }: { widthPct: number; fastest: boolean; index: number }) {
+  const reduced = useReducedMotion();
+  const grow = useSharedValue(0);
+
+  useEffect(() => {
+    grow.set(
+      reduced ? 1 : withDelay(staggerDelay(index, 40), withTiming(1, { duration: 500, easing: Easing.out(Easing.cubic) })),
+    );
+  }, [grow, index, reduced]);
+
+  const style = useAnimatedStyle(() => ({ transform: [{ scaleX: grow.get() }] }));
+
+  return (
+    <Animated.View
+      testID="split-bar"
+      className={`h-full rounded-full ${fastest ? 'bg-accent' : 'bg-fg/30'}`}
+      style={[{ width: `${widthPct}%`, transformOrigin: 'left' }, style]}
+    />
+  );
+}
 
 export function SplitsList({ splits }: { splits: ActivitySplit[] }) {
   const { width } = useWindowDimensions();
@@ -24,7 +55,7 @@ export function SplitsList({ splits }: { splits: ActivitySplit[] }) {
         <Text numberOfLines={1} ellipsizeMode="clip" className={`w-14 text-right ${HEAD}`}>D+</Text>
         <Text numberOfLines={1} ellipsizeMode="clip" className={`w-10 text-right ${HEAD}`}>FC</Text>
       </View>
-      {splits.map((split) => {
+      {splits.map((split, index) => {
         const stopped = stops.has(split.km);
         const isFastest = !stopped && split.paceSec === fastest;
         const ratio =
@@ -47,11 +78,7 @@ export function SplitsList({ splits }: { splits: ActivitySplit[] }) {
               {showBar ? (
                 <View className="h-1.5 flex-1 overflow-hidden rounded-full bg-fg/5">
                   {stopped ? null : (
-                    <View
-                      testID="split-bar"
-                      className={`h-full rounded-full ${isFastest ? 'bg-accent' : 'bg-fg/30'}`}
-                      style={{ width: `${30 + ratio * 70}%` }}
-                    />
+                    <SplitBar widthPct={30 + ratio * 70} fastest={isFastest} index={index} />
                   )}
                 </View>
               ) : null}

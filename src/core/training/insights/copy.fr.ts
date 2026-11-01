@@ -327,3 +327,78 @@ export function aerobicTrendCopy(p: { variationPct: number; latest: string; base
     why: `${how} Une baisse ne signifie pas forcément une perte de forme : les prochaines sorties diront si elle se confirme.`,
   };
 }
+
+// ─── Moment fort d'une activité ───────────────────────────────────────────────
+
+export type HighlightKind = 'fastest_comparable' | 'longest' | 'return' | 'fastest_km' | 'negative_split' | 'steady';
+
+export interface HighlightText {
+  title: string;
+  value: string;
+  detail: string;
+}
+
+/** Jamais le mot « record » : les textes disent « la plus rapide depuis N mois ». */
+const monthsFr = (days: number): string => (days >= 330 ? '12 mois' : `${Math.round(days / 30)} mois`);
+
+export function highlightCopyFr(
+  kind: HighlightKind,
+  p: {
+    beginner: boolean;
+    paceSec?: number;
+    distanceKm?: number;
+    comparable?: number;
+    windowDays?: number;
+    gapDays?: number;
+    km?: number;
+    lateInRun?: boolean;
+    gainSecPerKm?: number;
+    spreadSecPerKm?: number;
+  },
+): HighlightText {
+  const window = p.windowDays ?? 0;
+  switch (kind) {
+    case 'fastest_comparable':
+      return {
+        title: p.beginner ? 'Ta sortie la plus rapide' : 'Ta sortie la plus rapide sur cette distance',
+        value: paceFr(p.paceSec ?? 0),
+        detail: p.beginner
+          ? `Tu n’as jamais couru aussi vite sur une distance comme celle-ci depuis ${monthsFr(window)}.`
+          : `Meilleure allure parmi ${p.comparable} sorties de distance comparable (±20 %) depuis ${monthsFr(window)}.`,
+      };
+    case 'longest':
+      return {
+        title: 'Ta plus longue sortie',
+        value: km(p.distanceKm ?? 0),
+        detail: `Plus longue que toutes tes sorties de ces ${Math.round(window / 7)} dernières semaines.`,
+      };
+    case 'return':
+      return {
+        title: p.beginner ? 'Content de te revoir' : 'Retour après une coupure',
+        value: `${p.gapDays} jours`,
+        detail: `Ta sortie précédente remontait à ${p.gapDays} jours. Reprendre, c’est déjà gagné.`,
+      };
+    case 'fastest_km':
+      return {
+        title: p.lateInRun ? 'Ton kilomètre le plus rapide, en fin de sortie' : 'Ton kilomètre le plus rapide',
+        value: paceFr(p.paceSec ?? 0),
+        detail: p.lateInRun
+          ? `Km ${p.km} : tu as accéléré en fin de sortie.`
+          : `Km ${p.km} de cette sortie, à ${paceFr(p.paceSec ?? 0)}.`,
+      };
+    case 'negative_split':
+      return {
+        title: p.beginner ? 'Tu as accéléré sur la fin' : 'Seconde moitié plus rapide',
+        value: `−${p.gainSecPerKm} s/km`,
+        detail: p.beginner
+          ? 'La deuxième moitié de ta sortie était plus rapide que la première : bien géré.'
+          : `Ta 2e moitié est plus rapide de ${p.gainSecPerKm} s/km que la 1re.`,
+      };
+    case 'steady':
+      return {
+        title: p.beginner ? 'Une allure très régulière' : 'Allure très stable',
+        value: `±${p.spreadSecPerKm} s/km`,
+        detail: 'Tes kilomètres sont presque tous au même rythme : un effort bien réparti.',
+      };
+  }
+}
