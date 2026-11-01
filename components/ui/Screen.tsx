@@ -11,6 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Glow } from '@/components/ui/Glow';
 import type { Tone } from '@/src/ui/theme/tokens';
+import { useTabBarInset } from '@/src/ui/useTabBarInset';
 
 type ScreenProps = {
   children: ReactNode;
@@ -21,6 +22,7 @@ type ScreenProps = {
 
 export function Screen({ children, scroll = true, withSafeBottom = false, tone = 'home' }: ScreenProps) {
   const progress = useSharedValue(0);
+  const tabInset = useTabBarInset();
 
   useFocusEffect(
     useCallback(() => {
@@ -37,7 +39,8 @@ export function Screen({ children, scroll = true, withSafeBottom = false, tone =
   const content = scroll ? (
     <ScrollView
       className="flex-1"
-      contentContainerClassName="px-5 pb-32 pt-4"
+      contentContainerClassName="px-5 pt-4"
+      contentContainerStyle={{ paddingBottom: withSafeBottom ? 24 : tabInset }}
       showsVerticalScrollIndicator={false}>
       <Animated.View style={animatedStyle}>{children}</Animated.View>
     </ScrollView>

@@ -98,6 +98,7 @@ export default function RootLayout() {
             options={{ presentation: 'fullScreenModal', animation: 'slide_from_bottom' }}
           />
           <Stack.Screen name="gallery" options={{ animation: 'slide_from_right' }} />
+          <Stack.Screen name="activities" options={{ animation: 'slide_from_right' }} />
           <Stack.Screen name="activity/[id]" options={{ animation: 'slide_from_right' }} />
         </Stack.Protected>
       </Stack>

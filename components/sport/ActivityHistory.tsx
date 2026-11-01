@@ -1,43 +1,31 @@
 import { router } from 'expo-router';
-import { Activity, Bike, Dumbbell, Footprints, Mountain, RefreshCcw, Waves } from 'lucide-react-native';
+import { RefreshCcw } from 'lucide-react-native';
 import { Pressable, View } from 'react-native';
-import { Text } from '@/components/ui/Text';
 
+import { ActivityRow } from '@/components/sport/ActivityRow';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Label } from '@/components/ui/Label';
-import { formatDayMonth } from '@/src/core/dates';
+import { Text } from '@/components/ui/Text';
 import { formatDuration } from '@/src/core/format';
-import { activityPace, displayActivityName, formatKmNumber, formatKmTotal } from '@/src/core/sportFormat';
-import type { ActivityType, StravaActivity } from '@/src/core/types';
-import { useTheme } from '@/src/ui/useTheme';
+import { formatKmTotal } from '@/src/core/sportFormat';
+import type { WeekSummary } from '@/src/core/sportWeek';
+import type { StravaActivity } from '@/src/core/types';
 
 type ActivityHistoryProps = {
+  week: WeekSummary;
   activities: StravaActivity[];
   connected: boolean;
+  lastActivityLabel?: string;
 };
 
-const ICONS: Record<ActivityType, typeof Footprints> = {
-  run: Footprints,
-  ride: Bike,
-  walk: Mountain,
-  swim: Waves,
-  strength: Dumbbell,
-  other: Activity,
-};
-
-export function ActivityHistory({ activities, connected }: ActivityHistoryProps) {
-  const { colors } = useTheme();
-  const weekKm = activities
-    .filter((a) => a.type === 'run')
-    .reduce((sum, a) => sum + (a.distanceKm ?? 0), 0);
-
+export function ActivityHistory({ week, activities, connected, lastActivityLabel }: ActivityHistoryProps) {
   return (
     <View className="mt-10">
       <View className="flex-row items-center justify-between">
         <Label>Activités</Label>
-        {connected ? (
+        {connected && week.count > 0 ? (
           <Text className="font-mono text-[13px] text-muted">
-            {formatKmTotal(weekKm)} course
+            {formatKmTotal(week.km)} · {formatDuration(week.durationMin)}
           </Text>
         ) : null}
       </View>
@@ -58,39 +46,23 @@ export function ActivityHistory({ activities, connected }: ActivityHistoryProps)
         />
       ) : (
         <View className="mt-2">
-          {activities.map((activity, index) => {
-            const Icon = ICONS[activity.type];
-            const effort = activityPace(
-              activity.type,
-              activity.distanceKm,
-              (activity.movingTimeMin ?? activity.durationMin) * 60,
-            );
-            return (
-              <Pressable
-                key={activity.id}
-                onPress={() => router.push(`/activity/${activity.id}`)}
-                className={`flex-row items-center gap-4 py-4 active:opacity-70 ${index > 0 ? 'border-t border-fg/5' : ''}`}>
-                <View className="h-10 w-10 items-center justify-center rounded-full bg-fg/5">
-                  <Icon color={colors.fg} size={17} strokeWidth={1.8} />
-                </View>
-                <View className="flex-1">
-                  <Text numberOfLines={1} className="text-base text-fg">
-                    {displayActivityName(activity.name)}
-                  </Text>
-                  <Text className="mt-0.5 text-sm font-medium text-fg/70">
-                    {formatDayMonth(activity.date)} · {formatDuration(activity.durationMin)}
-                    {effort ? ` · ${effort.value} ${effort.unit}` : ''}
-                  </Text>
-                </View>
-                {activity.distanceKm !== undefined && activity.distanceKm > 0 ? (
-                  <Text className="text-base font-semibold text-fg">
-                    {formatKmNumber(activity.distanceKm)}
-                    <Text className="text-xs font-normal text-muted"> km</Text>
-                  </Text>
-                ) : null}
-              </Pressable>
-            );
-          })}
+          {week.count === 0 ? (
+            <View className="py-6">
+              <Text className="text-base text-fg">Aucune séance cette semaine</Text>
+              {lastActivityLabel ? (
+                <Text className="mt-1 text-sm text-muted">Dernière activité : {lastActivityLabel}</Text>
+              ) : null}
+            </View>
+          ) : (
+            week.activities.map((activity, index) => (
+              <ActivityRow key={activity.id} activity={activity} first={index === 0} />
+            ))
+          )}
+          <Pressable
+            onPress={() => router.push('/activities')}
+            className="mt-2 items-center border-t border-fg/5 py-4 active:opacity-70">
+            <Text className="text-sm font-medium text-fg">Voir tout l&apos;historique</Text>
+          </Pressable>
         </View>
       )}
     </View>
