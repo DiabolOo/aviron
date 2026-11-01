@@ -23,10 +23,15 @@ import { addDays, daysBetween, racePrep, type RaceCandidate } from '../../engine
 
 export const RULE_ID = 'race_prep';
 
+/** Course à venir ou passée la plus pertinente — toujours déclarée (goalId) ou confirmée (confirmedIds). */
 function pickRace(ctx: InsightContext): { race: RaceCandidate; upcoming: boolean } | undefined {
   const upcoming = ctx.races
     .filter(
-      (r) => r.status === 'upcoming' && r.date > ctx.today && daysBetween(ctx.today, r.date) <= PREP_UPCOMING_MAX_WEEKS * 7,
+      (r) =>
+        r.status === 'upcoming' &&
+        isConfirmedRace(ctx, r) &&
+        r.date > ctx.today &&
+        daysBetween(ctx.today, r.date) <= PREP_UPCOMING_MAX_WEEKS * 7,
     )
     .sort((a, b) => a.date.localeCompare(b.date))[0];
   if (upcoming) return { race: upcoming, upcoming: true };
@@ -46,11 +51,11 @@ function pickRace(ctx: InsightContext): { race: RaceCandidate; upcoming: boolean
 const projectedLongestKm = (longestKm: number, weeks: number): number => longestKm * (1 + PREP_WEEKLY_GROWTH) ** weeks;
 
 /**
- * Course à venir (≤ 12 semaines) ou course passée confirmée récente : la plus longue sortie des 8 semaines
+ * Course déclarée ou confirmée, à venir (≤ 12 semaines) ou passée récente : la plus longue sortie des 8 semaines
  * précédentes (avant la course, ou jusqu'à aujourd'hui pour une course à venir) fait < 60 % de la distance.
  * - à venir, > 10 jours : si +10 % par semaine suffit d'ici la course → conseil de progression ;
  *   sinon → « préparation courte : allure régulière, finis en confiance » ;
- * - à venir, ≤ 10 jours et course confirmée ou déclarée : carte « dernière ligne droite » (allure, affûtage,
+ * - à venir, ≤ 10 jours : carte « dernière ligne droite » (allure, affûtage,
  *   allure visée si targetTime est exploitable), sans critique et sans condition sur la préparation ;
  * - passée : bilan, uniquement si la course est confirmée ou déclarée.
  * Null si l'historique ne couvre pas les 8 semaines ou compte moins de 2 courses à pied.
@@ -64,7 +69,6 @@ export const racePrepRule: InsightRuleDef = {
 
     // Dernière ligne droite : quelle que soit la préparation (aucune donnée d'historique requise).
     if (upcoming && daysBetween(ctx.today, race.date) <= PREP_TOO_LATE_DAYS) {
-      if (!isConfirmedRace(ctx, race)) return null;
       const daysToRace = daysBetween(ctx.today, race.date);
       const paceSec = targetPaceSec(race.targetTime, race.officialDistanceKm);
       return buildInsight({

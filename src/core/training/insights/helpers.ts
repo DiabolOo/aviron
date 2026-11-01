@@ -1,7 +1,7 @@
 import type { Activity } from '../../schemas';
 import { estimateMaxHr, type RaceCandidate } from '../engine';
 import { TrainingInsightSchema, type TrainingInsight } from '../types';
-import { TARGET_PACE_MAX_SEC, TARGET_PACE_MIN_SEC, TARGET_TIME_HM_MIN_KM } from './thresholds';
+import { TARGET_PACE_MAX_SEC, TARGET_PACE_MIN_SEC } from './thresholds';
 import type { BuildInsightInput, InsightContext } from './types';
 
 export const hasHr = (a: Activity): boolean => a.avgHr !== undefined && a.avgHr > 0;
@@ -46,29 +46,37 @@ export function effectiveMaxHr(ctx: InsightContext): EffectiveMaxHr | undefined 
   return tanaka === undefined ? undefined : { maxHr: tanaka, approx: true };
 }
 
+const paceOk = (totalSec: number, raceKm: number): boolean => {
+  const pace = Math.round(totalSec / raceKm);
+  return pace >= TARGET_PACE_MIN_SEC && pace <= TARGET_PACE_MAX_SEC;
+};
+
 /**
- * Temps visé → secondes ; undefined si illisible.
- * « 1h45 », « 1h45m », « 1:45:00 » sont sans ambiguïté. « a:b » est tranché selon la distance :
- * h:mm à partir de 15 km (semi, marathon), mm:ss en dessous (5 et 10 km).
+ * Temps visé → secondes ; undefined si illisible ou si l'allure sort de 2:30–10:00 par km.
+ * « 1h45 », « 1h45m », « 1:45:00 » n'ont qu'une lecture. Une valeur à deux champs « a:b » a deux
+ * lectures (h:mm et mm:ss) : on garde celles dont l'allure est plausible pour cette distance,
+ * et on ne retient le résultat que s'il en reste exactement une.
  */
-export function parseTargetTime(text: string | undefined, raceKm: number): number | undefined {
-  if (!text) return undefined;
+export function parseTargetTime(text: string | undefined, distanceKm: number): number | undefined {
+  if (!text || distanceKm <= 0) return undefined;
   const t = text.trim().toLowerCase();
   const hm = t.match(/^(\d+)\s*h\s*(\d{1,2})?\s*(?:m|min)?$/);
-  if (hm) return Number(hm[1]) * 3600 + Number(hm[2] ?? 0) * 60;
-  if (!/^\d+(:\d{1,2}){1,2}$/.test(t)) return undefined;
-  const p = t.split(':').map(Number);
-  if (p.slice(1).some((x) => x >= 60)) return undefined;
-  if (p.length === 3) return p[0] * 3600 + p[1] * 60 + p[2];
-  return raceKm >= TARGET_TIME_HM_MIN_KM ? p[0] * 3600 + p[1] * 60 : p[0] * 60 + p[1];
+  let readings: number[];
+  if (hm) readings = [Number(hm[1]) * 3600 + Number(hm[2] ?? 0) * 60];
+  else if (!/^\d+(:\d{1,2}){1,2}$/.test(t)) return undefined;
+  else {
+    const p = t.split(':').map(Number);
+    if (p.slice(1).some((x) => x >= 60)) return undefined;
+    readings = p.length === 3 ? [p[0] * 3600 + p[1] * 60 + p[2]] : [p[0] * 3600 + p[1] * 60, p[0] * 60 + p[1]];
+  }
+  const valid = readings.filter((sec) => paceOk(sec, distanceKm));
+  return valid.length === 1 ? valid[0] : undefined;
 }
 
-/** Allure visée (s/km) ; undefined si le temps est illisible ou si l'allure sort de 2:30–10:00 par km. */
-export function targetPaceSec(text: string | undefined, raceKm: number): number | undefined {
-  const total = parseTargetTime(text, raceKm);
-  if (total === undefined || raceKm <= 0) return undefined;
-  const pace = Math.round(total / raceKm);
-  return pace >= TARGET_PACE_MIN_SEC && pace <= TARGET_PACE_MAX_SEC ? pace : undefined;
+/** Allure visée (s/km) ; undefined si le temps n'est pas exploitable (voir parseTargetTime). */
+export function targetPaceSec(text: string | undefined, distanceKm: number): number | undefined {
+  const total = parseTargetTime(text, distanceKm);
+  return total === undefined ? undefined : Math.round(total / distanceKm);
 }
 
 export function buildInsight(input: BuildInsightInput): TrainingInsight {

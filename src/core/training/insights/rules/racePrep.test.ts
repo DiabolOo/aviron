@@ -3,7 +3,6 @@ import { candidate, ctxOf, run } from '../testUtils';
 import { racePrepRule } from './racePrep';
 
 const TODAY = '2026-10-10';
-const CONFIRMED = ['race-up'];
 
 /** 3 sorties par semaine sur 10 semaines, la plus longue faisant `longest` km. */
 function history(longest: number, until = TODAY) {
@@ -12,7 +11,7 @@ function history(longest: number, until = TODAY) {
   return acts;
 }
 const upcoming = (date: string, over = {}) =>
-  candidate({ id: 'race-up', date, status: 'upcoming', confidence: 'medium', ...over });
+  candidate({ id: 'race-up', date, status: 'upcoming', confidence: 'medium', goalId: 'g1', ...over });
 
 describe('race_prep', () => {
   it('returns null without a relevant race', () => {
@@ -52,13 +51,15 @@ describe('race_prep', () => {
   });
 
   describe('last stretch (10 days or less)', () => {
-    const final = (date: string, acts = history(9), over = {}, confirmedIds: string[] | null = CONFIRMED) =>
-      racePrepRule.evaluate(ctxOf(TODAY, acts, { races: [upcoming(date, over)], confirmedIds: confirmedIds ?? undefined }));
+    const final = (date: string, acts = history(9), over = {}) =>
+      racePrepRule.evaluate(ctxOf(TODAY, acts, { races: [upcoming(date, over)] }));
 
-    it('only fires for a confirmed or declared race', () => {
-      expect(final('2026-10-20', history(9), {}, null)).toBeNull();
-      expect(final('2026-10-20', history(9), { goalId: 'g1' }, null)).not.toBeNull();
+    it('only fires for a declared (goalId) or confirmed (confirmedIds) race', () => {
       expect(final('2026-10-20')).not.toBeNull();
+      const undeclared = { goalId: undefined };
+      expect(final('2026-10-20', history(9), undeclared)).toBeNull();
+      const confirmed = racePrepRule.evaluate(ctxOf(TODAY, history(9), { races: [upcoming('2026-10-20', undeclared)], confirmedIds: ['race-up'] }));
+      expect(confirmed).not.toBeNull();
     });
 
     it('gives only pace and taper advice, without criticism', () => {
@@ -94,6 +95,14 @@ describe('race_prep', () => {
         expect(out.athleteText).toContain('Pars sur une allure régulière');
       }
     });
+  });
+
+  it('produces no card at all for an undeclared, unconfirmed upcoming race (12 days or 9 days out)', () => {
+    const undeclared = { goalId: undefined };
+    for (const date of ['2026-10-22', '2026-10-19']) {
+      expect(racePrepRule.evaluate(ctxOf(TODAY, history(9), { races: [upcoming(date, undeclared)] }))).toBeNull();
+      expect(racePrepRule.evaluate(ctxOf(TODAY, history(9), { races: [upcoming(date)] }))).not.toBeNull();
+    }
   });
 
   it('ignores runs after today and non-run activities', () => {

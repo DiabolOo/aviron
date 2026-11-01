@@ -155,7 +155,7 @@ describe('synthetic profiles', () => {
 
   it('equipped athlete: too many hard runs and a short long run before a half-marathon', () => {
     const acts = block([[0, 10, 145], [2, 10, 172], [4, 10, 145], [6, 10, 172]], 14);
-    const upcoming = candidate({ id: 'race-up', date: '2026-12-05', status: 'upcoming', confidence: 'medium' });
+    const upcoming = candidate({ id: 'race-up', date: '2026-12-05', status: 'upcoming', confidence: 'medium', goalId: 'g1' });
     const ctx = ctxOf(TODAY, acts, { races: [upcoming] });
     const out = evaluateInsights(ctx);
     const ids = out.map((i) => i.ruleId);
