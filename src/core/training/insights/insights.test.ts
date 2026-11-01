@@ -1,18 +1,21 @@
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import type { Activity } from '../../schemas';
-import { addDays, detectRaces } from '../engine';
+import { addDays, detectRaces, racePrep } from '../engine';
 import type { TrainingInsight } from '../types';
 import {
   aerobicTrendCopy,
   cautiousStartCopy,
+  confirmRaceCopy,
   consistencyCopy,
   dataQualityNoHrCopy,
   fastStartCopy,
   gapResumeCopy,
   intensityTooHighCopy,
+  racePrepFinalCopy,
   racePrepPastCopy,
-  racePrepUpcomingCopy,
+  racePrepReachableCopy,
+  racePrepShortCopy,
   volumeRampCopy,
 } from './copy.fr';
 import { evaluateInsights, rankInsights } from './evaluate';
@@ -23,6 +26,7 @@ import { gapResume } from './rules/gapResume';
 import { intensityTooHigh } from './rules/intensityTooHigh';
 import { racePacing } from './rules/racePacing';
 import { racePrepRule } from './rules/racePrep';
+import { confirmRace } from './rules/confirmRace';
 import { consistency } from './rules/consistency';
 import { volumeRamp } from './rules/volumeRamp';
 import { candidate, ctxOf, run } from './testUtils';
@@ -71,17 +75,27 @@ const COPY_VARIANTS: Record<string, InsightCopy[]> = {
     dataQualityNoHrCopy({ missing: 5, window: 5, streak: 11, since: '2026-06-03' }),
     dataQualityNoHrCopy({ missing: 3, window: 5, streak: 1, since: '2026-10-01' }),
   ],
-  intensity_too_high: [intensityTooHighCopy({ sharePct: 53, minKm: 5, thresholdBpm: 160, easyBpm: 150, total: 49, weeks: 12 })],
+  intensity_too_high: [
+    intensityTooHighCopy({ sharePct: 53, minKm: 5, thresholdBpm: 160, easyBpm: 150, total: 49, weeks: 12, approx: false }),
+    intensityTooHighCopy({ sharePct: 53, minKm: 5, thresholdBpm: 150, easyBpm: 140, total: 49, weeks: 12, approx: true }),
+  ],
+  confirm_race: [confirmRaceCopy({ distanceKm: 21.9, date: '2026-10-11' })],
   race_pacing: [
     fastStartCopy({ gapPct: 6.2, firstPaceSec: 321, secondPaceSec: 341, evenPaceSec: 331 }),
     cautiousStartCopy({ gapPct: 5.8, firstQuarterPaceSec: 350, averagePaceSec: 331 }),
   ],
   race_prep: [
-    racePrepUpcomingCopy({ longestKm: 9.2, raceKm: 21.0975, sharePct: 44, weeks: 8, daysToRace: 1, tooLate: true }),
-    racePrepUpcomingCopy({ longestKm: 9.2, raceKm: 21.0975, sharePct: 44, weeks: 8, daysToRace: 40, tooLate: false }),
+    racePrepReachableCopy({ longestKm: 9.2, raceKm: 21.0975, sharePct: 44, weeks: 8, weeksLeft: 5, nextKm: 10.1 }),
+    racePrepShortCopy({ longestKm: 9.2, raceKm: 21.0975, sharePct: 44, weeks: 8, weeksLeft: 2 }),
+    racePrepShortCopy({ longestKm: 9.2, raceKm: 21.0975, sharePct: 44, weeks: 8, weeksLeft: 1 }),
+    racePrepFinalCopy({ daysToRace: 1 }),
+    racePrepFinalCopy({ daysToRace: 8, targetPaceSec: 299 }),
     racePrepPastCopy({ longestKm: 9.2, raceKm: 21.0975, sharePct: 44, weeks: 8, targetKm: 12.7 }),
   ],
-  gap_resume: [gapResumeCopy({ days: 21, lastDate: '2026-10-11', firstSessionMin: 20 })],
+  gap_resume: [
+    gapResumeCopy({ days: 21, lastDate: '2026-10-11', resumeMin: 42, relative: { ratioPct: 70, usualMin: 60 } }),
+    gapResumeCopy({ days: 35, lastDate: '2026-09-27', resumeMin: 20 }),
+  ],
   volume_ramp: [volumeRampCopy({ weekKm: 32.4, baselineKm: 22.1, rampPct: 47, nextWeekKm: 24, weeks: 4 })],
   consistency: (['good', 'building', 'restart'] as const).flatMap((tier) =>
     [1, 5, 8].map((active) => consistencyCopy({ tier, active, window: 8, sessions: 12 })),
@@ -118,19 +132,17 @@ function block(plan: [number, number, number | undefined][], weeks: number, unti
 const FC_RULES = ['intensity_too_high', 'aerobic_trend'];
 
 describe('synthetic profiles', () => {
-  it('beginner without HR: data quality advice, no HR-based rule', () => {
+  it('beginner without HR: no HR-based rule, not even the data quality card', () => {
     const acts = block([[2, 5, undefined], [5, 4, undefined]], 12);
     const ctx = ctxOf(TODAY, acts, { profile: { level: 'beginner', maxHr: undefined, ageYears: 30 } });
     const out = evaluateInsights(ctx);
     const ids = out.map((i) => i.ruleId);
-    expect(ids).toContain('data_quality_no_hr');
     expect(ids).toContain('consistency');
-    for (const r of FC_RULES) expect(ids).not.toContain(r);
+    for (const r of ['data_quality_no_hr', ...FC_RULES]) expect(ids).not.toContain(r);
     for (const i of out) {
       lintInsight(i, TODAY);
       expect(i.message).toBe(i.beginnerText);
     }
-    expect(rankInsights(out)[0].ruleId).toBe('data_quality_no_hr');
   });
 
   it('Sunday runner: regular and easy, only a consistency card', () => {
@@ -156,6 +168,18 @@ describe('synthetic profiles', () => {
   });
 });
 
+describe('break in training', () => {
+  it('shows gap_resume and drops consistency, which would otherwise fire', () => {
+    const acts = block([[0, 8, 145], [3, 8, 145]], 12, addDays(TODAY, -20));
+    const ctx = ctxOf(TODAY, acts);
+    expect(consistency.evaluate(ctx)).not.toBeNull();
+    expect(gapResume.evaluate(ctx)).not.toBeNull();
+    const ids = evaluateInsights(ctx).map((i) => i.ruleId);
+    expect(ids).toContain('gap_resume');
+    expect(ids).not.toContain('consistency');
+  });
+});
+
 describe('rules with insufficient data', () => {
   const empty: InsightContext = ctxOf(TODAY, []);
   it.each(INSIGHT_RULES.map((r) => [r.ruleId, r] as const))('%s returns null on an empty history', (_id, rule) => {
@@ -164,7 +188,7 @@ describe('rules with insufficient data', () => {
 
   it('exposes the rules in the documented order', () => {
     expect(INSIGHT_RULES.map((r) => r.ruleId)).toEqual([
-      dataQualityNoHr, intensityTooHigh, racePacing, racePrepRule, gapResume, volumeRamp, consistency, aerobicTrend,
+      dataQualityNoHr, intensityTooHigh, confirmRace, racePacing, racePrepRule, gapResume, volumeRamp, consistency, aerobicTrend,
     ].map((r) => r.ruleId));
   });
 });
@@ -180,28 +204,54 @@ const snapshot: { activities: Activity[] } | null = existsSync(snapshotPath)
   const acts = snapshot!.activities;
   const profile = { level: 'advanced' as const, maxHr: 201, maxHrSource: 'observed' as const, ageYears: 40 };
   const races = detectRaces(acts, { maxHr: 201 });
+  const semis = races.filter((r) => Math.abs(r.officialDistanceKm - 21.0975) < 0.01);
+  const confirmedIds = semis.map((r) => r.activityId!);
 
-  it('2026-11-01: no-HR warning fires, intensity stays silent', () => {
-    const ctx = ctxOf('2026-11-01', acts, { profile, races });
+  it('detects his 4 half-marathons', () => {
+    expect(semis).toHaveLength(4);
+  });
+
+  it('2026-11-01: no-HR card fires, intensity stays silent', () => {
+    const ctx = ctxOf('2026-11-01', acts, { profile, races, confirmedIds });
     const noHr = dataQualityNoHr.evaluate(ctx)!;
     expect(noHr).not.toBeNull();
+    expect(noHr.id).toBe('data_quality_no_hr:2026-06-03');
     expect(noHr.evidence[1].numeric).toBe(11);
     expect(noHr.evidence[1].value).toBe('11 depuis le 3 juin 2026');
-    expect(noHr.athleteText).toContain('11 courses d’affilée sans FC depuis le 3 juin 2026');
+    expect(noHr.athleteText).toContain('11 courses sans FC depuis le 3 juin 2026.');
     expect(intensityTooHigh.evaluate(ctx)).toBeNull();
     for (const i of evaluateInsights(ctx)) lintInsight(i, '2026-11-01');
   });
 
+  it('an unconfirmed half-marathon only asks for confirmation; once confirmed, the debrief can run', () => {
+    const unconfirmed = ctxOf('2026-11-01', acts, { profile, races });
+    const ask = confirmRace.evaluate(unconfirmed)!;
+    expect(ask).not.toBeNull();
+    expect(ask.evidence[0].numeric).toBeGreaterThan(21);
+    expect(racePacing.evaluate(unconfirmed)).toBeNull();
+    expect(racePrepRule.evaluate(unconfirmed)).toBeNull();
+    const confirmed = ctxOf('2026-11-01', acts, { profile, races, confirmedIds });
+    expect(confirmRace.evaluate(confirmed)).toBeNull();
+  });
+
   it('2026-10-10 with a synthetic half-marathon on 2026-10-11: race prep fires', () => {
     const upcoming = candidate({ id: 'race-synth', date: '2026-10-11', status: 'upcoming', confidence: 'medium', name: 'Semi' });
-    const ctx = ctxOf('2026-10-10', acts, { profile, races: [...races.filter((r) => r.date <= '2026-10-10'), upcoming] });
+    const ctx = ctxOf('2026-10-10', acts, { profile, races: [...races.filter((r) => r.date <= '2026-10-10'), upcoming], confirmedIds });
     const prep = racePrepRule.evaluate(ctx)!;
     expect(prep).not.toBeNull();
-    const [longest, share, total] = prep.evidence;
-    expect(total.numeric).toBeCloseTo(37.3, 1);
-    expect(longest.numeric).toBeGreaterThan(9.1);
-    expect(longest.numeric).toBeLessThan(9.2);
-    expect(share.value).toBe('43 %');
+    expect(prep.title).toBe('Dernière ligne droite : allure et affûtage');
+    const [days] = prep.evidence;
+    expect(days.numeric).toBe(1);
     lintInsight(prep, '2026-10-10');
+  });
+
+  it('engine figures behind that card: 37,3 km over 8 weeks, longest run 9,2 km (about 43 %)', () => {
+    const upToToday = acts.filter((a) => a.date <= '2026-10-10');
+    const prep = racePrep(upToToday, { id: 'r', name: 'Semi', date: '2026-10-11', officialDistanceKm: 21.0975, status: 'upcoming' }, 8);
+    const longest = Math.max(...prep.weeks.map((w) => w.longestRunKm));
+    expect(prep.totalKm).toBeCloseTo(37.3, 1);
+    expect(longest).toBeGreaterThan(9.1);
+    expect(longest).toBeLessThan(9.2);
+    expect(Math.round((longest / 21.0975) * 100)).toBe(43);
   });
 });

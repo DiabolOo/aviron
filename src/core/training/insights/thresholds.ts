@@ -39,15 +39,19 @@ export const PREP_WINDOW_WEEKS = 8;
 export const PREP_LONGEST_RUN_RATIO = 0.6;
 /** Minimum de courses à pied dans la fenêtre : en dessous, l'historique est trop mince pour conclure. */
 export const PREP_MIN_SESSIONS = 2;
-/** À moins de 10 jours de la course il est trop tard pour allonger : le conseil change. */
+/** À 10 jours ou moins de la course, aucune critique : seulement allure et affûtage. */
 export const PREP_TOO_LATE_DAYS = 10;
 
 /** Deux semaines sans activité : assez pour parler d'une coupure, pas d'un simple jour de repos. */
 export const GAP_RESUME_MIN_DAYS = 14;
 /** Il faut avoir déjà ≥ 3 activités enregistrées pour parler de « reprise » (sinon null). */
 export const GAP_MIN_PRIOR_ACTIVITIES = 3;
-/** Durée conseillée de la séance de reprise, volontairement courte. */
-export const GAP_FIRST_SESSION_MIN = 20;
+/** Coupure de 14 à 27 jours : reprise à 70 % de la séance habituelle (médiane des 8 semaines avant la coupure). */
+export const GAP_RESUME_RATIO = 0.7;
+/** Dernier jour de coupure « courte » (14–27 j) ; à partir de 28 jours, séance de reprise fixe. */
+export const GAP_SHORT_MAX_DAYS = 27;
+/** Coupure de 28 jours ou plus : première séance volontairement courte, 20 minutes. */
+export const GAP_LONG_FIRST_SESSION_MIN = 20;
 /** Fenêtre précédant la coupure, pour rappeler le niveau d'activité d'avant. */
 export const GAP_CONTEXT_WEEKS = 8;
 
@@ -75,3 +79,10 @@ export const CONSISTENCY_MIN_SESSIONS = 3;
 export const AEROBIC_TREND_MIN_PCT = 5;
 /** Minimum de séances (≥ 3 par trimestre, comme `reliable` de l'engine) pour comparer deux trimestres. */
 export const AEROBIC_TREND_MIN_SESSIONS = 6;
+
+/** Croissance maximale conseillée de la sortie longue : +10 % par semaine. */
+export const PREP_WEEKLY_GROWTH = 0.1;
+/** Un rejet de carte masque la règle concernée 28 jours, quel que soit l'id (la période) rejeté. */
+export const INSIGHT_MUTE_DAYS = 28;
+/** Une candidate de course non confirmée n'est proposée à la confirmation que pendant 28 jours. */
+export const CONFIRM_RACE_MAX_AGE_DAYS = 28;

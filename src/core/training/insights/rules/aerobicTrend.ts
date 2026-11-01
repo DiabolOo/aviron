@@ -12,6 +12,7 @@ function previousQuarter(key: string): string {
 }
 
 /**
+ * Gravité 'info' dans les deux sens (une baisse a plusieurs causes possibles, sans prescription).
  * Variation d'efficacité aérobie ≥ 5 % entre le trimestre courant (ou le précédent s'il n'est pas
  * encore fiable) et le trimestre qui le précède. Null si l'un des deux n'est pas `reliable`.
  */
@@ -35,7 +36,7 @@ export const aerobicTrend: InsightRuleDef = {
       ruleId: RULE_ID,
       periodKey: latestKey,
       source: 'trend',
-      severity: variation > 0 ? 'info' : 'notice',
+      severity: 'info',
       copy: aerobicTrendCopy({ variationPct: variation, latest: latestKey, base: base.quarter }),
       evidence: [
         { label: AEROBIC_LABELS.efficiency(latestKey), value: nf(latest.ef, 3), numeric: latest.ef },

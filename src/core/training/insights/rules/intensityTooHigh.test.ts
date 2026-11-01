@@ -40,10 +40,33 @@ describe('intensity_too_high', () => {
     expect(out.confidence).toBe(5 / 8);
   });
 
-  it('escalates to warning at 60 % and falls back on the Tanaka estimate', () => {
+  it('escalates to warning at 60 % and falls back on the Tanaka estimate with « environ »', () => {
     const ctx = ctxOf(TODAY, runs([160, 165, 170, 150, 148]), { profile: { maxHr: undefined, ageYears: 30 } });
     const out = intensityTooHigh.evaluate(ctx)!;
     expect(out.severity).toBe('warning');
-    expect(out.evidence[1].numeric).toBe(187);
+    expect(out.evidence[1]).toMatchObject({ numeric: 187, label: 'FC max utilisée (estimée)' });
+    expect(out.athleteText).toContain('dépassent environ 150 bpm');
+    expect(out.athleteText).toContain('ta FC max estimée');
+    expect(out.athleteText).toContain('sous environ 140 bpm');
+  });
+
+  it('takes max(observed, Tanaka) unless the max HR is configured', () => {
+    const hrs = [170, 175, 150, 148, 145];
+    const low = (source: 'observed' | 'configured' | 'estimated') =>
+      intensityTooHigh.evaluate(ctxOf(TODAY, runs(hrs), { profile: { maxHr: 180, maxHrSource: source, ageYears: 20 } }))!;
+    // Tanaka à 20 ans = 194
+    expect(low('observed').evidence[1].numeric).toBe(194);
+    expect(low('observed').athleteText).toContain('environ');
+    expect(low('estimated').evidence[1].numeric).toBe(194);
+    expect(low('configured').evidence[1].numeric).toBe(180);
+    expect(low('configured').athleteText).not.toContain('environ');
+    const high = intensityTooHigh.evaluate(ctxOf(TODAY, runs(hrs), { profile: { maxHr: 201, maxHrSource: 'observed', ageYears: 40 } }))!;
+    expect(high.evidence[1].numeric).toBe(201);
+    expect(high.athleteText).not.toContain('environ');
+  });
+
+  it('says « environ » when an estimated max HR is stored in the profile', () => {
+    const ctx = ctxOf(TODAY, runs([170, 175, 150, 148, 145]), { profile: { maxHr: 180, maxHrSource: 'estimated', ageYears: 40 } });
+    expect(intensityTooHigh.evaluate(ctx)!.athleteText).toContain('environ');
   });
 });

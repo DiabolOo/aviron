@@ -1,5 +1,5 @@
 import { cautiousStartCopy, fastStartCopy, nf, PACING_LABELS, paceFr } from '../copy.fr';
-import { buildInsight, round1 } from '../helpers';
+import { buildInsight, isConfirmedRace, round1 } from '../helpers';
 import { PACING_GAP_PCT, PACING_MAX_AGE_DAYS, PACING_MIN_COVERAGE, PACING_MIN_SPLITS } from '../thresholds';
 import type { InsightRuleDef } from '../types';
 import { daysBetween, raceDebrief } from '../../engine';
@@ -7,10 +7,10 @@ import { daysBetween, raceDebrief } from '../../engine';
 export const RULE_ID = 'race_pacing';
 
 /**
- * Dernière course confirmée (confiance 'high') des 28 derniers jours, avec temps de passage :
+ * Dernière course confirmée ou déclarée (jamais une simple candidate) des 28 derniers jours, avec temps de passage :
  * - 2e moitié plus lente de > 5 % que la 1re → départ trop rapide ;
- * - sinon 1er quart plus lent de > 5 % que la moyenne (moyenne des deux moitiés) → départ trop prudent.
- * Allures recalées sur la distance officielle ; les écarts sont des rapports, donc identiques à la mesure brute.
+ * - sinon 1er quart plus lent de > 5 % que la moyenne (allure officielle de la course, sinon moyenne des deux moitiés) → départ trop prudent.
+ * Allures affichées = officialPaceSec (recalées sur la distance officielle) ; les écarts sont des rapports.
  */
 export const racePacing: InsightRuleDef = {
   ruleId: RULE_ID,
@@ -19,7 +19,7 @@ export const racePacing: InsightRuleDef = {
       .filter(
         (r) =>
           r.status === 'completed' &&
-          r.confidence === 'high' &&
+          isConfirmedRace(ctx, r) &&
           r.date <= ctx.today &&
           daysBetween(r.date, ctx.today) <= PACING_MAX_AGE_DAYS,
       )
@@ -32,14 +32,14 @@ export const racePacing: InsightRuleDef = {
       const distanceKm = race.measuredDistanceKm ?? activity.distanceKm ?? race.officialDistanceKm;
       if (splits[splits.length - 1].km < PACING_MIN_COVERAGE * distanceKm) continue;
 
-      const { halves, bands } = raceDebrief(race, activity);
+      const { halves, bands, officialPaceSec } = raceDebrief(race, activity);
       const q1 = bands[0].officialPaceSec;
       if (!halves || q1 === undefined) continue;
 
       const first = halves.first.officialPaceSec;
       const second = halves.second.officialPaceSec;
-      const evenPace = Math.round((first + second) / 2);
-      const common = { ctx, ruleId: RULE_ID, periodKey: race.id, source: 'coach' as const, sessionsUsed: 1, minSessions: 1 };
+      const evenPace = officialPaceSec ?? Math.round((first + second) / 2);
+      const common = { ctx, ruleId: RULE_ID, periodKey: race.id, source: 'trend' as const, sessionsUsed: 1, minSessions: 1 };
 
       const slowdown = round1((second / first - 1) * 100);
       if (slowdown > PACING_GAP_PCT) {

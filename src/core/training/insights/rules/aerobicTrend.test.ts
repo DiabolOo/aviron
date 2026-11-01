@@ -31,14 +31,17 @@ describe('aerobic_trend', () => {
     expect(out.id).toBe('aerobic_trend:2026-Q4');
     expect(out.severity).toBe('info');
     expect(out.evidence[2].numeric).toBe(10);
-    expect(out.athleteText).toContain('+10,0 %');
+    expect(out.athleteText).toContain('À FC égale, tu cours 10,0 % plus vite');
     expect(out.athleteText).toContain('T4 2026 vs T3 2026');
   });
 
   it('reports a decline as notice', () => {
     const out = aerobicTrend.evaluate(ctxOf(TODAY, [...q3(5), ...q4(5.5)]))!;
-    expect(out.severity).toBe('notice');
+    expect(out.severity).toBe('info');
     expect(out.evidence[2].numeric).toBeLessThan(0);
+    expect(out.athleteText).toContain('moins vite');
+    expect(out.athleteText).toContain('Plusieurs causes possibles (chaleur, fatigue, parcours)');
+    expect(out.message).not.toMatch(/Ajoute|Fais|Garde|Reprends/);
     expect(out.title).toContain('moins vite');
   });
 

@@ -18,8 +18,8 @@ export const profile = (over: Partial<AthleteProfile> = {}): AthleteProfile => (
 export const ctxOf = (
   today: string,
   activities: Activity[],
-  over: { profile?: Partial<AthleteProfile>; races?: RaceCandidate[] } = {},
-): InsightContext => ({ today, activities, profile: profile(over.profile), races: over.races ?? [] });
+  over: { profile?: Partial<AthleteProfile>; races?: RaceCandidate[]; confirmedIds?: string[] } = {},
+): InsightContext => ({ today, activities, profile: profile(over.profile), races: over.races ?? [], confirmedIds: over.confirmedIds });
 
 export function candidate(over: Partial<RaceCandidate> & Pick<RaceCandidate, 'id' | 'date'>): RaceCandidate {
   return {

@@ -1,12 +1,15 @@
-import { dateFr, dataQualityNoHrCopy, EVIDENCE_LABELS } from '../copy.fr';
-import { buildInsight, hasHr, pastRuns } from '../helpers';
+import { dataQualityNoHrCopy, dateFr, EVIDENCE_LABELS } from '../copy.fr';
+import { buildInsight, hasHr, pastActivities, pastRuns } from '../helpers';
 import { NO_HR_MIN_MISSING, NO_HR_WINDOW_RUNS } from '../thresholds';
 import type { InsightRuleDef } from '../types';
-import { weekKey } from '../../engine';
 
 export const RULE_ID = 'data_quality_no_hr';
 
-/** ≥ 3 des 5 dernières courses sans FC. Null s'il y a moins de 5 courses. */
+/**
+ * ≥ 3 des 5 dernières courses sans FC. Null s'il y a moins de 5 courses ou si l'historique ne contient
+ * aucune séance avec FC (pas de mesure à « perdre » : un appareil sans capteur n'est pas un problème de données).
+ * periodKey = date de la dernière séance avec FC.
+ */
 export const dataQualityNoHr: InsightRuleDef = {
   ruleId: RULE_ID,
   evaluate(ctx) {
@@ -15,17 +18,16 @@ export const dataQualityNoHr: InsightRuleDef = {
     const missing = runs.slice(-NO_HR_WINDOW_RUNS).filter((a) => !hasHr(a)).length;
     if (missing < NO_HR_MIN_MISSING) return null;
 
-    // Série en cours : courses consécutives sans FC depuis la dernière course avec FC.
-    let streak = 0;
-    while (streak < runs.length && !hasHr(runs[runs.length - 1 - streak])) streak++;
-    const lastWithHr = streak < runs.length ? runs[runs.length - 1 - streak] : undefined;
-    const since = (lastWithHr ?? runs[0]).date;
+    const lastWithHr = [...pastActivities(ctx)].reverse().find(hasHr);
+    if (!lastWithHr) return null;
+    const since = lastWithHr.date;
+    const streak = runs.filter((a) => a.date >= since && !hasHr(a)).length;
 
     return buildInsight({
       ctx,
       ruleId: RULE_ID,
-      periodKey: weekKey(ctx.today),
-      source: 'coach',
+      periodKey: since,
+      source: 'trend',
       severity: 'notice',
       copy: dataQualityNoHrCopy({ missing, window: NO_HR_WINDOW_RUNS, streak, since }),
       evidence: [

@@ -1,5 +1,5 @@
 import type { TrainingInsight } from '../types';
-import { rankInsights } from './evaluate';
+import { computeMutedRuleIds, rankInsights } from './evaluate';
 
 function ins(ruleId: string, severity: TrainingInsight['severity'], date = '2026-11-01', periodKey = 'p'): TrainingInsight {
   return {
@@ -26,5 +26,30 @@ describe('rankInsights', () => {
     const out = rankInsights(list, { max: 5 });
     expect(out.map((i) => i.id)).toEqual(['a:y', 'b:p']);
     expect(list).toEqual(copy);
+  });
+
+  it('drops muted rules whatever the insight id', () => {
+    const list = [ins('a', 'warning', '2026-11-01', 'x'), ins('b', 'info'), ins('c', 'notice')];
+    expect(rankInsights(list, { mutedRuleIds: new Set(['a']) }).map((i) => i.ruleId)).toEqual(['c', 'b']);
+  });
+});
+
+describe('computeMutedRuleIds', () => {
+  const rejections = [
+    { insightId: 'intensity_too_high:2026-W40', rejectedAt: '2026-10-05' },
+    { insightId: 'gap_resume:2026-09-10', rejectedAt: '2026-09-20' },
+    { insightId: 'race_prep:race-up', rejectedAt: '2026-11-05' },
+  ];
+
+  it('mutes a rule for 28 days after a rejection, regardless of the period key', () => {
+    const muted = computeMutedRuleIds(rejections, '2026-11-01');
+    expect([...muted]).toEqual(['intensity_too_high']);
+    const list = [ins('intensity_too_high', 'warning', '2026-11-01', '2026-W44')];
+    expect(rankInsights(list, { mutedRuleIds: muted })).toEqual([]);
+  });
+
+  it('unmutes after 28 days', () => {
+    expect(computeMutedRuleIds(rejections, '2026-11-02').size).toBe(0);
+    expect(computeMutedRuleIds(rejections, '2026-11-01').has('intensity_too_high')).toBe(true);
   });
 });

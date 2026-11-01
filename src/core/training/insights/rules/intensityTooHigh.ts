@@ -1,5 +1,5 @@
 import { INTENSITY_LABELS, intensityTooHighCopy, nf } from '../copy.fr';
-import { buildInsight, hasHr, pastRuns, resolveMaxHr } from '../helpers';
+import { buildInsight, effectiveMaxHr, hasHr, pastRuns } from '../helpers';
 import {
   INTENSITY_EASY_HR_RATIO,
   INTENSITY_HIGH_HR_RATIO,
@@ -10,19 +10,21 @@ import {
   INTENSITY_WINDOW_WEEKS,
 } from '../thresholds';
 import type { InsightRuleDef } from '../types';
-import { addDays, estimateMaxHr, shareAboveHr, weekKey } from '../../engine';
+import { addDays, shareAboveHr, weekKey } from '../../engine';
 
 export const RULE_ID = 'intensity_too_high';
 
 /**
  * Sur 12 semaines : ≥ 4 courses > 5 km avec FC, dont ≥ 40 % à plus de 80 % de la FC max.
+ * FC max effective : configurée, sinon max(observée, Tanaka) ; textes en « environ » si estimée.
  * Null sans FC max connue ou estimable, ou sans assez de courses avec FC.
  */
 export const intensityTooHigh: InsightRuleDef = {
   ruleId: RULE_ID,
   evaluate(ctx) {
-    const maxHr = resolveMaxHr(ctx, estimateMaxHr);
-    if (!maxHr) return null;
+    const resolved = effectiveMaxHr(ctx);
+    if (!resolved) return null;
+    const { maxHr, approx } = resolved;
     const from = addDays(ctx.today, -(INTENSITY_WINDOW_WEEKS * 7 - 1));
     const runs = pastRuns(ctx).filter(
       (a) => a.date >= from && (a.distanceKm ?? 0) > INTENSITY_MIN_RUN_KM && hasHr(a),
@@ -48,6 +50,7 @@ export const intensityTooHigh: InsightRuleDef = {
         easyBpm,
         total: share.total,
         weeks: INTENSITY_WINDOW_WEEKS,
+        approx,
       }),
       evidence: [
         {
@@ -55,7 +58,7 @@ export const intensityTooHigh: InsightRuleDef = {
           value: `${share.above} / ${share.total} (${nf(share.pct)} %)`,
           numeric: share.pct,
         },
-        { label: INTENSITY_LABELS.maxHr, value: `${maxHr} bpm`, numeric: maxHr },
+        { label: INTENSITY_LABELS.maxHr(approx), value: `${maxHr} bpm`, numeric: maxHr },
         { label: INTENSITY_LABELS.easy, value: `${easyBpm} bpm`, numeric: easyBpm },
       ],
       sessionsUsed: share.total,

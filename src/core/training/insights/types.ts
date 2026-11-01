@@ -7,8 +7,10 @@ export interface InsightContext {
   today: string;
   activities: Activity[];
   profile: AthleteProfile;
-  /** courses candidates ou à venir ; les règles de course ne retiennent que celles de confiance 'high' */
+  /** courses candidates ou à venir */
   races: RaceCandidate[];
+  /** ids (d'activité ou de course) confirmés comme courses par l'utilisateur ; une course déclarée (goalId) l'est aussi */
+  confirmedIds?: readonly string[];
 }
 
 /** Renvoie null si les données sont insuffisantes (jamais de chiffre approximatif). */
