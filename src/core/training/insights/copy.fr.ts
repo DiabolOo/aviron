@@ -39,3 +39,28 @@ export function dataQualityNoHrCopy(p: { missing: number; window: number; streak
     why: 'Sans fréquence cardiaque, je ne peux pas juger si tes sorties sont assez faciles ni suivre ta progression. Les conseils d’intensité et de tendance restent donc muets tant que la mesure manque. Tes distances et tes temps, eux, sont bien pris en compte.',
   };
 }
+
+// ─── intensity_too_high ───────────────────────────────────────────────────────
+
+export const INTENSITY_LABELS = {
+  share: (minKm: number, bpm: number) => `Courses > ${minKm} km au-dessus de ${bpm} bpm`,
+  maxHr: 'FC max utilisée',
+  easy: 'FC conseillée pour une sortie facile',
+};
+
+export function intensityTooHighCopy(p: {
+  sharePct: number;
+  minKm: number;
+  thresholdBpm: number;
+  easyBpm: number;
+  total: number;
+  weeks: number;
+}): InsightCopy {
+  return {
+    title: 'Tes sorties sont souvent trop rapides',
+    beginnerText:
+      'Tes sorties sont souvent un peu rapides. Ralentis sur l’une d’elles : tu dois pouvoir parler en courant.',
+    athleteText: `${pct(p.sharePct)} de tes courses de plus de ${p.minKm} km dépassent ${p.thresholdBpm} bpm de moyenne (80 % de ta FC max). Fais-en une sous ${p.easyBpm} bpm.`,
+    why: `Quand la plupart des sorties sont soutenues, le corps récupère moins bien et progresse moins vite. Garder une ou deux sorties vraiment faciles par semaine donne en général de meilleurs résultats. Ce constat porte sur tes ${p.total} courses de plus de ${p.minKm} km avec mesure cardiaque des ${p.weeks} dernières semaines.`,
+  };
+}
