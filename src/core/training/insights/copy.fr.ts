@@ -98,3 +98,53 @@ export function cautiousStartCopy(p: { gapPct: number; firstQuarterPaceSec: numb
     why: 'Partir un peu plus doucement que sa moyenne est souvent judicieux, mais ici l’écart dépasse 5 %. Il peut laisser des forces inutilisées en fin de course. À toi de voir si c’était voulu (foule, côte au départ).',
   };
 }
+
+// ─── race_prep ────────────────────────────────────────────────────────────────
+
+export const PREP_LABELS = {
+  longest: (weeks: number) => `Plus longue sortie (${weeks} sem.)`,
+  share: 'Part de la distance de course',
+  total: (weeks: number) => `Volume sur ${weeks} semaines`,
+  race: 'Distance de course',
+};
+
+export function racePrepUpcomingCopy(p: {
+  longestKm: number;
+  raceKm: number;
+  sharePct: number;
+  weeks: number;
+  daysToRace: number;
+  tooLate: boolean;
+}): InsightCopy {
+  const why = `Les sorties longues habituent le corps à tenir la durée de la course. En dessous de 60 % de la distance, la fin de course peut devenir plus difficile. Ce calcul porte sur tes courses des ${p.weeks} dernières semaines.`;
+  const title = 'Ta sortie longue est courte pour cette course';
+  if (p.tooLate) {
+    return {
+      title,
+      beginnerText: `Ta plus longue sortie récente fait ${km(p.longestKm)} pour une course de ${km(p.raceKm)}. Pars tranquillement et garde de l’énergie pour la fin.`,
+      athleteText: `Plus longue sortie des ${p.weeks} dernières semaines : ${km(p.longestKm)}, soit ${pct(p.sharePct)} des ${km(p.raceKm)} de la course. À J-${p.daysToRace}, ne cherche pas à rattraper : pars sur une allure facile.`,
+      why,
+    };
+  }
+  return {
+    title,
+    beginnerText: `Ta plus longue sortie récente fait ${km(p.longestKm)} pour une course de ${km(p.raceKm)}. Rallonge ta sortie la plus longue d’un kilomètre chaque semaine.`,
+    athleteText: `Plus longue sortie des ${p.weeks} dernières semaines : ${km(p.longestKm)}, soit ${pct(p.sharePct)} des ${km(p.raceKm)} de la course (seuil : 60 %). Rallonge ta sortie longue d’1 km par semaine.`,
+    why,
+  };
+}
+
+export function racePrepPastCopy(p: {
+  longestKm: number;
+  raceKm: number;
+  sharePct: number;
+  weeks: number;
+  targetKm: number;
+}): InsightCopy {
+  return {
+    title: 'Ta préparation manquait de sorties longues',
+    beginnerText: `Avant ta course, ta plus longue sortie faisait ${km(p.longestKm)} pour ${km(p.raceKm)} de course. La prochaine fois, prévois une sortie d’au moins ${km(p.targetKm)} avant le jour J.`,
+    athleteText: `Plus longue sortie des ${p.weeks} semaines avant la course : ${km(p.longestKm)}, soit ${pct(p.sharePct)} de la distance. Vise au moins ${km(p.targetKm)} (60 %) avant la prochaine.`,
+    why: `Les sorties longues habituent le corps à tenir la durée de la course. En dessous de 60 % de la distance, la fin de course peut devenir plus difficile. Ce bilan porte sur tes courses des ${p.weeks} semaines précédant la course.`,
+  };
+}

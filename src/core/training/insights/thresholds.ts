@@ -28,3 +28,16 @@ export const PACING_MAX_AGE_DAYS = 28;
 export const PACING_MIN_COVERAGE = 0.9;
 /** Minimum de temps de passage kilométriques pour comparer moitiés et quarts. */
 export const PACING_MIN_SPLITS = 4;
+
+/** Une course est « à venir » pour la règle de préparation si elle a lieu dans 12 semaines au plus. */
+export const PREP_UPCOMING_MAX_WEEKS = 12;
+/** Pour une course passée, le bilan de préparation reste proposé 28 jours. */
+export const PREP_REVIEW_MAX_DAYS = 28;
+/** Fenêtre de préparation analysée : les 8 semaines avant la course (ou avant aujourd'hui). */
+export const PREP_WINDOW_WEEKS = 8;
+/** La plus longue sortie devrait atteindre 60 % de la distance de course. */
+export const PREP_LONGEST_RUN_RATIO = 0.6;
+/** Minimum de courses à pied dans la fenêtre : en dessous, l'historique est trop mince pour conclure. */
+export const PREP_MIN_SESSIONS = 2;
+/** À moins de 10 jours de la course il est trop tard pour allonger : le conseil change. */
+export const PREP_TOO_LATE_DAYS = 10;
