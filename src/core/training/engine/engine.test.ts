@@ -171,6 +171,19 @@ describe('races', () => {
     expect(confirmed.find((c) => c.activityId === 'n2')).toMatchObject({ confidence: 'high' });
   });
 
+  it('21 km sans mot de course : « high » si l’allure suit l’entraînement, « medium » sinon', () => {
+    const base = [1, 2, 3].map((i) => run(`b${i}`, `2025-08-0${i}`, 12, 66)); // 5:30/km
+    const slow = { ...run('s1', '2025-10-12', 21.3, 128), name: 'Long run' }; // 6:00/km > +5 %
+    const fast = { ...run('s2', '2025-10-12', 21.3, 110), name: 'Morning Run' }; // 5:10/km
+    const named = { ...run('s3', '2025-10-12', 21.3, 128), name: 'Semi de Reims' };
+    const found = detectRaces([...base, slow, fast, named]);
+    expect(found.find((r) => r.activityId === 's1')).toMatchObject({ confidence: 'medium' });
+    expect(found.find((r) => r.activityId === 's2')).toMatchObject({ confidence: 'high' });
+    expect(found.find((r) => r.activityId === 's3')).toMatchObject({ confidence: 'high' });
+    // moins de 3 sorties de référence : rien n'infirme, la distance seule suffit
+    expect(detectRaces([slow, fast])[0].confidence).toBe('high');
+  });
+
   it('debriefs pace, HR halves and cardiac drift', () => {
     const race = detectRaces(acts, { maxHr: 201 })[0];
     const d = raceDebrief(race, raceAct);
@@ -259,18 +272,23 @@ const snapshot: { activities: Activity[] } | null = existsSync(snapshotPath)
     expect(r.gaps.find((g) => g.days === 127)).toMatchObject({ from: '2025-04-07', to: '2025-08-13' });
   });
 
-  it('detects exactly the 4 half-marathons, all high confidence', () => {
-    expect(races).toHaveLength(4);
-    expect(races.every((r) => r.confidence === 'high')).toBe(true);
+  it('detects the 4 half-marathons (3 high, 1 medium) plus the triathlon leg', () => {
+    expect(races).toHaveLength(5);
+    // « Morning Run » : 21,3 km sans mot de course et 13 % plus lente que la médiane
+    // d'entraînement → candidate moyenne, pas « high »
+    expect(byDate('2024-10-13')).toMatchObject({ confidence: 'medium' });
+    expect(byDate('2024-10-13').reasons.join(' ')).toMatch(/allure plus lente/);
     for (const [date, timeSec] of [
       ['2024-03-03', 6496], // Semi de Paris — 1h48:16
-      ['2024-10-13', 7730], // « Morning Run » — semi de Reims 2024, FC moy. 153
+      ['2024-10-13', 7730], // « Morning Run » — sortie longue probable, 2h08:50, FC moy. 153
       ['2025-10-12', 6650], // Semi Reims — 1h50:50
       ['2026-10-11', 6789], // Semi Reims — 1h53:09
     ] as const) {
       expect(byDate(date)).toMatchObject({ timeSec, officialDistanceKm: 21.0975 });
     }
-    // ni les footings ~10 km à FC élevée, ni l'affûtage de 4,6 km
+    // partie course d'un triathlon (~10 km) : candidate marquée multisport, jamais comparée
+    expect(races.find((r) => r.date === '2024-04-28')).toMatchObject({ confidence: 'medium', multisport: true });
+    // ni les footings ~10 km sans mot de course, ni l'affûtage de 4,6 km
     const absent = ['2024-03-19', '2024-03-26', '2024-11-15', '2026-02-17', '2026-04-30', '2026-05-12', '2026-10-09'];
     expect(races.filter((r) => absent.includes(r.date))).toHaveLength(0);
   });

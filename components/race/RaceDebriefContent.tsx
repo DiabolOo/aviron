@@ -8,6 +8,7 @@ import { Text } from '@/components/ui/Text';
 import { parseISODate } from '@/src/core/dates';
 import { NBSP, nbspUnits } from '@/src/core/sportFormat';
 import {
+  comparisonLabel,
   formatKmRange,
   formatPaceKm,
   formatRaceDelta,
@@ -160,10 +161,10 @@ function ComparisonRow({ row, onOpen }: { row: RaceRow; onOpen: (id: string) => 
   );
 }
 
-function Comparison({ rows, onOpen }: { rows: RaceRow[]; onOpen: (id: string) => void }) {
+function Comparison({ rows, label, onOpen }: { rows: RaceRow[]; label: string; onOpen: (id: string) => void }) {
   return (
     <View className="mt-8">
-      <Label>Toutes tes courses</Label>
+      <Label>{label}</Label>
       <Card className="mt-3 px-2 py-2">
         {rows.map((row) => (
           <ComparisonRow key={row.raceId} row={row} onOpen={onOpen} />
@@ -215,7 +216,9 @@ export function RaceDebriefContent({ view, onOpenRace }: Props) {
 
       {view.bands.length > 0 ? <Bands view={view} /> : null}
       {view.hr ? <HeartRate hr={view.hr} /> : null}
-      {view.comparison.length > 1 ? <Comparison rows={view.comparison} onOpen={onOpenRace} /> : null}
+      {view.comparison.length > 1 ? (
+        <Comparison rows={view.comparison} label={comparisonLabel(view.race.officialDistanceKm)} onOpen={onOpenRace} />
+      ) : null}
       {view.originalName ? <OriginalTitle name={view.originalName} /> : null}
     </View>
   );

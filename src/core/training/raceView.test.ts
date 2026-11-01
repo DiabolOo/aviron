@@ -2,10 +2,12 @@ import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
 import type { Activity } from '../schemas';
+import { detectRaces } from './engine';
 import {
   activityIdOfRace,
   buildRaceDebriefView,
   candidateSummaryFr,
+  comparisonLabel,
   formatKmRange,
   formatPaceKm,
   formatRaceDelta,
@@ -171,13 +173,55 @@ describe('buildRaceDebriefView', () => {
     expect(v.comparison.find((r) => r.current)?.raceId).toBe('race-a26');
   });
 
-  it('« Toutes tes courses » : toutes distances, écart et badge par distance', () => {
-    const tenK = semi('k10', '2025-05-04', 48, 10.1, false);
+  it('comparaison : seules les courses de même distance officielle sont listées', () => {
+    const tenK = { ...semi('k10', '2025-05-04', 48, 10.1, false), name: '10k de Melun' };
     const v = buildRaceDebriefView([...acts, tenK], { ...all, confirmedIds: [...all.confirmedIds, 'k10'] }, 'race-a26')!;
-    expect(v.comparison.map((r) => r.raceId)).toEqual(['race-a26', 'race-a25', 'race-k10', 'race-a24']);
-    const k = v.comparison.find((r) => r.raceId === 'race-k10')!;
-    expect(k.best).toBe(false);
-    expect(k.deltaSec).toBeUndefined();
+    expect(v.comparison.map((r) => r.raceId)).toEqual(['race-a26', 'race-a25', 'race-a24']);
+  });
+
+  it('multisport : une partie course de triathlon n’entre jamais dans les comparaisons d’un 10 km', () => {
+    const tri = { ...semi('tri', '2025-05-04', 48, 10.2, false), name: 'Triathlon M Cepoy' };
+    const tri2 = { ...semi('tri2', '2026-05-03', 46, 10.1, false), name: 'Triathlon du Léon' };
+    const tenK = { ...semi('k10', '2025-06-01', 47, 10.1, false), name: '10k de Melun' };
+    const tenK2 = { ...semi('k10b', '2026-06-01', 45, 10.0, false), name: '10k de Paris' };
+    const list = [tri, tri2, tenK, tenK2];
+    const detected = detectRaces(list);
+    expect(detected.find((r) => r.id === 'race-tri')).toMatchObject({ confidence: 'medium', multisport: true });
+    const choices = { confirmedIds: ['tri', 'tri2', 'k10', 'k10b'], rejectedIds: [] };
+    const triathlonView = buildRaceDebriefView(list, choices, 'race-tri2')!;
+    const roadView = buildRaceDebriefView(list, choices, 'race-k10b')!;
+    expect(triathlonView.comparison.map((r) => r.raceId)).toEqual(['race-tri2', 'race-tri']);
+    expect(roadView.comparison.map((r) => r.raceId)).toEqual(['race-k10b', 'race-k10']);
+  });
+
+  it('marathon : tranches sur 42,195 km, comparaison entre marathons seulement', () => {
+    const marathon = (id: string, date: string, durationMin: number): Activity => ({
+      id, name: 'Marathon de Paris', type: 'run', date, startTime: '08:00', durationMin, distanceKm: 42.3,
+      splits: Array.from({ length: 43 }, (_, i) => ({ km: Math.min(i + 1, 42.3), pace: '5:30', paceSec: 330, elevationGain: 1 })),
+    });
+    const list = [marathon('m1', '2024-04-07', 232), marathon('m2', '2025-04-06', 225)];
+    const v = buildRaceDebriefView([...acts, ...list], { confirmedIds: ['a24', 'a25', 'a26', 'm1', 'm2'], rejectedIds: [] }, 'race-m2')!;
+    expect(v.race.officialDistanceKm).toBeCloseTo(42.195);
+    expect(v.bands).toHaveLength(4);
+    expect(formatKmRange(v.bands[3].fromKm, v.bands[3].toKm)).toBe('31,6 → 42,2');
+    expect(v.comparison.map((r) => r.raceId)).toEqual(['race-m2', 'race-m1']);
+    expect(v.comparison[0].deltaSec).toBe(Math.round(225 * 60) - Math.round(232 * 60));
+    expect(v.comparison[0].best).toBe(true);
+    expect(comparisonLabel(v.race.officialDistanceKm)).toBe('Tes marathons');
+    expect(comparisonLabel(10)).toBe('Tes 10 km');
+  });
+
+  it('FC partielle : bpm sur les tranches couvertes, pas de moitiés ni de dérive sans FC des deux côtés', () => {
+    const partial = acts.map((a) =>
+      a.id === 'a25'
+        ? { ...a, splits: a.splits!.map((sp, i) => ({ ...sp, avgHr: i < 10 ? sp.avgHr : undefined })) }
+        : a,
+    );
+    const v = buildRaceDebriefView(partial, all, 'race-a25')!;
+    expect(v.bands[0].avgHr).toBeDefined();
+    expect(v.bands[1].avgHr).toBeDefined();
+    expect(v.bands[2].avgHr).toBeUndefined();
+    expect(v.hr).toBeUndefined();
   });
 
   it('ignores unconfirmed races in the comparison', () => {

@@ -276,7 +276,13 @@ export function homeRaceCard(
 
 function comparisonRows(race: RaceCandidate, races: RaceCandidate[], confirmedIds: readonly string[]): RaceRow[] {
   const all = races
-    .filter((r) => r.status === 'completed' && (r.id === race.id || isConfirmed(r, confirmedIds)))
+    .filter(
+      (r) =>
+        r.status === 'completed' &&
+        r.officialDistanceKm === race.officialDistanceKm &&
+        (r.multisport ?? false) === (race.multisport ?? false) &&
+        (r.id === race.id || isConfirmed(r, confirmedIds)),
+    )
     .sort((a, b) => a.date.localeCompare(b.date));
   if (all.length < 2) return [];
   const bestByDistance = new Map<number, number>();
@@ -362,6 +368,12 @@ export function buildRaceDebriefView(
   goal?: AthleticGoal,
 ): RaceDebriefView | undefined {
   return buildRaceDebriefViewFromRaces(activities, detectUserRaces(activities, choices), choices, raceId, profile, goal);
+}
+
+/** Titre du bloc de comparaison : « Tes semi-marathons », « Tes 10 km ». */
+export function comparisonLabel(officialKm: number): string {
+  const name = raceDistanceName(officialKm);
+  return name.endsWith('km') ? `Tes ${name}` : `Tes ${name.toLowerCase()}s`;
 }
 
 /** Candidate trop ancienne pour la carte de l'Accueil (28 jours) : elle se confirme depuis la section « Courses ». */

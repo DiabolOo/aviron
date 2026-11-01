@@ -181,7 +181,7 @@ Aux niveaux 0 et 1, **aucune donnée d'activité ne quitte le téléphone**. Le 
 - [x] Charger le snapshot dans le store derrière un drapeau de dev `EXPO_PUBLIC_USE_FIXTURE` (via un adaptateur de repository, pas d'import direct dans l'UI)
 - [ ] **Stats / Suivi › Sport** : volume par semaine, répartition des intensités, tendance d'efficacité aérobie
 - [ ] **Accueil** : carte « Analyse » avec les 2–3 constats prioritaires
-- [ ] Écran **Débrief de course** (`app/race/[id].tsx`) : allure et FC par tranche, comparaison avec les courses précédentes
+- [x] Écran **Débrief de course** (`app/race/[id].tsx`) : allure et FC par tranche, comparaison avec les courses précédentes
 - [ ] Pouce haut / bas sur chaque carte, stocké en local (champ ajouté à `partialize`)
 - **Fini quand** tu vois tes données et tes constats sur ton téléphone.
 

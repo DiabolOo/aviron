@@ -108,9 +108,9 @@ describe('Débrief de course', () => {
     expect(screen.queryByTestId('advice-why')).toBeNull();
   });
 
-  it('« Toutes tes courses » : course affichée en évidence, badge meilleure, navigation', async () => {
+  it('« Tes semi-marathons » : course affichée en évidence, badge meilleure, navigation', async () => {
     await render(<RaceDebriefBody id="race-a26" />);
-    expect(screen.getByText('Toutes tes courses')).toBeTruthy();
+    expect(screen.getByText('Tes semi-marathons')).toBeTruthy();
     expect(screen.queryByText('Courses précédentes')).toBeNull();
     expect(screen.getAllByTestId('race-row-current')).toHaveLength(1);
     expect(screen.getAllByText('Meilleure')).toHaveLength(1);

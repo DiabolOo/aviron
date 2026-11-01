@@ -18,7 +18,17 @@ const RACE_WORDS: RegExp[] = [
   /\brace\b/i,
   /foulées?/i,
   /ekiden/i,
+  /triathl/i,
 ];
+
+const MULTISPORT = /triathl/i;
+
+// Faux positifs par distance seule : une sortie longue de ~21 km n'est pas une course.
+// Une vraie course n'est pas plus de 5 % plus lente que l'allure médiane des sorties
+// à pied ≥ 8 km passées ; en dessous de 3 sorties de référence, rien n'infirme.
+const PACE_BASELINE_MIN_KM = 8;
+const PACE_BASELINE_MIN_RUNS = 3;
+const TRAINING_PACE_TOLERANCE = 1.05;
 
 export interface DetectRacesOptions {
   /** FC max : n'ajoute qu'un motif à `reasons`, ne déclenche jamais une candidate */
@@ -33,7 +43,18 @@ export interface DetectRacesOptions {
 export type RaceCandidate = Race & {
   confidence: 'high' | 'medium';
   reasons: string[];
+  /** partie course d'un triathlon : jamais mélangée aux courses à pied sèches dans les comparaisons */
+  multisport?: boolean;
 };
+
+/** Allure médiane (s/km) des courses à pied ≥ 8 km avant `before` ; undefined sous 3 sorties. */
+function trainingPaceMedianSec(activities: Activity[], before: string): number | undefined {
+  const paces = activities
+    .filter((a) => a.type === 'run' && a.date < before && (a.distanceKm ?? 0) >= PACE_BASELINE_MIN_KM && a.durationMin > 0)
+    .map((a) => (a.durationMin * 60) / (a.distanceKm as number))
+    .sort((x, y) => x - y);
+  return paces.length >= PACE_BASELINE_MIN_RUNS ? paces[Math.floor(paces.length / 2)] : undefined;
+}
 
 function nearestStandard(distanceKm: number): number | undefined {
   let best: number | undefined;
@@ -54,7 +75,8 @@ function nearKm(distanceKm: number, target: number): boolean {
 
 /**
  * Candidates courses :
- * - course à pied ≥ 19 km à ±6 % de 21,0975 ou 42,195 km → 'high' ;
+ * - course à pied ≥ 19 km à ±6 % de 21,0975 ou 42,195 km → 'high' si un mot de course
+ *   confirme ou si l'allure est cohérente avec l'entraînement (sinon 'medium') ;
  * - proche de 5 / 10 / 15 km avec un mot de course dans le nom → 'medium' ;
  * - confirmée par l'utilisateur (`confirmedIds`) → 'high' quelles que soient les distances.
  * `rejectedIds` exclut une candidate. La FC ne déclenche rien : elle ne fait
@@ -82,8 +104,16 @@ export function detectRaces(activities: Activity[], opts: DetectRacesOptions = {
       d >= 19 &&
       (nearKm(d, 21.0975) || nearKm(d, 42.195))
     ) {
-      confidence = 'high';
-      reasons.push(`distance compatible ${nearKm(d, 21.0975) ? 'semi-marathon' : 'marathon'}`);
+      const std = nearKm(d, 21.0975) ? 'semi-marathon' : 'marathon';
+      const word = RACE_WORDS.find((r) => r.test(a.name));
+      const baseline = word ? undefined : trainingPaceMedianSec(activities, a.date);
+      if (word || baseline === undefined || (a.durationMin * 60) / d <= baseline * TRAINING_PACE_TOLERANCE) {
+        confidence = 'high';
+        reasons.push(`distance compatible ${std}`);
+      } else {
+        confidence = 'medium';
+        reasons.push(`distance compatible ${std}`, 'allure plus lente que l’allure d’entraînement habituelle');
+      }
     } else {
       const std = nearestStandard(d);
       const word = std !== undefined && [5, 10, 15].includes(std) ? RACE_WORDS.find((r) => r.test(a.name)) : undefined;
@@ -108,7 +138,7 @@ export function detectRaces(activities: Activity[], opts: DetectRacesOptions = {
       timeSec: Math.round(a.durationMin * 60),
       status: 'completed',
     });
-    candidates.push({ ...race, confidence, reasons });
+    candidates.push({ ...race, confidence, reasons, ...(MULTISPORT.test(a.name) ? { multisport: true } : {}) });
   }
   return candidates.sort((a, b) => a.date.localeCompare(b.date));
 }
