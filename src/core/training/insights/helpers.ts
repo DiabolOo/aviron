@@ -1,6 +1,7 @@
 import type { Activity } from '../../schemas';
 import { estimateMaxHr, type RaceCandidate } from '../engine';
 import { TrainingInsightSchema, type TrainingInsight } from '../types';
+import { TARGET_PACE_MAX_SEC, TARGET_PACE_MIN_SEC, TARGET_TIME_HM_MIN_KM } from './thresholds';
 import type { BuildInsightInput, InsightContext } from './types';
 
 export const hasHr = (a: Activity): boolean => a.avgHr !== undefined && a.avgHr > 0;
@@ -45,15 +46,29 @@ export function effectiveMaxHr(ctx: InsightContext): EffectiveMaxHr | undefined 
   return tanaka === undefined ? undefined : { maxHr: tanaka, approx: true };
 }
 
-/** « 1:45:00 », « 1:45 » (h:mm), « 1h45 », « 1h45m » → secondes ; undefined si illisible. */
-export function parseTargetTime(text: string | undefined): number | undefined {
+/**
+ * Temps visé → secondes ; undefined si illisible.
+ * « 1h45 », « 1h45m », « 1:45:00 » sont sans ambiguïté. « a:b » est tranché selon la distance :
+ * h:mm à partir de 15 km (semi, marathon), mm:ss en dessous (5 et 10 km).
+ */
+export function parseTargetTime(text: string | undefined, raceKm: number): number | undefined {
   if (!text) return undefined;
   const t = text.trim().toLowerCase();
   const hm = t.match(/^(\d+)\s*h\s*(\d{1,2})?\s*(?:m|min)?$/);
   if (hm) return Number(hm[1]) * 3600 + Number(hm[2] ?? 0) * 60;
-  const parts = t.split(':').map(Number);
-  if (parts.length < 2 || parts.length > 3 || parts.some((p) => !Number.isFinite(p))) return undefined;
-  return parts.length === 3 ? parts[0] * 3600 + parts[1] * 60 + parts[2] : parts[0] * 3600 + parts[1] * 60;
+  if (!/^\d+(:\d{1,2}){1,2}$/.test(t)) return undefined;
+  const p = t.split(':').map(Number);
+  if (p.slice(1).some((x) => x >= 60)) return undefined;
+  if (p.length === 3) return p[0] * 3600 + p[1] * 60 + p[2];
+  return raceKm >= TARGET_TIME_HM_MIN_KM ? p[0] * 3600 + p[1] * 60 : p[0] * 60 + p[1];
+}
+
+/** Allure visée (s/km) ; undefined si le temps est illisible ou si l'allure sort de 2:30–10:00 par km. */
+export function targetPaceSec(text: string | undefined, raceKm: number): number | undefined {
+  const total = parseTargetTime(text, raceKm);
+  if (total === undefined || raceKm <= 0) return undefined;
+  const pace = Math.round(total / raceKm);
+  return pace >= TARGET_PACE_MIN_SEC && pace <= TARGET_PACE_MAX_SEC ? pace : undefined;
 }
 
 export function buildInsight(input: BuildInsightInput): TrainingInsight {

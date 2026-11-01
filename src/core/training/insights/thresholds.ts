@@ -86,3 +86,11 @@ export const PREP_WEEKLY_GROWTH = 0.1;
 export const INSIGHT_MUTE_DAYS = 28;
 /** Une candidate de course non confirmée n'est proposée à la confirmation que pendant 28 jours. */
 export const CONFIRM_RACE_MAX_AGE_DAYS = 28;
+
+/** Allure visée plausible : entre 2:30 et 10:00 par km, sinon le temps saisi est ignoré. */
+export const TARGET_PACE_MIN_SEC = 150;
+export const TARGET_PACE_MAX_SEC = 600;
+/** « a:b » se lit h:mm à partir de 15 km (semi, marathon), mm:ss en dessous (5 et 10 km). */
+export const TARGET_TIME_HM_MIN_KM = 15;
+/** Les refus de confirmation de course sont définitifs (rejectedIds de detectRaces), jamais masqués 28 jours. */
+export const NEVER_MUTED_RULE_IDS: readonly string[] = ['confirm_race'];

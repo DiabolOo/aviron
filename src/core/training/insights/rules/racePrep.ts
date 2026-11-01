@@ -8,7 +8,7 @@ import {
   racePrepReachableCopy,
   racePrepShortCopy,
 } from '../copy.fr';
-import { buildInsight, isConfirmedRace, pastActivities, parseTargetTime, round1 } from '../helpers';
+import { buildInsight, isConfirmedRace, pastActivities, round1, targetPaceSec } from '../helpers';
 import {
   PREP_LONGEST_RUN_RATIO,
   PREP_MIN_SESSIONS,
@@ -50,7 +50,8 @@ const projectedLongestKm = (longestKm: number, weeks: number): number => longest
  * précédentes (avant la course, ou jusqu'à aujourd'hui pour une course à venir) fait < 60 % de la distance.
  * - à venir, > 10 jours : si +10 % par semaine suffit d'ici la course → conseil de progression ;
  *   sinon → « préparation courte : allure régulière, finis en confiance » ;
- * - à venir, ≤ 10 jours : aucune critique, uniquement allure (cible si objectif) et affûtage ;
+ * - à venir, ≤ 10 jours et course confirmée ou déclarée : carte « dernière ligne droite » (allure, affûtage,
+ *   allure visée si targetTime est exploitable), sans critique et sans condition sur la préparation ;
  * - passée : bilan, uniquement si la course est confirmée ou déclarée.
  * Null si l'historique ne couvre pas les 8 semaines ou compte moins de 2 courses à pied.
  */
@@ -60,6 +61,28 @@ export const racePrepRule: InsightRuleDef = {
     const picked = pickRace(ctx);
     if (!picked) return null;
     const { race, upcoming } = picked;
+
+    // Dernière ligne droite : quelle que soit la préparation (aucune donnée d'historique requise).
+    if (upcoming && daysBetween(ctx.today, race.date) <= PREP_TOO_LATE_DAYS) {
+      if (!isConfirmedRace(ctx, race)) return null;
+      const daysToRace = daysBetween(ctx.today, race.date);
+      const paceSec = targetPaceSec(race.targetTime, race.officialDistanceKm);
+      return buildInsight({
+        ctx,
+        ruleId: RULE_ID,
+        periodKey: race.id,
+        source: 'trend',
+        severity: 'info',
+        copy: racePrepFinalCopy({ daysToRace, targetPaceSec: paceSec }),
+        evidence: [
+          { label: PREP_LABELS.daysLeft, value: `${daysToRace} j`, numeric: daysToRace },
+          { label: PREP_LABELS.race, value: km(race.officialDistanceKm), numeric: race.officialDistanceKm },
+          ...(paceSec === undefined ? [] : [{ label: PREP_LABELS.targetPace, value: paceFr(paceSec), numeric: paceSec }]),
+        ],
+        sessionsUsed: 1,
+        minSessions: 1,
+      });
+    }
 
     // Course à venir : fenêtre des 8 semaines se terminant aujourd'hui (inclus).
     const windowEnd = upcoming ? { ...race, date: addDays(ctx.today, 1) } : race;
@@ -96,21 +119,6 @@ export const racePrepRule: InsightRuleDef = {
         severity: 'info',
         copy: racePrepPastCopy({ ...numbers, targetKm: round1(raceKm * PREP_LONGEST_RUN_RATIO) }),
         evidence: stats,
-      });
-    }
-
-    if (daysToRace <= PREP_TOO_LATE_DAYS) {
-      const targetSec = parseTargetTime(race.targetTime);
-      const targetPaceSec = targetSec === undefined ? undefined : Math.round(targetSec / raceKm);
-      return buildInsight({
-        ...common,
-        severity: 'info',
-        copy: racePrepFinalCopy({ daysToRace, targetPaceSec }),
-        evidence: [
-          { label: PREP_LABELS.daysLeft, value: `${daysToRace} j`, numeric: daysToRace },
-          { label: PREP_LABELS.race, value: km(raceKm), numeric: raceKm },
-          ...(targetPaceSec === undefined ? [] : [{ label: PREP_LABELS.targetPace, value: paceFr(targetPaceSec), numeric: targetPaceSec }]),
-        ],
       });
     }
 

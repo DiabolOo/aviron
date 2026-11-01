@@ -236,7 +236,7 @@ const snapshot: { activities: Activity[] } | null = existsSync(snapshotPath)
 
   it('2026-10-10 with a synthetic half-marathon on 2026-10-11: race prep fires', () => {
     const upcoming = candidate({ id: 'race-synth', date: '2026-10-11', status: 'upcoming', confidence: 'medium', name: 'Semi' });
-    const ctx = ctxOf('2026-10-10', acts, { profile, races: [...races.filter((r) => r.date <= '2026-10-10'), upcoming], confirmedIds });
+    const ctx = ctxOf('2026-10-10', acts, { profile, races: [...races.filter((r) => r.date <= '2026-10-10'), upcoming], confirmedIds: [...confirmedIds, 'race-synth'] });
     const prep = racePrepRule.evaluate(ctx)!;
     expect(prep).not.toBeNull();
     expect(prep.title).toBe('Dernière ligne droite : allure et affûtage');

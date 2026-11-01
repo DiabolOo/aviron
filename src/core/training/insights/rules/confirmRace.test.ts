@@ -1,3 +1,4 @@
+import { detectRaces } from '../../engine';
 import { candidate, ctxOf, run } from '../testUtils';
 import { confirmRace } from './confirmRace';
 
@@ -30,5 +31,20 @@ describe('confirm_race', () => {
     expect(confirmRace.evaluate(ctxOf(TODAY, [semi], { races: [{ ...race, confidence: 'medium' }] }))).toBeNull();
     expect(confirmRace.evaluate(ctxOf(TODAY, [semi], { races: [{ ...race, status: 'upcoming' }] }))).toBeNull();
     expect(confirmRace.evaluate(ctxOf('2026-12-15', [semi], { races: [race] }))).toBeNull();
+  });
+
+  it('never proposes a candidate the user rejected (detectRaces rejectedIds), however long ago', () => {
+    const acts = [run('semi', '2026-10-11', 21.9, undefined, { name: 'Course du midi' })];
+    const detected = detectRaces(acts);
+    expect(confirmRace.evaluate(ctxOf(TODAY, acts, { races: detected }))).not.toBeNull();
+    const afterRejection = detectRaces(acts, { rejectedIds: ['semi'] });
+    expect(afterRejection).toHaveLength(0);
+    expect(confirmRace.evaluate(ctxOf(TODAY, acts, { races: afterRejection }))).toBeNull();
+    expect(confirmRace.evaluate(ctxOf('2026-10-12', acts, { races: afterRejection }))).toBeNull();
+  });
+
+  it('only concerns the last 28 days', () => {
+    expect(confirmRace.evaluate(ctxOf('2026-11-08', [semi], { races: [race] }))).not.toBeNull();
+    expect(confirmRace.evaluate(ctxOf('2026-11-09', [semi], { races: [race] }))).toBeNull();
   });
 });

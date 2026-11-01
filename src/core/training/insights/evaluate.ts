@@ -1,7 +1,7 @@
 import { addDays } from '../engine';
 import type { TrainingInsight } from '../types';
 import { INSIGHT_RULES } from './rules';
-import { INSIGHT_MUTE_DAYS } from './thresholds';
+import { INSIGHT_MUTE_DAYS, NEVER_MUTED_RULE_IDS } from './thresholds';
 import type { InsightContext } from './types';
 
 const SEVERITY_RANK: Record<TrainingInsight['severity'], number> = { warning: 3, notice: 2, info: 1 };
@@ -30,10 +30,17 @@ export interface InsightRejection {
 /** `ruleId` d'un id d'insight : `${ruleId}:${periodKey}`. */
 export const ruleIdOf = (insightId: string): string => insightId.split(':')[0];
 
-/** Règles masquées par un rejet des 28 derniers jours, quel que soit l'id (période) rejeté. */
+/**
+ * Règles masquées par un rejet des 28 derniers jours, quel que soit l'id (période) rejeté.
+ * Exception : `confirm_race` n'est jamais masquée, son refus est définitif (rejectedIds de detectRaces).
+ */
 export function computeMutedRuleIds(rejections: readonly InsightRejection[], today: string): Set<string> {
   const since = addDays(today, -INSIGHT_MUTE_DAYS);
-  return new Set(rejections.filter((r) => r.rejectedAt > since && r.rejectedAt <= today).map((r) => ruleIdOf(r.insightId)));
+  const ids = rejections
+    .filter((r) => r.rejectedAt > since && r.rejectedAt <= today)
+    .map((r) => ruleIdOf(r.insightId))
+    .filter((id) => !NEVER_MUTED_RULE_IDS.includes(id));
+  return new Set(ids);
 }
 
 export interface RankOptions {
@@ -52,7 +59,7 @@ export function rankInsights(list: readonly TrainingInsight[], opts: RankOptions
   const max = opts.max ?? 3;
   const seen = opts.seenIds;
   const sorted = list
-    .filter((insight) => !opts.mutedRuleIds?.has(insight.ruleId))
+    .filter((insight) => NEVER_MUTED_RULE_IDS.includes(insight.ruleId) || !opts.mutedRuleIds?.has(insight.ruleId))
     .map((insight, index) => ({ insight, index }))
     .sort(
       (a, b) =>

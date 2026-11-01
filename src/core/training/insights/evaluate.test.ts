@@ -48,6 +48,14 @@ describe('computeMutedRuleIds', () => {
     expect(rankInsights(list, { mutedRuleIds: muted })).toEqual([]);
   });
 
+  it('never mutes confirm_race: a refusal is permanent through detectRaces rejectedIds', () => {
+    const rejected = [{ insightId: 'confirm_race:race-row-1', rejectedAt: '2026-10-30' }, ...rejections];
+    const muted = computeMutedRuleIds(rejected, '2026-11-01');
+    expect(muted.has('confirm_race')).toBe(false);
+    const list = [ins('confirm_race', 'info', '2026-11-01', 'race-row-2')];
+    expect(rankInsights(list, { mutedRuleIds: new Set(['confirm_race']) })).toHaveLength(1);
+  });
+
   it('unmutes after 28 days', () => {
     expect(computeMutedRuleIds(rejections, '2026-11-02').size).toBe(0);
     expect(computeMutedRuleIds(rejections, '2026-11-01').has('intensity_too_high')).toBe(true);
