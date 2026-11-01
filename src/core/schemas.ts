@@ -63,26 +63,31 @@ export type Meal = z.infer<typeof MealSchema>;
 
 // ─── Activity ─────────────────────────────────────────────────────────────────
 
+export const SplitSchema = z.object({
+  km: z.number().nonnegative(),
+  pace: z.string(),
+  paceSec: z.number().nonnegative(),
+  elevationGain: z.number(),
+  avgHr: z.number().nonnegative().optional(),
+});
+
+export type Split = z.infer<typeof SplitSchema>;
+
 export const ActivitySchema = z.object({
   id: z.string(),
   name: z.string(),
-  type: z.enum(['run', 'ride', 'walk', 'strength', 'other']),
+  type: z.enum(['run', 'ride', 'walk', 'swim', 'strength', 'other']),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   startTime: z.string(),
+  startedAt: z.string().datetime({ offset: true }).optional(),
   durationMin: z.number().nonnegative(),
   distanceKm: z.number().nonnegative().optional(),
   elevationM: z.number().nonnegative().optional(),
-  calories: z.number().nonnegative(),
+  calories: z.number().nonnegative().optional(),
   avgHr: z.number().nonnegative().optional(),
   maxHr: z.number().nonnegative().optional(),
   source: z.enum(['apple_health', 'garmin', 'coros', 'fit_import', 'manual', 'strava']).optional(),
-  splits: z.array(z.object({
-    km: z.number().nonnegative(),
-    pace: z.string(),
-    paceSec: z.number().nonnegative(),
-    elevationGain: z.number(),
-    avgHr: z.number().nonnegative(),
-  })).optional(),
+  splits: z.array(SplitSchema).optional(),
   hrStream: z.array(z.number()).optional(),
   polyline: z.array(z.object({ x: z.number(), y: z.number() })).optional(),
 });
@@ -120,15 +125,17 @@ export type PlannedWorkout = z.infer<typeof PlannedWorkoutSchema>;
 
 // ─── Goal ─────────────────────────────────────────────────────────────────────
 
+export const RaceGoalSchema = z.object({
+  type: z.literal('race'),
+  id: z.string(),
+  name: z.string(),
+  targetDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  targetTime: z.string().optional(),
+  distanceKm: z.number().positive().optional(),
+});
+
 export const GoalSchema = z.discriminatedUnion('type', [
-  z.object({
-    type: z.literal('race'),
-    id: z.string(),
-    name: z.string(),
-    targetDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-    targetTime: z.string().optional(),
-    distanceKm: z.number().positive().optional(),
-  }),
+  RaceGoalSchema,
   z.object({
     type: z.literal('weight'),
     id: z.string(),

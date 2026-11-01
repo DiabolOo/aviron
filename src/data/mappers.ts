@@ -25,10 +25,10 @@ export function activityToStrava(activity: Activity): StravaActivity {
     distanceKm: activity.distanceKm ?? 0,
     movingTimeMin: activity.durationMin,
     elevationM: activity.elevationM ?? 0,
-    calories: activity.calories,
+    calories: activity.calories ?? 0,
     avgHr: activity.avgHr ?? 0,
     maxHr: activity.maxHr ?? 0,
-    splits: activity.splits ?? [],
+    splits: (activity.splits ?? []).map((s) => ({ ...s, avgHr: s.avgHr ?? 0 })),
     hrStream: activity.hrStream ?? [],
     polyline: activity.polyline ?? [],
   };
