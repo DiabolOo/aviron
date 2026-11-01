@@ -15,6 +15,9 @@ export interface GpxTrackPoint {
 
 export interface GpxData {
   startedAt?: string;
+  /** distance haversine brute de la trace */
+  rawDistanceM: number;
+  /** distance normalisée sur la distance CSV quand elle est connue */
   distanceM: number;
   elevationGainM: number;
   splits?: Split[];
@@ -71,6 +74,7 @@ export function gpxToData(points: GpxTrackPoint[], targetDistanceM?: number): Gp
 
   return {
     startedAt: toIsoOffset(points.find((p) => p.time)?.time),
+    rawDistanceM: rawTotal,
     distanceM: rawTotal * scale,
     elevationGainM: Math.round(elevationGainM),
     splits: splitsFromPoints(pts),
@@ -85,6 +89,8 @@ export function mergeGpxData(activity: Activity, points: GpxTrackPoint[]): Activ
     ...activity,
     startedAt: activity.startedAt ?? data.startedAt,
     distanceKm: activity.distanceKm ?? data.distanceM / 1000,
+    traceDistanceKm:
+      activity.traceDistanceKm ?? (data.rawDistanceM > 0 ? data.rawDistanceM / 1000 : undefined),
     elevationM: activity.elevationM ?? data.elevationGainM,
     splits: activity.splits ?? data.splits,
   };

@@ -94,11 +94,17 @@ export function mergeFitData(activity: Activity, fit: FitData): Activity {
   );
   // Les records (trace réelle) priment ; les laps ne servent qu'en dernier recours.
   const splits = recordsToSplits(fit.records ?? []) ?? lapsToSplits(fit.laps ?? []);
+  const records = fit.records ?? [];
+  const lastDist = records.length ? records[records.length - 1].distance : undefined;
+  const traceDistanceKm =
+    (lastDist !== undefined && lastDist > 0 ? lastDist / 1000 : undefined) ??
+    (session?.total_distance ? session.total_distance / 1000 : undefined);
 
   return {
     ...activity,
     startedAt: activity.startedAt ?? startedAt,
     distanceKm: activity.distanceKm ?? (session?.total_distance ? session.total_distance / 1000 : undefined),
+    traceDistanceKm: activity.traceDistanceKm ?? traceDistanceKm,
     elevationM: activity.elevationM ?? session?.total_ascent,
     calories: activity.calories ?? session?.total_calories,
     avgHr: activity.avgHr ?? session?.avg_heart_rate,

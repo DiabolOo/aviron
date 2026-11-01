@@ -82,6 +82,8 @@ export const ActivitySchema = z.object({
   startedAt: z.string().datetime({ offset: true }).optional(),
   durationMin: z.number().nonnegative(),
   distanceKm: z.number().nonnegative().optional(),
+  /** distance brute de la trace (GPS/FIT) — peut différer du CSV Strava */
+  traceDistanceKm: z.number().positive().optional(),
   elevationM: z.number().nonnegative().optional(),
   calories: z.number().nonnegative().optional(),
   avgHr: z.number().nonnegative().optional(),

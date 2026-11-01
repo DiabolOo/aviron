@@ -173,7 +173,8 @@ export function parseActivitiesCsv(csvText: string): CsvParseResult {
       skipped.push({ row: i + 2, reason: `date illisible : ${rawDate ?? '(absente)'}` });
       return;
     }
-    const durationMin = parseDurationMin(cell(row, 'moving')) ?? parseDurationMin(cell(row, 'elapsed')) ?? 0;
+    // « Temps écoulé » fait foi pour le temps de course (pauses incluses).
+    const durationMin = parseDurationMin(cell(row, 'elapsed')) ?? parseDurationMin(cell(row, 'moving')) ?? 0;
     // Export FR : la 2e colonne « Distance » est en mètres bruts (la 1re en km affichés).
     const distM = num(row, 'distance', 1);
     const distanceKm = isFrench && distM !== undefined ? Math.round(distM) / 1000 : num(row, 'distance');
