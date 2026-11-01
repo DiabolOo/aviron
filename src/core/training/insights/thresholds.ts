@@ -19,3 +19,12 @@ export const INTENSITY_TRIGGER_SHARE_PCT = 40;
 export const INTENSITY_WARNING_SHARE_PCT = 60;
 /** FC conseillée pour une sortie facile : 75 % de la FC max. */
 export const INTENSITY_EASY_HR_RATIO = 0.75;
+
+/** Écart d'allure de 5 % : au-delà, la différence est nette et non due au bruit GPS ou au dénivelé. */
+export const PACING_GAP_PCT = 5;
+/** Le débrief d'allure n'est proposé que pour une course des 28 derniers jours. */
+export const PACING_MAX_AGE_DAYS = 28;
+/** Les temps de passage doivent couvrir ≥ 90 % de la distance mesurée (sinon les moitiés sont fausses). */
+export const PACING_MIN_COVERAGE = 0.9;
+/** Minimum de temps de passage kilométriques pour comparer moitiés et quarts. */
+export const PACING_MIN_SPLITS = 4;
