@@ -294,6 +294,17 @@ const snapshot: { activities: Activity[] } | null = existsSync(snapshotPath)
     expect(ef('2026-Q2') / ef('2024-Q1')).toBeLessThanOrEqual(0.93);
   });
 
+  it('imported 166 activities: 137 with splits, 30 without HR', () => {
+    expect(acts).toHaveLength(166);
+    expect(acts.filter((a) => a.splits?.length)).toHaveLength(137);
+    expect(acts.filter((a) => a.avgHr === undefined)).toHaveLength(30);
+    const noSplits = acts.filter((a) => !a.splits?.length);
+    expect(noSplits).toHaveLength(29);
+    expect(noSplits.every((a) => a.type === 'other')).toBe(true); // les muscu n'ont pas de GPS mais elles ont une FC
+    // 165 fichiers lus / 1 en erreur et la répartition FIT 137 / GPX 28 sont des statistiques
+    // de console du script d'import : le snapshot ne les conserve pas.
+  });
+
   it('summarizes each race build', () => {
     const paris24 = racePrep(acts, byDate('2024-03-03'));
     expect(paris24.complete).toBe(false); // historique depuis le 2024-02-20
