@@ -173,7 +173,7 @@ Aux niveaux 0 et 1, **aucune donnée d'activité ne quitte le téléphone**. Le 
 - [x] `scripts/import-strava.ts` (Node) : lit le zip, parse `activities.csv` (dates en français, colonnes en double) et les FIT (`fit-file-parser`, ajout de dépendance → mini-ADR), écrit `fixtures/julien.snapshot.json` (**gitignoré**)
 - [x] `src/core/training/engine/` (fonctions pures) : volume par semaine / mois, régularité et coupures, zones de FC (FC max configurable), répartition des intensités, efficacité aérobie par trimestre, détection de courses + débrief (allure et FC par tranche, dérive cardiaque, recalage sur distance officielle), préparation sur 8 semaines
 - [x] `src/core/training/insights/` : règles → `Insight` (gravité, titre, texte version débutant / version sportif, chiffres à l'appui, « Pourquoi ? »)
-- [ ] Tests : jeu synthétique + test local sur tes données avec les valeurs de référence (53 % des sorties > 160 bpm de moyenne, Reims 2025 en 1h50:50, Paris 2024 en 1h48:16, FC max observée 201 bpm, etc.)
+- [x] Tests : jeu synthétique + test local sur tes données avec les valeurs de référence (53 % des sorties > 160 bpm de moyenne, Reims 2025 en 1h50:50, Paris 2024 en 1h48:16, FC max observée 201 bpm, etc.)
 - **Fini quand** les tests passent et le snapshot local est généré.
 
 ## Jalon M2 — L'écran d'analyse avec tes vraies données ⏳ (3 à 4 jours)
