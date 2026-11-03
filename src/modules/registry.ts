@@ -1,6 +1,6 @@
 import type { Dashboard, LifeModule, TodayWidget } from '@/src/modules/types';
 
-export type ModuleSection = 'plans' | 'dashboards' | 'stats';
+export type ModuleSection = 'plans' | 'dashboards' | 'stats' | 'trends';
 
 export function getEnabledModules(
   modules: LifeModule[],

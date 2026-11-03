@@ -8,6 +8,7 @@ import {
 } from '@expo-google-fonts/inter';
 import { useFonts } from 'expo-font';
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { colorScheme } from 'nativewind';
 import { useEffect, useMemo, useState } from 'react';
@@ -16,6 +17,7 @@ import 'react-native-reanimated';
 
 import { useProposalStore } from '@/lib/proposalStore';
 import { usePulseFitStore } from '@/lib/store';
+import { designFonts } from '@/src/design/fonts';
 import { useTheme } from '@/src/ui/useTheme';
 
 export {
@@ -26,13 +28,17 @@ export const unstable_settings = {
   anchor: '(tabs)',
 };
 
+void SplashScreen.preventAutoHideAsync();
+
 export default function RootLayout() {
-  const [fontsLoaded] = useFonts({
+  const [fontsLoaded, fontError] = useFonts({
+    // Polices des écrans antérieurs à la v3.1 : à retirer avec la dernière exception de eslint-rules/legacy-exceptions.js.
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
     Inter_400Regular,
     Inter_500Medium,
     Inter_600SemiBold,
     Inter_700Bold,
+    ...designFonts,
   });
   const themePreference = usePulseFitStore((s) => s.themePreference);
   const { scheme, colors } = useTheme();
@@ -76,7 +82,13 @@ export default function RootLayout() {
     }
   }, [dataReady]);
 
-  if (!fontsLoaded || !hydrated || !dataReady) return null;
+  const ready = (fontsLoaded || fontError !== null) && hydrated && dataReady;
+
+  useEffect(() => {
+    if (ready) void SplashScreen.hideAsync();
+  }, [ready]);
+
+  if (!ready) return null;
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

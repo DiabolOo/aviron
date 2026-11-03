@@ -179,7 +179,7 @@ Aux niveaux 0 et 1, **aucune donnée d'activité ne quitte le téléphone**. Le 
 ## Jalon M2 — L'écran d'analyse avec tes vraies données 🔧 (3 à 4 jours)
 > Réutilise Accueil / Suivi / Stats du J4. Expo Go suffit.
 - [x] Charger le snapshot dans le store derrière un drapeau de dev `EXPO_PUBLIC_USE_FIXTURE` (via un adaptateur de repository, pas d'import direct dans l'UI)
-- [ ] **Stats / Suivi › Sport** : volume par semaine, répartition des intensités, tendance d'efficacité aérobie
+- [ ] **Stats / Suivi › Sport** : volume par semaine, répartition des intensités, tendance d'efficacité aérobie — _partiel : calculs `src/core/training/engine/trends.ts` testés + carte « Tendances › Sport » hors sélecteur (8 sem / 12 sem / 6 mois, ligne « FC absente ») ; FC max configurable dans Profil (saisie > observée filtrée 12 mois > Tanaka) ; reste le volet Suivi et la relecture visuelle_
 - [ ] **Accueil** : carte « Analyse » avec les 2–3 constats prioritaires
 - [x] Écran **Débrief de course** (`app/race/[id].tsx`) : allure et FC par tranche, comparaison avec les courses précédentes
 - [ ] Pouce haut / bas sur chaque carte, stocké en local (champ ajouté à `partialize`)

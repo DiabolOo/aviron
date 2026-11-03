@@ -5,6 +5,7 @@ import { View } from 'react-native';
 
 import { ConnectionSwitch } from '@/components/profile/ConnectionSwitch';
 import { GoalSheet } from '@/components/profile/GoalSheet';
+import { MaxHrField } from '@/components/profile/MaxHrField';
 import { ProfileHeader } from '@/components/profile/ProfileHeader';
 import { SettingRow } from '@/components/profile/SettingRow';
 import { Card } from '@/components/ui/Card';
@@ -14,7 +15,10 @@ import { Segmented } from '@/components/ui/Segmented';
 import { Stepper } from '@/components/ui/Stepper';
 import { usePulseFitStore } from '@/lib/store';
 import { inferGoal } from '@/src/core/nutritionCalculator';
+import { toISODate } from '@/src/core/dates';
+import { resolveMaxHr } from '@/src/core/training/engine';
 import type { ThemePreference } from '@/src/core/types';
+import { stravaToActivity } from '@/src/data/mappers';
 
 const THEMES = [
   { id: 'system', label: 'Auto' },
@@ -30,12 +34,29 @@ function weightHint(current: number, target: number): string {
   return diff > 0 ? `${diff} kg à perdre` : `${Math.abs(diff)} kg à prendre`;
 }
 
+const MAX_HR_SOURCE_LABEL = {
+  configured: 'saisie',
+  observed: 'observée sur 12 mois',
+  estimated: 'estimée d’après l’âge',
+} as const;
+
 function Goals() {
   const profile = usePulseFitStore((s) => s.profile);
+  const activities = usePulseFitStore((s) => s.activities);
   const updateProfile = usePulseFitStore((s) => s.updateProfile);
   const setCalorieTarget = usePulseFitStore((s) => s.setCalorieTarget);
   const [goalSheet, setGoalSheet] = useState(false);
   const nutritionGoal = profile.goal ?? inferGoal(profile.weightKg, profile.targetWeightKg);
+  const autoMaxHr = resolveMaxHr({
+    activities: activities.map(stravaToActivity),
+    today: toISODate(new Date()),
+    ageYears: profile.ageYears,
+  });
+  const maxHrHint = profile.maxHr
+    ? 'saisie'
+    : autoMaxHr
+      ? `auto : ${autoMaxHr.maxHr} bpm (${MAX_HR_SOURCE_LABEL[autoMaxHr.source]})`
+      : 'Non renseignée';
 
   return (
     <Card className="py-1">
@@ -75,6 +96,13 @@ function Goals() {
           />
         </SettingRow>
       ) : null}
+      <SettingRow label="FC max" hint={maxHrHint}>
+        <MaxHrField
+          value={profile.maxHr}
+          autoValue={autoMaxHr?.maxHr}
+          onChange={(maxHr) => updateProfile({ maxHr })}
+        />
+      </SettingRow>
       <SettingRow label="Calories / jour">
         <Stepper
           value={profile.calorieTarget}
@@ -130,9 +158,11 @@ function Appearance() {
   return (
     <View className="gap-3.5">
       <Segmented options={THEMES} value={theme} onChange={setTheme} />
-      <Card className="py-1">
-        <SettingRow first label="Galerie de composants" onPress={() => router.push('/gallery')} />
-      </Card>
+      {__DEV__ ? (
+        <Card className="py-1">
+          <SettingRow first label="Galerie de composants" onPress={() => router.push('/gallery')} />
+        </Card>
+      ) : null}
     </View>
   );
 }

@@ -32,6 +32,8 @@ export const ProfileSchema = z.object({
   goal: z.enum(['weight_loss', 'maintenance', 'muscle_gain']).optional(),
   goalLabel: z.string(),
   athleticGoal: AthleticGoalSchema.optional(),
+  /** FC max saisie par l'utilisateur — prioritaire sur l'observée et l'estimée */
+  maxHr: z.number().int().min(100).max(230).optional(),
   calorieTarget: z.number().positive(),
   macrosTarget: MacrosSchema,
 });

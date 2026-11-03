@@ -5,7 +5,7 @@ import { WorkoutWidget } from '@/components/dashboard/WorkoutWidget';
 import { usePulseFitStore, useTodayStats } from '@/lib/store';
 import { SportDashboard } from '@/src/modules/sport/SportDashboard';
 import { SportPlan } from '@/src/modules/sport/SportPlan';
-import { SportStats } from '@/src/modules/sport/SportStats';
+import { SportTrends } from '@/src/modules/sport/SportTrends';
 import {
   ActivitySchema,
   GoalSchema,
@@ -41,7 +41,7 @@ export const sportModule: LifeModule = {
   ],
   plans: [{ id: 'sport-plan', title: 'Sport', Component: SportPlan }],
   dashboards: [{ id: 'sport', title: 'Sport', Component: SportDashboard }],
-  stats: [{ id: 'sport-stats', title: 'Sport', Component: SportStats }],
+  trends: [{ id: 'sport-trends', title: 'Sport', Component: SportTrends }],
   agentTools: [
     {
       name: 'get_recent_activities',

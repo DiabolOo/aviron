@@ -63,6 +63,8 @@ export type UserProfile = {
   weeklyPaceKg?: number;
   goalLabel: string;
   athleticGoal?: AthleticGoal;
+  /** FC max saisie — sinon l'app retombe sur l'observée (12 mois) puis l'estimation par l'âge */
+  maxHr?: number;
   calorieTarget: number;
   macrosTarget: Omit<Macros, 'calories'> & { calories: number };
   weightKg: number;

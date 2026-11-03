@@ -28,7 +28,8 @@ export const AURORA: Record<Tone, readonly { color: string; cx: number; cy: numb
 
 export const DARK_GLOW = '#1B2030';
 
-export const CARD_TINT: Record<'sport' | 'nutri' | 'forme' | 'ai', string> = {
+export const CARD_TINT: Record<'sport' | 'nutri' | 'forme' | 'ai' | 'data', string> = {
+  data: '#34527D',
   sport: '#7C6CF2',
   nutri: '#FF7A59',
   forme: '#14B8A6',

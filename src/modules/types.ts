@@ -25,6 +25,8 @@ export interface LifeModule {
   plans?: Dashboard[];
   dashboards: Dashboard[];
   stats?: Dashboard[];
+  /** tendances à fenêtres fixes, hors sélecteur de période de l'onglet Stats */
+  trends?: Dashboard[];
   agentTools: AgentTool[];
   agentExamples?: string[];
   analyzers: Analyzer[];

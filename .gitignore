@@ -43,3 +43,6 @@ yarn-error.*
 # données personnelles — import Strava (ADR-004)
 fixtures/real/
 fixtures/*.snapshot.json
+
+# captures d'écrans de dev
+preview-*.png

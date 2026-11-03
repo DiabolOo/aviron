@@ -4,3 +4,4 @@ export * from './zones';
 export * from './intensity';
 export * from './efficiency';
 export * from './races';
+export * from './trends';

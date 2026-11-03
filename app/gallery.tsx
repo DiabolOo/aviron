@@ -30,6 +30,9 @@ export default function GalleryScreen() {
   const [done, setDone] = useState(false);
   const [tab, setTab] = useState<'a' | 'b'>('a');
 
+  // Écran de dev uniquement : ne rend rien dans l'app livrée.
+  if (!__DEV__) return null;
+
   return (
     <Screen tone="plan">
       <View className="gap-3.5">

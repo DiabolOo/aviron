@@ -29,33 +29,36 @@ export default function StatsScreen() {
   const period = useStatsPeriod((s) => s.period);
   const setPeriod = useStatsPeriod((s) => s.setPeriod);
   const cards = collectSections(MODULES, isEnabled, 'stats', ['sport', 'nutrition']);
+  const trends = collectSections(MODULES, isEnabled, 'trends', ['sport', 'nutrition']);
 
   return (
     <Screen tone="plan">
       <View className="gap-3.5">
         <ScreenTitle title="Ma progression" subtitle="Où tu en es sur le mois et l’année" />
-        <View className="flex-row gap-1">
-          {PERIODS.map((item) => {
-            const selected = item.id === period;
-            return (
-              <Pressable
-                key={item.id}
-                accessibilityRole="button"
-                accessibilityState={{ selected }}
-                onPress={() => setPeriod(item.id)}
-                className={`h-11 justify-center rounded-full px-4 active:scale-95 ${
-                  selected ? 'bg-fg' : ''
-                }`}>
-                <Text
-                  className={`text-[15px] ${
-                    selected ? 'font-semibold text-canvas' : 'font-medium text-muted'
+        {cards.length > 0 ? (
+          <View className="flex-row gap-1">
+            {PERIODS.map((item) => {
+              const selected = item.id === period;
+              return (
+                <Pressable
+                  key={item.id}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected }}
+                  onPress={() => setPeriod(item.id)}
+                  className={`h-11 justify-center rounded-full px-4 active:scale-95 ${
+                    selected ? 'bg-fg' : ''
                   }`}>
-                  {item.label}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
+                  <Text
+                    className={`text-[15px] ${
+                      selected ? 'font-semibold text-canvas' : 'font-medium text-muted'
+                    }`}>
+                    {item.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        ) : null}
 
         {cards.map((card, i) => (
           <Rise key={card.id} index={i}>
@@ -65,7 +68,18 @@ export default function StatsScreen() {
           </Rise>
         ))}
 
-        <Rise index={cards.length}>
+        {trends.length > 0 ? (
+          <Rise index={cards.length}>
+            <View className="mt-3 gap-3.5 border-t border-fg/10 pt-5">
+              <Text className="text-[22px] font-bold text-fg">Tendances</Text>
+              {trends.map((card) => (
+                <card.Component key={card.id} />
+              ))}
+            </View>
+          </Rise>
+        ) : null}
+
+        <Rise index={cards.length + 1}>
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Analyse de l’Agent"
