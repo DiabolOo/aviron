@@ -1,11 +1,6 @@
 import '../global.css';
 
-import {
-  Inter_400Regular,
-  Inter_500Medium,
-  Inter_600SemiBold,
-  Inter_700Bold,
-} from '@expo-google-fonts/inter';
+import { Inter_500Medium, Inter_700Bold } from '@expo-google-fonts/inter';
 import { useFonts } from 'expo-font';
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -34,9 +29,7 @@ export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
     // Polices des écrans antérieurs à la v3.1 : à retirer avec la dernière exception de eslint-rules/legacy-exceptions.js.
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-    Inter_400Regular,
     Inter_500Medium,
-    Inter_600SemiBold,
     Inter_700Bold,
     ...designFonts,
   });

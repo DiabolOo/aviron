@@ -1,3 +1,5 @@
+// GELÉ (ADR-011) : ne plus rien ajouter. Sert uniquement aux fichiers de eslint-rules/legacy-exceptions.js ;
+// supprimé quand la liste est vide. Les nouveaux styles passent par src/design/ (makeStyles + tokens).
 const plugin = require('tailwindcss/plugin');
 const { palettes } = require('./constants/theme.ts');
 

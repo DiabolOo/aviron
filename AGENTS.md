@@ -43,7 +43,7 @@ docs/adr/     décisions d'architecture
 
 ## Style
 - TypeScript strict, pas de `any`, composants fonctionnels.
-- Tokens du design system uniquement (aucune couleur en dur).
+- Tokens du design system uniquement (aucune couleur en dur) : styles via `makeStyles` / `useTheme` de `src/design/`, jamais `className` (NativeWind gelé, ADR-011). Garde-fou : `pulsefit/no-literal-style` et `pulsefit/no-classname` ; ne jamais ajouter de ligne à `eslint-rules/legacy-exceptions.js`, en retirer une par fichier migré.
 - Textes d'interface en français ; noms de code en anglais.
 - Tests à côté du code (`*.test.ts`).
 
