@@ -33,7 +33,7 @@ const useStyles = makeStyles((t) => ({
 }));
 
 export function TabBar({ state, descriptors, emitter, navigateToTab, insets }: TabBarProps) {
-  const { colors, space, fontScaleCaps } = useTheme();
+  const { colors, size, fontScaleCaps } = useTheme();
   const styles = useStyles();
   const visible = state.routes.filter((r) => (TAB_ORDER as readonly string[]).includes(r.name));
   const activeKey = state.routes[state.index]?.key;
@@ -62,8 +62,8 @@ export function TabBar({ state, descriptors, emitter, navigateToTab, insets }: T
             style={styles.tab}>
             <Icon
               color={focused ? colors.ink : colors.inkTertiary}
-              size={space.xl}
-              strokeWidth={focused ? 2.2 : 1.8}
+              size={size.icon}
+              strokeWidth={focused ? size.iconStrokeStrong : size.iconStroke}
             />
             <Text
               numberOfLines={1}

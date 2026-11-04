@@ -1,3 +1,5 @@
+import { Easing } from 'react-native-reanimated';
+
 /**
  * PulseFit — tokens de la direction v3.1 (« Phrase d'abord, chiffre ensuite »).
  *
@@ -229,6 +231,8 @@ export const fontScaleCaps = {
   metric: 1.5,
   /** Libellés de la barre d'onglets : la hauteur de barre est fixe. */
   tabLabel: 1.2,
+  /** Pastille d'effort : elle grandit avec le texte, jusqu'à ×1,5. */
+  pill: 1.5,
 } as const;
 
 /** Seuils de mise en page selon useWindowDimensions().fontScale. */
@@ -278,6 +282,10 @@ export const size = {
   pill: 28,
   pillDot: 8,
   avatar: 44,
+  /** Icônes (lucide) : taille et épaisseur de trait. */
+  icon: 24,
+  iconStroke: 1.8,
+  iconStrokeStrong: 2.2,
   /** Barre d'onglets, zone de l'indicateur d'accueil comprise. */
   tabBar: 84,
   /** Piste de la barre de maintien et des barres de progression. */
@@ -290,17 +298,29 @@ export const size = {
   edgeClearance: 16,
 } as const;
 
+/** Retour visuel d'appui. */
+export const opacity = { pressed: 0.7 } as const;
+
 // ─── Mouvement ───────────────────────────────────────────────────────────────
 
+/** Durées en ms. Voir SPEC-v3.md, « Mouvement ». */
 export const motion = {
-  /** Retour d'interface (appui, bascule). */
-  ui: 250,
-  /** Entrée des données à l'ouverture, une seule fois. */
-  reveal: 700,
-  /** Durée du maintien pour valider. */
+  /** Pression, contrôle. */
+  fast: 150,
+  /** Apparition, bandeau. */
+  base: 250,
+  /** Compteur, carte qui se replie. */
+  slow: 400,
+  /** Validation par maintien : un geste, pas une animation. */
   hold: 600,
   /** Durée d'affichage du bandeau « Annuler ». */
   undo: 5000,
+  /** Squelette : n'apparaît qu'après `delay` d'attente, reste au moins `minVisible`. */
+  skeleton: { delay: 300, minVisible: 300 },
+  /** Courbe unique (fonction worklet, utilisable aussi côté JS). */
+  easing: Easing.out(Easing.cubic),
+  /** Uniquement pour la coche de validation. */
+  spring: { damping: 18, stiffness: 220 },
 } as const;
 
 // ─── Thème assemblé ──────────────────────────────────────────────────────────
@@ -317,6 +337,7 @@ export type Theme = {
   radius: typeof radius;
   space: typeof space;
   size: typeof size;
+  opacity: typeof opacity;
   motion: typeof motion;
 };
 
@@ -332,6 +353,7 @@ export const makeTheme = (scheme: ColorScheme): Theme => ({
   radius,
   space,
   size,
+  opacity,
   motion,
 });
 

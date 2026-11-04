@@ -133,10 +133,9 @@ piste n'est plus animée et le maintien reste à 600 ms.
 ## 4. `EffortPill` — l'intensité
 
 ```ts
-type EffortPillProps = {
-  level: 'easy' | 'moderate' | 'hard' | 'neutral';
-  label: string;               // « Facile », « Tu peux parler », « Z2 », « Renfo », « Sans cardio »
-};
+type EffortPillProps =
+  | { level: 'easy' | 'ok' | 'hard' }       // mot fixe : « Facile » · « Correct » · « Dur » (échelle de l'ADR-013)
+  | { level: 'neutral'; label: string };    // « Renfo », « Sans cardio »
 ```
 
 **Variantes** : trois niveaux d'effort colorés (point + mot, jamais la couleur seule) ;
@@ -211,6 +210,28 @@ requête terminée et vide, jamais pendant le chargement).
 **Règle** : jamais de « 0 », de « 0/3 » ni de pourcentage ; au plus un bouton plein.
 
 **Texte agrandi** : aucun plafond ; les deux boutons sont déjà empilés.
+
+---
+
+## Mouvement
+Principe : le mouvement explique un changement d'état. Sans lui, l'écran reste compréhensible.
+Jetons (theme.ts → motion) : fast 150 ms (pression, contrôle) · base 250 ms (apparition,
+bandeau) · slow 400 ms (compteur, carte qui se replie) · hold 600 ms (validation par maintien,
+un geste et non une animation) · easing Easing.out(Easing.cubic) partout · spring damping 18,
+stiffness 220, uniquement pour la coche de validation.
+Navigation : transitions natives du Stack pour le détail et le profil. Aucune animation
+entre onglets.
+Chiffres : compteur seulement pour les quantités cumulées (durée, km), une fois à l'arrivée.
+Temps, allures et records en fondu. Le lecteur d'écran lit la valeur finale.
+Validation par maintien : piste horizontale, haptique au début et à la fin, coche en spring,
+relâcher annule. Réduire les animations : le geste reste, la piste passe à pleine.
+Accessibilité : action « Valider » sans maintien.
+Bandeau « Annuler » (5 s) : pause au toucher. Avec lecteur d'écran, pas de disparition
+automatique, et le bandeau est annoncé. L'annulation reste possible toute la journée depuis
+l'historique du Coach.
+Chargement : squelettes fixes après 300 ms d'attente, affichés au moins 300 ms.
+Halo d'Aujourd'hui : statique.
+Réduire les animations : fondu fast ou instantané, le retour haptique reste.
 
 ---
 

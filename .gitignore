@@ -49,3 +49,6 @@ preview-*.png
 
 # worktrees locaux des agents
 .claude/worktrees/
+
+# planches de maquette : contiennent des données sportives réelles, dépôt public
+docs/maquettes/**/*.png

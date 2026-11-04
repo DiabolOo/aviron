@@ -80,7 +80,6 @@ const STEPS = {
   'Étape 10 — Socle hérité (en dernier, quand plus aucun écran ne l’utilise)': {
     'app/+html.tsx': C,
     'app/+not-found.tsx': CL,
-    'app/(dev)/gallery.tsx': C,
     'components/ui/AdviceCard.tsx': C,
     'components/ui/Card.tsx': CL,
     'components/ui/CardHalo.tsx': C,

@@ -45,7 +45,11 @@ jest.mock('react-native-reanimated', () => {
     withSequence: (...animations) => animations[animations.length - 1],
     withRepeat: (animation) => animation,
     interpolate: (x, input, output) => output[0] + ((x - input[0]) / (input[1] - input[0])) * (output[1] - output[0]),
-    Easing: chain,
+    // Courbes réelles pour les calculs côté JS (compteurs) ; le reste reste neutre.
+    Easing: new Proxy(
+      { linear: (t) => t, cubic: (t) => t * t * t, out: (f) => (t) => 1 - f(1 - t), in: (f) => f },
+      { get: (o, k) => (k in o ? o[k] : chain) },
+    ),
     runOnJS: (fn) => fn,
   };
 });
