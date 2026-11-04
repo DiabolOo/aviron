@@ -7,7 +7,7 @@ import { EffortPill } from '@/src/ui/EffortPill';
 describe('EffortPill', () => {
   it.each([
     ['easy', 'Facile', colors.light.effortEasySurface],
-    ['ok', 'Correct', colors.light.effortModerateSurface],
+    ['moderate', 'Correct', colors.light.effortModerateSurface],
     ['hard', 'Dur', colors.light.effortHardSurface],
   ] as const)('%s : le mot « %s » est toujours affiché, avec sa couleur', async (level, word, surface) => {
     await render(<EffortPill level={level} />);

@@ -101,7 +101,7 @@ valider juridiquement avant la bêta** (M6), notamment :
 ### Ressenti
 
 Après une séance, le ressenti déclaré suit **une seule échelle à trois niveaux** :
-`easy | ok | hard`, libellés « **Facile · Correct · Dur** ». Il sert aux questions de
+`easy | moderate | hard`, libellés « **Facile · Correct · Dur** ». Il sert aux questions de
 `CoachCard` (SPEC-v3 §1), aux débriefs et à l'ajustement du plan. Comme pour le reste, un
 composant ne choisit pas les libellés : ils viennent de `src/core/`.
 

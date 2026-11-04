@@ -134,7 +134,7 @@ piste n'est plus animée et le maintien reste à 600 ms.
 
 ```ts
 type EffortPillProps =
-  | { level: 'easy' | 'ok' | 'hard' }       // mot fixe : « Facile » · « Correct » · « Dur » (échelle de l'ADR-013)
+  | { level: 'easy' | 'moderate' | 'hard' }  // mot fixe : « Facile » · « Correct » · « Dur » (échelle de l'ADR-013)
   | { level: 'neutral'; label: string };    // « Renfo », « Sans cardio »
 ```
 

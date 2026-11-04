@@ -177,7 +177,7 @@ function Gallery({ preview, setPreview }: { preview: Preview; setPreview: (p: Pr
           <Section title="EffortPill">
             <View style={styles.row}>
               <EffortPill level="easy" />
-              <EffortPill level="ok" />
+              <EffortPill level="moderate" />
               <EffortPill level="hard" />
               <EffortPill level="neutral" label="Renfo" />
               <EffortPill level="neutral" label="Sans cardio" />
@@ -224,7 +224,7 @@ function Gallery({ preview, setPreview }: { preview: Preview; setPreview: (p: Pr
               body="Comment s’est passée la séance d’hier ?"
               choices={[
                 { id: 'easy', label: 'Facile' },
-                { id: 'ok', label: 'Correct' },
+                { id: 'moderate', label: 'Correct' },
                 { id: 'hard', label: 'Dur' },
               ]}
               selected={coachAnswer}

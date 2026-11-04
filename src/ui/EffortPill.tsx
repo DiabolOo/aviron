@@ -3,16 +3,16 @@ import { View } from 'react-native';
 import { makeStyles, useTheme, type Palette } from '@/src/design';
 import { Text } from '@/src/ui/Text';
 
-export type EffortLevel = 'easy' | 'ok' | 'hard';
+export type EffortLevel = 'easy' | 'moderate' | 'hard';
 
 export type EffortPillProps = { level: EffortLevel } | { level: 'neutral'; label: string };
 
 /** Mot fixe par niveau (échelle de ressenti de l'ADR-013). */
-export const EFFORT_LABEL: Record<EffortLevel, string> = { easy: 'Facile', ok: 'Correct', hard: 'Dur' };
+export const EFFORT_LABEL: Record<EffortLevel, string> = { easy: 'Facile', moderate: 'Correct', hard: 'Dur' };
 
 const TONES: Record<EffortLevel, { text: keyof Palette; surface: keyof Palette; dot: keyof Palette }> = {
   easy: { text: 'effortEasy', surface: 'effortEasySurface', dot: 'effortEasyDot' },
-  ok: { text: 'effortModerate', surface: 'effortModerateSurface', dot: 'effortModerateDot' },
+  moderate: { text: 'effortModerate', surface: 'effortModerateSurface', dot: 'effortModerateDot' },
   hard: { text: 'effortHard', surface: 'effortHardSurface', dot: 'effortHardDot' },
 };
 
