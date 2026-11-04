@@ -30,7 +30,7 @@ export function CoachWidget() {
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={`${pending.length} propositions du coach`}
-      onPress={() => router.navigate('/agent')}
+      onPress={() => router.navigate('/coach')}
       className="active:opacity-80">
       <Card tint="ai" className="flex-row items-center gap-3.5 rounded-[24px] px-4 py-3.5">
         <Gradient

@@ -1,18 +1,17 @@
 import { HeartPulse } from 'lucide-react-native';
 
-import { EnergyBatteryWidget } from '@/components/dashboard/EnergyBatteryWidget';
 import type { LifeModule } from '@/src/modules/types';
 
+/** Hors bêta : interface (Forme / batterie d'énergie) supprimée, module désactivé par défaut. */
 export const wellnessModule: LifeModule = {
   id: 'wellness',
   title: 'Forme & sommeil',
   description: 'Apple Santé, récupération',
   icon: HeartPulse,
   color: 'aqua',
-  enabledByDefault: true,
+  enabledByDefault: false,
   entities: [],
-  todayWidgets: [{ id: 'forme', order: 30, Component: EnergyBatteryWidget, half: true }],
-  dashboards: [],
+  todayWidgets: [],
   agentTools: [],
   analyzers: [],
 };

@@ -5,7 +5,8 @@ import { Text } from '@/components/ui/Text';
 import { formatDayMonth } from '@/src/core/dates';
 import { activityDurationDisplay, activityPace, effortTimeSec, displayActivityName, formatKmNumber } from '@/src/core/sportFormat';
 import type { StravaActivity } from '@/src/core/types';
-import { openActivity, openRace } from '@/src/ui/nav';
+import { activityIdOfRace } from '@/src/core/training/raceView';
+import { openActivity } from '@/src/ui/nav';
 import { sportTokens } from '@/src/ui/theme/sportColors';
 import { useTheme } from '@/src/ui/useTheme';
 
@@ -35,7 +36,7 @@ export function ActivityRow({ activity, first, raceId }: Props) {
           {raceId ? (
             <Pressable
               hitSlop={6}
-              onPress={() => openRace(raceId)}
+              onPress={() => openActivity(activityIdOfRace(raceId))}
               className="rounded-full bg-fg px-2 py-0.5 active:opacity-70">
               <Text className="text-[11px] font-semibold text-canvas">Course</Text>
             </Pressable>

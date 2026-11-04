@@ -1,56 +1,40 @@
-import { Fragment } from 'react';
-import { View } from 'react-native';
+import { router } from 'expo-router';
+import { Pressable, Text } from 'react-native';
 
-import { HomeHeader } from '@/components/dashboard/HomeHeader';
-import { Screen } from '@/components/ui/Screen';
-import { usePulseFitStore, useStreak } from '@/lib/store';
-import { CORE_TODAY_WIDGETS, MODULES } from '@/src/modules';
-import { useIsModuleEnabled } from '@/src/modules/useModules';
-import { collectTodayWidgets } from '@/src/modules/registry';
-import { Rise } from '@/src/ui/motion/Rise';
+import { usePulseFitStore } from '@/lib/store';
+import { makeStyles, textStyle } from '@/src/design';
+import { PlaceholderScreen } from '@/src/ui/PlaceholderScreen';
 
-type Entry = { key: string; widgets: ReturnType<typeof collectTodayWidgets> };
+const useStyles = makeStyles((t) => ({
+  avatar: {
+    width: t.size.avatar,
+    height: t.size.avatar,
+    borderRadius: t.radius.pill,
+    backgroundColor: t.colors.surface,
+    borderWidth: t.size.hairline,
+    borderColor: t.colors.line,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  initial: { ...textStyle('sub', 'semibold'), color: t.colors.ink },
+}));
 
-function groupWidgets(widgets: ReturnType<typeof collectTodayWidgets>): Entry[] {
-  const entries: Entry[] = [];
-  for (const widget of widgets) {
-    const last = entries[entries.length - 1];
-    if (widget.half && last?.widgets[0]?.half && last.widgets.length < 2) last.widgets.push(widget);
-    else entries.push({ key: widget.id, widgets: [widget] });
-  }
-  return entries;
-}
-
-function SingleWidget({ widget }: { widget: Entry['widgets'][number] }) {
-  return <widget.Component />;
-}
-
-export default function HomeScreen() {
+/** Avatar provisoire : ouvre le profil (Stack hors onglets). Remplacé à l'étape 5. */
+function ProvisionalAvatar() {
+  const styles = useStyles();
   const firstName = usePulseFitStore((s) => s.profile.firstName);
-  const streak = useStreak();
-  const isEnabled = useIsModuleEnabled();
-  const entries = groupWidgets(collectTodayWidgets(MODULES, isEnabled, CORE_TODAY_WIDGETS));
-
   return (
-    <Screen tone="home">
-      <HomeHeader firstName={firstName} streak={streak} />
-      <View className="mt-3.5 gap-3.5">
-        {entries.map((entry, i) => (
-          <Rise key={entry.key} index={i + 1}>
-            {entry.widgets.length > 1 || entry.widgets[0].half ? (
-              <View className="flex-row gap-3.5">
-                {entry.widgets.map((w) => (
-                  <Fragment key={w.id}>
-                    <w.Component />
-                  </Fragment>
-                ))}
-              </View>
-            ) : (
-              <SingleWidget widget={entry.widgets[0]} />
-            )}
-          </Rise>
-        ))}
-      </View>
-    </Screen>
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel="Ouvrir le profil"
+      hitSlop={4}
+      onPress={() => router.push('/profile')}
+      style={styles.avatar}>
+      <Text style={styles.initial}>{firstName.charAt(0).toUpperCase()}</Text>
+    </Pressable>
   );
+}
+
+export default function TodayScreen() {
+  return <PlaceholderScreen title="Aujourd’hui" action={<ProvisionalAvatar />} />;
 }

@@ -10,7 +10,7 @@ export type ProposalContext = {
 export type IntentResult = {
   reply: string;
   proposals: Proposal[];
-  navigateTo?: '/profile' | '/profile-modules';
+  navigateTo?: '/profile' | '/profile/modules';
 };
 
 export type IntentContext = ProposalContext & { mealPlanSeed?: number };

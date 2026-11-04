@@ -8,7 +8,6 @@ function fakeModule(id: string, enabledByDefault: boolean): LifeModule {
     enabledByDefault,
     entities: [],
     todayWidgets: [],
-    dashboards: [],
     agentTools: [],
     analyzers: [],
   };

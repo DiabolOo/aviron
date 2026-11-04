@@ -2,20 +2,20 @@ import { Tabs } from 'expo-router';
 import { View } from 'react-native';
 
 import { TabBar } from '@/components/ui/TabBar';
+import { makeStyles } from '@/src/design';
 import { UndoToast } from '@/src/ui/proposals/UndoToast';
 
+const useStyles = makeStyles(() => ({ root: { flex: 1 } }));
+
 export default function TabLayout() {
+  const styles = useStyles();
   return (
-    <View className="flex-1">
+    <View style={styles.root}>
       <Tabs tabBar={(props) => <TabBar {...props} />} screenOptions={{ headerShown: false }}>
-        <Tabs.Screen name="index" options={{ title: 'Accueil' }} />
-        <Tabs.Screen name="plan" options={{ title: 'Plan' }} />
-        <Tabs.Screen name="agent" options={{ title: 'Agent' }} />
-        <Tabs.Screen name="suivi" options={{ title: 'Suivi' }} />
-        <Tabs.Screen name="stats" options={{ title: 'Stats' }} />
-        <Tabs.Screen name="profile" options={{ title: 'Profil' }} />
-        <Tabs.Screen name="profile-modules" options={{ title: 'Modules' }} />
-        <Tabs.Screen name="profile-section" options={{ title: 'Profil' }} />
+        <Tabs.Screen name="index" options={{ title: 'Aujourd’hui' }} />
+        <Tabs.Screen name="semaine" options={{ title: 'Semaine' }} />
+        <Tabs.Screen name="coach" options={{ title: 'Coach' }} />
+        <Tabs.Screen name="progres" options={{ title: 'Progrès' }} />
       </Tabs>
       <UndoToast />
     </View>

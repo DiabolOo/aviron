@@ -1,5 +1,12 @@
+import { MODULES } from '@/src/modules';
 import { collectSections, collectTodayWidgets, getEnabledModules } from './registry';
 import type { LifeModule } from './types';
+
+jest.mock('expo-router', () => ({ router: { navigate: jest.fn(), push: jest.fn() } }));
+jest.mock('lucide-react-native', () => new Proxy({ __esModule: true }, { get: (t, k) => (k in t ? t[k as keyof typeof t] : () => null) }));
+jest.mock('@react-native-async-storage/async-storage', () =>
+  jest.requireActual('@react-native-async-storage/async-storage/jest/async-storage-mock'),
+);
 
 const Dummy = () => null;
 
@@ -14,7 +21,6 @@ function fakeModule(id: string, orders: number[], enabled = true): LifeModule {
       order,
       Component: Dummy,
     })),
-    dashboards: [],
     agentTools: [],
     analyzers: [],
   };
@@ -48,10 +54,34 @@ describe('collectSections', () => {
   it('ordonne les sections selon l’ordre demandé et ignore les modules désactivés', () => {
     const mk = (id: string, enabled = true): LifeModule => ({
       ...fakeModule(id, [], enabled),
-      plans: [{ id: `${id}-plan`, title: id, Component: Dummy }],
+      week: [{ id: `${id}-plan`, title: id, Component: Dummy }],
     });
     const modules = [mk('sport'), mk('nutrition'), mk('goals', false)];
-    const sections = collectSections(modules, byDefault, 'plans', ['nutrition', 'sport']);
+    const sections = collectSections(modules, byDefault, 'week', ['nutrition', 'sport']);
     expect(sections.map((s) => s.id)).toEqual(['nutrition-plan', 'sport-plan']);
+  });
+});
+
+describe('MODULES (bêta limitée au sport)', () => {
+  const ids = (on: boolean) => MODULES.filter((m) => m.enabledByDefault === on).map((m) => m.id).sort();
+
+  it('seuls sport et profil sont actifs par défaut', () => {
+    expect(ids(true)).toEqual(['profile', 'sport']);
+    expect(ids(false)).toEqual(['goals', 'nutrition', 'wellness']);
+  });
+
+  it('les modules hors bêta n’ajoutent aucune section ni widget', () => {
+    for (const m of MODULES.filter((m) => !m.enabledByDefault)) {
+      expect(m.week ?? []).toEqual([]);
+      expect(m.progress ?? []).toEqual([]);
+      expect(m.todayWidgets).toEqual([]);
+    }
+  });
+
+  it('le module sport alimente Semaine et Progrès', () => {
+    const sections = (section: 'week' | 'progress') =>
+      collectSections(MODULES, byDefault, section).map((s) => s.id);
+    expect(sections('week')).toEqual(['sport-plan', 'sport']);
+    expect(sections('progress')).toEqual(['sport-trends']);
   });
 });

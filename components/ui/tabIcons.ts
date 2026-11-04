@@ -1,11 +1,10 @@
-import { Activity, BarChart3, CalendarDays, House, Sparkles } from 'lucide-react-native';
+import { CalendarDays, House, Sparkles, TrendingUp } from 'lucide-react-native';
 
 export const TAB_ICONS = {
   index: House,
-  plan: CalendarDays,
-  agent: Sparkles,
-  suivi: Activity,
-  stats: BarChart3,
+  semaine: CalendarDays,
+  coach: Sparkles,
+  progres: TrendingUp,
 } as const;
 
-export const TAB_ORDER = ['index', 'plan', 'agent', 'suivi', 'stats'] as const;
+export const TAB_ORDER = ['index', 'semaine', 'coach', 'progres'] as const;

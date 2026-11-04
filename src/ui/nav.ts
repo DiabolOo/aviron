@@ -23,14 +23,6 @@ export function openActivity(id: string): void {
   pushOnce(`/activity/${id}`);
 }
 
-export function openRace(id: string): void {
-  pushOnce(`/race/${id}`);
-}
-
-export function openActivities(): void {
-  pushOnce('/activities');
-}
-
 /** `[perf]` dev : instant du dernier tap, pour mesurer tap → premier rendu. */
 export function navElapsedMs(): number | undefined {
   return lastNavAt !== null ? Date.now() - lastNavAt : undefined;

@@ -22,11 +22,10 @@ export interface LifeModule {
   enabledByDefault: boolean;
   entities: ZodTypeAny[];
   todayWidgets: TodayWidget[];
-  plans?: Dashboard[];
-  dashboards: Dashboard[];
-  stats?: Dashboard[];
-  /** tendances à fenêtres fixes, hors sélecteur de période de l'onglet Stats */
-  trends?: Dashboard[];
+  /** sections de l'onglet Semaine (le prévu et le fait) */
+  week?: Dashboard[];
+  /** sections de l'onglet Progrès (tendances, volume, courses) */
+  progress?: Dashboard[];
   agentTools: AgentTool[];
   agentExamples?: string[];
   analyzers: Analyzer[];

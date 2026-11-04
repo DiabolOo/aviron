@@ -9,7 +9,6 @@ import { Text } from '@/components/ui/Text';
 import { formatClock, formatKmTotal } from '@/src/core/sportFormat';
 import type { WeekSummary } from '@/src/core/sportWeek';
 import type { StravaActivity } from '@/src/core/types';
-import { openActivities } from '@/src/ui/nav';
 import { useConfirmedRaceMap } from '@/src/ui/useRaces';
 
 type ActivityHistoryProps = {
@@ -34,7 +33,7 @@ export function ActivityHistory({ week, activities, connected, lastActivityLabel
 
       {!connected ? (
         <Pressable
-          onPress={() => router.navigate('/profile-section?id=connexions')}
+          onPress={() => router.navigate('/profile/connexions')}
           className="mt-3 rounded-3xl border border-dashed border-fg/15 p-5 active:opacity-70">
           <Text className="text-base font-semibold text-fg">Connecter Strava</Text>
           <Text className="mt-1 text-sm text-muted">Importe tes sorties depuis ton profil.</Text>
@@ -60,11 +59,6 @@ export function ActivityHistory({ week, activities, connected, lastActivityLabel
               <ActivityRow key={activity.id} activity={activity} first={index === 0} raceId={raceMap.get(activity.id)} />
             ))
           )}
-          <Pressable
-            onPress={() => openActivities()}
-            className="mt-2 items-center border-t border-fg/5 py-4 active:opacity-70">
-            <Text className="text-sm font-medium text-fg">Voir tout l&apos;historique</Text>
-          </Pressable>
         </View>
       )}
     </View>

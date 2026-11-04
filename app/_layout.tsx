@@ -98,14 +98,11 @@ export default function RootLayout() {
         </Stack.Protected>
         <Stack.Protected guard={hasCompletedOnboarding}>
           <Stack.Screen name="(tabs)" />
-          <Stack.Screen
-            name="scan"
-            options={{ presentation: 'fullScreenModal', animation: 'slide_from_bottom' }}
-          />
-          <Stack.Screen name="gallery" options={{ animation: 'slide_from_right' }} />
-          <Stack.Screen name="activities" options={{ animation: 'slide_from_right' }} />
-          <Stack.Screen name="race/[id]" options={{ animation: 'slide_from_right' }} />
+          <Stack.Screen name="profile" options={{ animation: 'slide_from_right' }} />
           <Stack.Screen name="activity/[id]" options={{ animation: 'slide_from_right' }} />
+        </Stack.Protected>
+        <Stack.Protected guard={hasCompletedOnboarding && __DEV__}>
+          <Stack.Screen name="(dev)/gallery" options={{ animation: 'slide_from_right' }} />
         </Stack.Protected>
       </Stack>
     </ThemeProvider>

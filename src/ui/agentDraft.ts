@@ -19,5 +19,5 @@ export const useAgentDraft = create<AgentDraftState>()((set, get) => ({
 
 export function openAgent(text = '', context: string | null = null): void {
   useAgentDraft.getState().set(text, context);
-  router.navigate('/agent');
+  router.navigate('/coach');
 }

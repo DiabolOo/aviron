@@ -1,6 +1,5 @@
 import { Switch, View } from 'react-native';
 
-import { ProfileHeader } from '@/components/profile/ProfileHeader';
 import { Card } from '@/components/ui/Card';
 import { Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
@@ -19,7 +18,6 @@ export default function ProfileModulesScreen() {
   return (
     <Screen tone="plan">
       <View className="gap-3.5">
-        <ProfileHeader title="Modules" backLabel="Profil" backTo="/profile" />
         <Text className="px-0.5 text-[16px] leading-[22px] text-muted">
           Choisis ce qui t’intéresse. Modifiable à tout moment.
         </Text>

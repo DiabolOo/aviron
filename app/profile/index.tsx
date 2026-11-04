@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { Pressable, View } from 'react-native';
 
 import { EditProfileModal } from '@/components/profile/EditProfileModal';
-import { ProfileHeader } from '@/components/profile/ProfileHeader';
 import { Card } from '@/components/ui/Card';
 import { IconButton } from '@/components/ui/IconButton';
 import { Screen } from '@/components/ui/Screen';
@@ -32,21 +31,20 @@ export default function ProfileScreen() {
   const active = getEnabledModules(toggleable, isEnabled).length;
 
   const rows: Row[] = [
-    { label: 'Modules', value: `${active} ${active > 1 ? 'actifs' : 'actif'}`, to: '/profile-modules' },
-    { label: 'Objectifs', value: 'Poids, rythme', to: '/profile-section?id=objectifs' },
+    { label: 'Modules', value: `${active} ${active > 1 ? 'actifs' : 'actif'}`, to: '/profile/modules' },
+    { label: 'Objectifs', value: 'Poids, rythme', to: '/profile/objectifs' },
     {
       label: 'Connexions',
       value: strava || watch ? (strava ? 'Strava' : 'Montre') : 'Aucune',
-      to: '/profile-section?id=connexions',
+      to: '/profile/connexions',
     },
-    { label: 'Apparence', value: THEME_LABEL[theme], to: '/profile-section?id=apparence' },
+    { label: 'Apparence', value: THEME_LABEL[theme], to: '/profile/apparence' },
     { label: 'Compte et données', value: 'Bientôt' },
   ];
 
   return (
     <Screen tone="plan">
       <View className="gap-3.5">
-        <ProfileHeader title="Profil" backLabel="Accueil" backTo="/" />
         <Card className="flex-row items-center gap-4 p-5">
           <View className="h-16 w-16 items-center justify-center rounded-full bg-chip">
             <Text className="text-[26px] font-bold text-fg">{profile.firstName.charAt(0).toUpperCase()}</Text>

@@ -1,4 +1,4 @@
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { Unplug } from 'lucide-react-native';
 import { useState } from 'react';
 import { View } from 'react-native';
@@ -6,7 +6,6 @@ import { View } from 'react-native';
 import { ConnectionSwitch } from '@/components/profile/ConnectionSwitch';
 import { GoalSheet } from '@/components/profile/GoalSheet';
 import { MaxHrField } from '@/components/profile/MaxHrField';
-import { ProfileHeader } from '@/components/profile/ProfileHeader';
 import { SettingRow } from '@/components/profile/SettingRow';
 import { Card } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -168,13 +167,13 @@ function Appearance() {
 }
 
 export default function ProfileSectionScreen() {
-  const { id } = useLocalSearchParams<{ id?: string }>();
-  const section = id === 'connexions' || id === 'apparence' ? id : 'objectifs';
+  const { section: param } = useLocalSearchParams<{ section?: string }>();
+  const section = param === 'connexions' || param === 'apparence' ? param : 'objectifs';
 
   return (
     <Screen tone="plan">
+      <Stack.Screen options={{ title: TITLES[section] }} />
       <View className="gap-3.5">
-        <ProfileHeader title={TITLES[section]} backLabel="Profil" backTo="/profile" />
         {section === 'objectifs' ? <Goals /> : section === 'connexions' ? <Connections /> : <Appearance />}
       </View>
     </Screen>

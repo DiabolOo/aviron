@@ -8,7 +8,8 @@ import { ErrorState } from '@/components/ui/ErrorState';
 import { Label } from '@/components/ui/Label';
 import { Screen } from '@/components/ui/Screen';
 import { usePulseFitStore } from '@/lib/store';
-import { openRace, perfLog } from '@/src/ui/nav';
+import { activityIdOfRace } from '@/src/core/training/raceView';
+import { openActivity, perfLog } from '@/src/ui/nav';
 import { sportTokens } from '@/src/ui/theme/sportColors';
 import { useActivityHighlight, useSportDerived } from '@/src/ui/useRaces';
 import { useTheme } from '@/src/ui/useTheme';
@@ -68,7 +69,10 @@ export default function ActivityScreen() {
         highlight={highlight}
         comparison={comparison}
         race={race}
-        onOpenRace={openRace}
+        onOpenRace={(target) => {
+          const targetId = activityIdOfRace(target);
+          if (targetId !== id) openActivity(targetId);
+        }}
       />
     </Screen>
   );

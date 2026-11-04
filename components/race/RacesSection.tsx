@@ -5,8 +5,8 @@ import { ConfirmRaceCard } from '@/components/race/ConfirmRaceCard';
 import { Label } from '@/components/ui/Label';
 import { Text } from '@/components/ui/Text';
 import { parseISODate, toISODate } from '@/src/core/dates';
-import { candidateSummaryFr, formatPaceKm, formatRaceTime, isStaleCandidate, suggestRaceName } from '@/src/core/training/raceView';
-import { openRace } from '@/src/ui/nav';
+import { activityIdOfRace, candidateSummaryFr, formatPaceKm, formatRaceTime, isStaleCandidate, suggestRaceName } from '@/src/core/training/raceView';
+import { openActivity } from '@/src/ui/nav';
 import { useRaceLists } from '@/src/ui/useRaces';
 import { useTheme } from '@/src/ui/useTheme';
 
@@ -50,7 +50,7 @@ export function RacesSection() {
             {confirmed.map((race, index) => (
               <Pressable
                 key={race.id}
-                onPress={() => openRace(race.id)}
+                onPress={() => openActivity(activityIdOfRace(race.id))}
                 className={`flex-row items-center gap-3 py-4 active:opacity-70 ${index > 0 ? 'border-t border-fg/5' : ''}`}>
                 <View className="flex-1">
                   <Text numberOfLines={1} className="text-base text-fg">{race.name}</Text>

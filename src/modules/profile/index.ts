@@ -7,7 +7,6 @@ export const profileModule: LifeModule = {
   enabledByDefault: true,
   entities: [ProfileSchema],
   todayWidgets: [],
-  dashboards: [],
   agentTools: [
     {
       name: 'get_profile',

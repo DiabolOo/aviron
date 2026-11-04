@@ -39,9 +39,11 @@ export const sportModule: LifeModule = {
     { id: 'workout', order: 10, Component: Workout },
     { id: 'race-insights', order: 15, Component: RaceInsightCards },
   ],
-  plans: [{ id: 'sport-plan', title: 'Sport', Component: SportPlan }],
-  dashboards: [{ id: 'sport', title: 'Sport', Component: SportDashboard }],
-  trends: [{ id: 'sport-trends', title: 'Sport', Component: SportTrends }],
+  week: [
+    { id: 'sport-plan', title: 'Sport', Component: SportPlan },
+    { id: 'sport', title: 'Sport', Component: SportDashboard },
+  ],
+  progress: [{ id: 'sport-trends', title: 'Sport', Component: SportTrends }],
   agentTools: [
     {
       name: 'get_recent_activities',

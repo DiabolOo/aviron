@@ -99,7 +99,7 @@ export interface LifeModule {
 
 **🎯 Voie MVP (chemin critique, voir section dédiée)** : M1 Moteur d'analyse ✅ · M2 Écran d'analyse sur données réelles 🔧 · M3 Coach IA ⏳ (🚪 porte 1) · M4 Données testeurs ⏳ · M5 Profils, consentements, programmes sans IA ⏳ (🚪 porte 2) · M6 Bêta privée ⏳ (🚪 porte 3).
 
-**🎨 Refonte v3.1 (branche `refonte`, voir section dédiée)** : coquille ⏳ · composants ⏳ · `groupSessions` et source ⏳ · écrans ⏳. Bêta limitée au sport.
+**🎨 Refonte v3.1 (branche `refonte`, voir section dédiée)** : coquille ✅ · composants ⏳ · `groupSessions` et source ⏳ · écrans ⏳. Bêta limitée au sport.
 
 **Correspondance avec l'ancienne roadmap** : ancien J3 → J5 · J4 → J7 · J5 → J8 · J6 → J11 · J7 → J9 · J8 → J9 (objectif de course) · J9 → J10 · J10 → J12 · J11 → J14/J15 · J12 → J18 · J13 → J16 · J14 → J17.
 
@@ -117,8 +117,8 @@ export interface LifeModule {
    - [x] ADR-011 + garde-fous ESLint `pulsefit/no-literal-style` et `pulsefit/no-classname`, exceptions temporaires par étape
    - [x] Tag `pre-v3`, inventaire des fichiers, ADR-012 et ADR-013
 2. **Coquille de navigation** (ADR-012) : 4 onglets, TabBar v3.1, Stack `profile/` ouvert par l'avatar, `activity/[id]`, onboarding ; les écrans supprimés (nutrition, scan, Objectifs, Forme, historique, `/race/[id]`, `/preview-stats`) sont retirés des routes, mais leur ancien code reste compilable jusqu'à sa réécriture
-   - [ ] Routes et TabBar
-   - [ ] Écrans supprimés retirés des routes (ancien code conservé et compilable) ; modules nutrition, Objectifs et Forme désactivés par défaut
+   - [x] Routes et TabBar
+   - [x] Écrans supprimés retirés des routes (ancien code conservé et compilable) ; modules nutrition, Objectifs et Forme désactivés par défaut
 3. **Composants** (`docs/SPEC-v3.md`), chacun avec ses états, son accessibilité et le texte agrandi
    - [ ] `CoachCard` · [ ] `HeroMetric` · [ ] `SessionCard` · [ ] `EffortPill` · [ ] `ProposalCard` · [ ] `EmptyState`
    - [ ] Galerie de dev des composants (relecture visuelle humaine)
@@ -128,6 +128,9 @@ export interface LifeModule {
    - [ ] Jeux synthétiques versionnés dans `fixtures/synthetic/` (débutant, coureur du dimanche, sportif équipé ; aucune donnée réelle), base de développement de M3
 5. **Écrans** : Aujourd'hui → Semaine → détail d'activité (avec le débrief de course) → Coach, puis Progrès, Profil et onboarding (maquettes à produire)
    - [ ] Aujourd'hui · [ ] Semaine · [ ] Détail d'activité · [ ] Coach · [ ] Progrès · [ ] Profil · [ ] Onboarding
+   - [ ] Onboarding v3.2 : remplace l'actuel. Sexe, taille, poids, objectif de poids et niveau d'activité ne sont plus demandés ; l'âge reste, facultatif, pour l'estimation de la FC max
+   - [ ] Profil › objectifs : ne garde que l'objectif sportif (plus de poids, rythme ni calories)
+   - [ ] Profil › Modules : revoir le texte de la page (il évoque encore les sélecteurs de Plan et Suivi)
    - [ ] Profil › Données : export et suppression des données (droits RGPD, **obligatoires avant la bêta**)
    - [ ] `eslint-rules/legacy-exceptions.js` vide, puis retrait de NativeWind, Tailwind, `global.css` et des anciens tokens
 - **DoD** : les 4 onglets et le détail d'activité suivent la SPEC ; aucune exception ESLint restante ; NativeWind retiré ; aucune activité Strava ni agrégat Strava dans un résumé IA (test).
@@ -576,8 +579,9 @@ Aux niveaux 0 et 1, **aucune donnée d'activité ne quitte le téléphone**. Le 
 | 2026-11-04 | Direction v3.1 — socle : `src/design/` (`theme.ts` + `fontScaleCaps` / `fontScaleBreakpoints` / `heroMinimumFontScale` dans `Theme`, `useTheme` système, `makeStyles`), polices Inter 400/600 + Inter Tight 600/700 sous écran de démarrage, ADR-011 (StyleSheet dérivés des tokens, NativeWind gelé), règles ESLint `pulsefit/no-literal-style` et `pulsefit/no-classname` avec exceptions temporaires par étape ; aucun écran modifié |
 | 2026-11-04 | Refonte v3.1 — préparation (documentation seule) : tag `pre-v3` poussé ; ADR-012 (navigation `Aujourd'hui · Semaine · Coach · Progrès`, profil par l'avatar, débrief de course dans le détail d'activité) remplace l'ADR-002 ; ADR-013 (source des activités, `aiEligible`, jamais Strava vers l'IA) ; bêta limitée au sport ; AGENTS.md, `.windsurfrules` et ROADMAP mis à jour ; `docs/theme.js` et l'artefact `.claude/worktrees/` retirés |
 | 2026-11-04 | ADR-013 complétée : séances écrites par l'app Strava via Apple Santé / Health Connect (bundle id / package d'origine) → source `strava` ; `device` = `manufacturer` de `file_id` FIT ; échelle de ressenti unique `easy | ok | hard` (« Facile · Correct · Dur ») ; constat : aucune règle de prédiction de semi dans `thresholds.ts` |
+| 2026-11-04 | Refonte v3.1, étape 2 — coquille de navigation (ADR-012) : 4 onglets et TabBar v3.1 (`size.tabBar`), écrans provisoires, Stack `profile/` ouvert par l'avatar, `(dev)/gallery`, `/agent` → `/coach` ; routes plan, suivi, stats, activities, race, scan, preview-stats supprimées ; interface nutrition, scan, Forme, ModuleSwitcher/ModuleTabs retirée ; registre `week` / `progress`, nutrition, goals et wellness désactivés par défaut ; liens de course → `/activity/<id>` ; tests 633 → 602 (−33 exceptions ESLint retirées, +3 registre, −1 nav) ; vérification sur appareil restant à faire |
 
 ## ▶️ Prochaine étape
-**Refonte v3.1, étape 2 : coquille de navigation** (ADR-012) sur la branche `refonte` : 4 onglets et TabBar v3.1, Stack `profile/` ouvert par l'avatar, `activity/[id]`, onboarding ; retrait des routes des écrans supprimés (nutrition, scan, Objectifs, Forme, historique, `/race/[id]`, `/preview-stats`), l'ancien code restant compilable jusqu'à sa réécriture. Puis les composants de la SPEC, `groupSessions` et la source des activités (ADR-013), puis les écrans.
+**Refonte v3.1, étape 3 : composants de la SPEC** (`CoachCard`, `HeroMetric`, `SessionCard`, `EffortPill`, `ProposalCard`, `EmptyState`) sur la branche `refonte`, puis `groupSessions` et la source des activités (ADR-013), puis les écrans.
 
 En parallèle (hors code) : faire valider juridiquement la lecture des conditions Strava (ADR-013) avant M6 ; maquetter Progrès, Profil et onboarding.

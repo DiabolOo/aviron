@@ -4,8 +4,8 @@ import { ConfirmRaceCard } from '@/components/race/ConfirmRaceCard';
 import { Card } from '@/components/ui/Card';
 import { Text } from '@/components/ui/Text';
 import { nbspUnits } from '@/src/core/sportFormat';
-import { formatRaceTime } from '@/src/core/training/raceView';
-import { openRace } from '@/src/ui/nav';
+import { activityIdOfRace, formatRaceTime } from '@/src/core/training/raceView';
+import { openActivity } from '@/src/ui/nav';
 import { useRaceInsights } from '@/src/ui/useRaces';
 
 /** Accueil : carte de la course des 7 derniers jours (toute la carte ouvre le débrief) et carte confirm_race (Oui / Non). */
@@ -28,7 +28,7 @@ export function RaceInsightCards() {
           accessibilityRole="button"
           accessibilityLabel={`${race.title}, ${formatRaceTime(race.timeSec)}`}
           testID="race-card"
-          onPress={() => openRace(race.raceId)}
+          onPress={() => openActivity(activityIdOfRace(race.raceId))}
           className="active:opacity-70">
           <Card>
             <Text numberOfLines={2} className="text-base font-semibold text-fg">{race.title}</Text>
