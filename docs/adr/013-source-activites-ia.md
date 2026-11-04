@@ -32,9 +32,13 @@ déclaré, niveau 1 analyse sur le téléphone, niveau 2 coach IA avec accord ex
    La source désigne le **canal d'import**, pas l'appareil d'enregistrement : c'est le canal qui
    décide des conditions applicables. Une activité enregistrée par une COROS mais importée depuis
    Strava a la source `strava`.
-2. **Chaque activité peut porter un champ `device`** facultatif : le fabricant lu dans le fichier
-   FIT (ex. « COROS », « Garmin »). Il sert à l'affichage seulement et n'a **aucun effet** sur
-   `aiEligible`.
+   - **Écriture croisée dans l'agrégateur** : une séance lue dans Apple Santé ou Health Connect
+     mais **écrite par l'app Strava** prend la source `strava`, donc `aiEligible: false`. La
+     provenance se lit dans le bundle id de `sourceRevision` (HealthKit) ou le package d'origine
+     (Health Connect). Le canal Strava reste Strava même quand il passe par le système.
+2. **Chaque activité peut porter un champ `device`** facultatif : le fabricant **lu dans le FIT**
+   (champ `manufacturer` de `file_id`) quand il existe (ex. « COROS », « Garmin »). Il sert à
+   l'affichage seulement et n'a **aucun effet** sur `aiEligible`.
 3. **Chaque activité porte un champ `aiEligible: boolean`**, calculé à l'import par `src/core/`.
    Invariant : **`source === 'strava'` ⇒ `aiEligible === false`**, sans exception ni réglage
    qui le contourne.
@@ -84,8 +88,27 @@ valider juridiquement avant la bêta** (M6), notamment :
   alimenter le coach » n'est plus autorisé tant que le snapshot vient de Strava.
 - **AGENTS.md, règle 9** : renvoie à cette ADR (`aiEligible`) au lieu de l'ADR-004.
 - **Tests attendus** (étape d'implémentation) :
+  - une séance écrite par l'app Strava (bundle id / package d'origine) prend `source: 'strava'`
+    même importée via `apple_health` ou `health_connect` ;
   - l'invariant Strava ⇒ non éligible, quel que soit `device` ;
   - l'ordre de priorité des sources et le départage par quantité de données ;
   - aucun champ de la copie Strava dans l'enregistrement gardé ;
   - un résumé identique avec et sans les activités Strava présentes (volumes et tendances compris) ;
   - l'exclusion d'une séance mixte.
+
+## Décisions adjacentes (même contexte, même date)
+
+### Ressenti
+
+Après une séance, le ressenti déclaré suit **une seule échelle à trois niveaux** :
+`easy | ok | hard`, libellés « **Facile · Correct · Dur** ». Il sert aux questions de
+`CoachCard` (SPEC-v3 §1), aux débriefs et à l'ajustement du plan. Comme pour le reste, un
+composant ne choisit pas les libellés : ils viennent de `src/core/`.
+
+### Prédiction de semi (constat d'implémentation)
+
+Vérifié le 2026-11-04 : `src/core/training/insights/thresholds.ts` **ne contient aucune règle de
+prédiction de chrono** sur semi (Riegel ou autre). Les deux seules constantes liées à un objectif
+de temps, `TARGET_PACE_MIN_SEC` / `TARGET_PACE_MAX_SEC` (allure visée plausible : 2:30–10:00 /km),
+servent à **valider un temps déclaré**, pas à le prédire. Aucune règle n'est créée pour l'instant ;
+si une prédiction est ajoutée, elle ira dans `src/core/` avec ses seuils dans `thresholds.ts`.
