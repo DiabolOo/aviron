@@ -13,7 +13,7 @@ import {
 const TODAY = '2026-11-04';
 
 function act(id: string, date: string, distanceKm: number, min: number, avgHr?: number, type: Activity['type'] = 'run'): Activity {
-  return { id, name: 'Sortie', type, date, startTime: '08:00', durationMin: min, distanceKm, avgHr };
+  return { id, name: 'Sortie', type, date, startTime: '08:00', durationMin: min, distanceKm, avgHr, source: 'manual' as const, aiEligible: true };
 }
 
 describe('resolveMaxHr', () => {

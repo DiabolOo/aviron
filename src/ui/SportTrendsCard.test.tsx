@@ -7,7 +7,7 @@ import { SportTrendsCard } from '@/src/modules/sport/SportTrendsCard';
 const TODAY = '2026-11-04';
 
 function run(id: string, date: string, km: number, avgHr?: number): Activity {
-  return { id, name: 'Sortie', type: 'run', date, startTime: '08:00', durationMin: km * 5, distanceKm: km, avgHr };
+  return { id, name: 'Sortie', type: 'run', date, startTime: '08:00', durationMin: km * 5, distanceKm: km, avgHr, source: 'manual' as const, aiEligible: true };
 }
 
 const week = (hr?: number) => [

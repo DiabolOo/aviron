@@ -97,7 +97,12 @@ export const ActivitySchema = z.object({
   calories: z.number().nonnegative().optional(),
   avgHr: z.number().nonnegative().optional(),
   maxHr: z.number().nonnegative().optional(),
-  source: z.enum(['apple_health', 'garmin', 'coros', 'fit_import', 'manual', 'strava']).optional(),
+  /** Canal d'import — détermine `aiEligible`. 'strava' ⇒ aiEligible false, sans exception. */
+  source: z.enum(['strava', 'coros', 'garmin', 'apple_health', 'health_connect', 'file', 'phone', 'manual']),
+  /** Vrai si l'activité peut être incluse dans un résumé envoyé à l'IA. Invariant : source 'strava' ⇒ false. */
+  aiEligible: z.boolean(),
+  /** Fabricant lu dans le fichier FIT (champ manufacturer de file_id) — affichage seulement, sans effet sur aiEligible. */
+  device: z.string().optional(),
   splits: z.array(SplitSchema).optional(),
   hrStream: z.array(z.number()).optional(),
   polyline: z.array(z.object({ x: z.number(), y: z.number() })).optional(),

@@ -49,6 +49,7 @@ export function stravaToActivity(activity: StravaActivity): Activity {
     maxHr: activity.maxHr,
     startCity: activity.startCity,
     source: 'strava',
+    aiEligible: false,
     splits: activity.splits,
     hrStream: activity.hrStream,
     polyline: activity.polyline,

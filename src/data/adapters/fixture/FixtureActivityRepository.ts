@@ -20,7 +20,13 @@ function loadFixture(): Activity[] {
     const parsed = SnapshotEnvelopeSchema.safeParse(raw);
     if (!parsed.success) return [];
     return parsed.data.activities.flatMap((item) => {
-      const r = ActivitySchema.safeParse(item);
+      // Snapshots créés avant ADR-013 n'ont pas source/aiEligible : on ajoute les valeurs par
+      // défaut (strava/false) car le snapshot vient de l'export Strava.
+      const withDefaults =
+        typeof item === 'object' && item !== null
+          ? { source: 'strava', aiEligible: false, ...item }
+          : item;
+      const r = ActivitySchema.safeParse(withDefaults);
       return r.success ? [r.data] : [];
     });
   } catch {

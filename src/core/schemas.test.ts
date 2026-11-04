@@ -51,18 +51,32 @@ describe('FoodItemSchema', () => {
 });
 
 describe('ActivitySchema', () => {
+  const baseActivity = {
+    id: 'a1', name: 'Footing', type: 'run',
+    date: '2026-10-29', startTime: '07:00',
+    durationMin: 45, calories: 450,
+    source: 'manual' as const, aiEligible: true,
+  };
   it('accepte une activité course', () => {
-    expect(ActivitySchema.safeParse({
-      id: 'a1', name: 'Footing', type: 'run',
-      date: '2026-10-29', startTime: '07:00',
-      durationMin: 45, calories: 450,
-    }).success).toBe(true);
+    expect(ActivitySchema.safeParse(baseActivity).success).toBe(true);
+  });
+  it('accepte device facultatif', () => {
+    expect(ActivitySchema.safeParse({ ...baseActivity, device: 'COROS PACE 3', source: 'coros' }).success).toBe(true);
+  });
+  it('refuse source inconnue', () => {
+    expect(ActivitySchema.safeParse({ ...baseActivity, source: 'fit_import' }).success).toBe(false);
+  });
+  it('refuse source absente', () => {
+    const { source: _s, aiEligible: _a, ...without } = baseActivity;
+    expect(ActivitySchema.safeParse(without).success).toBe(false);
+  });
+  it('refuse aiEligible absent', () => {
+    const { aiEligible: _a, ...without } = baseActivity;
+    expect(ActivitySchema.safeParse(without).success).toBe(false);
   });
   it('refuse une date mal formatée', () => {
     expect(ActivitySchema.safeParse({
-      id: 'a1', name: 'Run', type: 'run',
-      date: '30/10/2026', startTime: '07:00',
-      durationMin: 45, calories: 450,
+      ...baseActivity, date: '30/10/2026',
     }).success).toBe(false);
   });
 });

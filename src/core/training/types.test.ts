@@ -12,6 +12,7 @@ describe('training types', () => {
     const a = ActivitySchema.parse({
       id: 'a1', name: 'Sortie', type: 'run', date: '2025-03-02', startTime: '08:00',
       durationMin: 50, distanceKm: 10, calories: 600,
+      source: 'manual', aiEligible: true,
       splits: [{ km: 1, pace: '5:00', paceSec: 300, elevationGain: 2, avgHr: 150 }],
     });
     expect(a.splits?.[0]).toEqual(SplitSchema.parse(a.splits?.[0]));
@@ -37,6 +38,7 @@ describe('training types', () => {
     const a = ActivitySchema.parse({
       id: 'a2', name: 'Piscine', type: 'swim', date: '2025-03-03', startTime: '12:00',
       startedAt: '2025-03-03T12:00:00+01:00', durationMin: 40,
+      source: 'manual', aiEligible: true,
     });
     expect(a.calories).toBeUndefined();
     expect(a.type).toBe('swim');

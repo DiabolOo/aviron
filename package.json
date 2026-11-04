@@ -63,7 +63,8 @@
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
     "test": "jest",
-    "import:strava": "tsx scripts/import-strava.ts"
+    "import:strava": "tsx scripts/import-strava.ts",
+    "check:sessions": "tsx scripts/check-sessions.ts"
   },
   "jest": {
     "projects": [

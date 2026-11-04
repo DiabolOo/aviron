@@ -11,7 +11,7 @@ import { SportTrendsCard } from '@/src/modules/sport/SportTrendsCard';
 const TODAY = '2026-11-02';
 
 function run(id: string, date: string, km: number, min: number, avgHr?: number, maxHr?: number): Activity {
-  return { id, name: 'Sortie', type: 'run', date, startTime: '08:00', durationMin: min, distanceKm: km, avgHr, maxHr };
+  return { id, name: 'Sortie', type: 'run', date, startTime: '08:00', durationMin: min, distanceKm: km, avgHr, maxHr, source: 'manual' as const, aiEligible: true };
 }
 
 // 1 — tout vide : aucune activité, pas de FC max ni d'âge

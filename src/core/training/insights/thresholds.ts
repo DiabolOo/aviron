@@ -97,3 +97,17 @@ export const TARGET_PACE_MAX_SEC = 600;
  * confirm_race : via rejectedIds de detectRaces ; data_quality_no_hr : via rankInsights({ rejectedForever }).
  */
 export const NEVER_MUTED_RULE_IDS: readonly string[] = ['confirm_race', 'data_quality_no_hr'];
+
+// ─── Regroupement en séances (groupSessions) ─────────────────────────────────
+
+/** Écart maximal entre la fin d'une activité et le début de la suivante pour les regrouper (minutes). */
+export const GROUP_MAX_GAP_MIN = 15;
+/** Durée maximale d'une séance du premier début à la dernière fin (heures). */
+export const GROUP_MAX_DURATION_H = 4;
+
+// ─── Déduplication (dedupeActivities) ────────────────────────────────────────
+
+/** Deux activités sont la même sortie si leurs débuts sont séparés de moins de N minutes. */
+export const DEDUPE_START_DIFF_MIN = 2;
+/** Deux activités sont la même sortie si leurs distances diffèrent de moins de N % (ou durées si pas de distance). */
+export const DEDUPE_DISTANCE_PCT = 3;

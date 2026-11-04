@@ -42,7 +42,7 @@ describe('parseActivitiesCsv', () => {
       date: '2025-10-19', startTime: '09:30:00', type: 'run',
       startedAt: '2025-10-19T07:30:00+00:00',
       durationMin: 6650 / 60, movingTimeSec: 6650, distanceKm: 21.238, elevationM: 395,
-      maxHr: 178, avgHr: 162, calories: 1430, source: 'strava',
+      maxHr: 178, avgHr: 162, calories: 1430, source: 'strava', aiEligible: false,
     });
     expect(activities.find((a) => a.activity.id === '124')!.activity.movingTimeSec).toBe(2940);
     expect(activities.find((a) => a.activity.id === '125')!.activity.type).toBe('swim');

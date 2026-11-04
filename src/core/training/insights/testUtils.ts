@@ -7,6 +7,7 @@ export function run(id: string, date: string, distanceKm: number, avgHr?: number
   return {
     id, name: 'Sortie', type: 'run', date, startTime: '08:00',
     durationMin: Math.round(distanceKm * 5.5 * 10) / 10, distanceKm, calories: 0, avgHr,
+    source: 'manual', aiEligible: true,
     ...extra,
   };
 }

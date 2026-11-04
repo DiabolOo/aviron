@@ -13,6 +13,8 @@ const base: Activity = {
   startTime: '08:00:00',
   durationMin: 42,
   distanceKm: 8.5,
+  source: 'manual',
+  aiEligible: true,
 };
 
 describe('FixtureActivityRepository', () => {

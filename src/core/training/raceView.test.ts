@@ -29,6 +29,7 @@ function semi(id: string, date: string, durationMin: number, distanceKm: number,
   return {
     id, name: 'Semi Reims', type: 'run', date, startTime: '09:00', durationMin, distanceKm,
     avgHr: withHr ? 172 : undefined, splits,
+    source: 'manual', aiEligible: true,
   };
 }
 
@@ -118,7 +119,7 @@ describe('buildRaceDebriefView', () => {
   });
 
   it('race_pacing : ajoute la plus longue sortie des 8 semaines et l’allure nécessaire à l’objectif', () => {
-    const long: Activity = { id: 'long', name: 'Sortie longue', type: 'run', date: '2026-09-20', startTime: '08:00', durationMin: 140, distanceKm: 24.3 };
+    const long: Activity = { id: 'long', name: 'Sortie longue', type: 'run', date: '2026-09-20', startTime: '08:00', durationMin: 140, distanceKm: 24.3, source: 'manual', aiEligible: true };
     const goal = { type: 'race_prep' as const, targetName: 'Semi-marathon', targetValue: '1h45', weeklySessionsCount: 4 };
     const v = buildRaceDebriefView([...acts, long], all, 'race-a26', undefined, goal)!;
     expect(v.pacing?.message).toBeTruthy();
@@ -197,6 +198,7 @@ describe('buildRaceDebriefView', () => {
   it('marathon : tranches sur 42,195 km, comparaison entre marathons seulement', () => {
     const marathon = (id: string, date: string, durationMin: number): Activity => ({
       id, name: 'Marathon de Paris', type: 'run', date, startTime: '08:00', durationMin, distanceKm: 42.3,
+      source: 'manual', aiEligible: true,
       splits: Array.from({ length: 43 }, (_, i) => ({ km: Math.min(i + 1, 42.3), pace: '5:30', paceSec: 330, elevationGain: 1 })),
     });
     const list = [marathon('m1', '2024-04-07', 232), marathon('m2', '2025-04-06', 225)];

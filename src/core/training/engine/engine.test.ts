@@ -24,6 +24,7 @@ function run(id: string, date: string, distanceKm: number, min: number, avgHr?: 
   return {
     id, name: 'Sortie', type: 'run', date, startTime: '08:00',
     durationMin: min, distanceKm, calories: 0, avgHr,
+    source: 'manual', aiEligible: true,
   };
 }
 

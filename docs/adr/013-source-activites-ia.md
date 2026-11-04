@@ -96,6 +96,57 @@ valider juridiquement avant la bêta** (M6), notamment :
   - un résumé identique avec et sans les activités Strava présentes (volumes et tendances compris) ;
   - l'exclusion d'une séance mixte.
 
+## Amendement — implémentation (2026-11-04)
+
+Les points ouverts de la décision initiale sont maintenant tranchés :
+
+### Liste blanche HealthKit / Health Connect
+
+Pour détecter l'écriture croisée Strava via l'agrégateur de santé, `sourceFromHealthKit(bundleId)`
+applique la liste blanche de préfixes suivante :
+
+| Préfixe du bundle id (insensible à la casse) | Source attribuée | `aiEligible` |
+|---|---|---|
+| `com.strava` | `strava` | `false` |
+| `com.apple.` | `apple_health` | `true` |
+| `com.coros` | `coros` | `true` |
+| `com.garmin` | `garmin` | `true` |
+| Tout autre préfixe inconnu | `apple_health` | `false` |
+
+Les applications inconnues reçoivent `aiEligible: false` par défaut (principe de moindre
+privilège) jusqu'à ce qu'elles soient explicitement qualifiées. La liste est extensible sans
+changer la logique : il suffit d'ajouter une entrée dans la table.
+
+### Priorité entre sources (doublons)
+
+Ordre de priorité numérique (plus élevé = conservé) :
+
+```
+coros = garmin = 3
+apple_health = health_connect = 2
+file = 1
+phone = 0
+manual = -1
+strava = -99
+```
+
+À égalité de rang, l'enregistrement qui possède le plus de données structurées (tours de nage,
+flux de FC) l'emporte. Les champs de la copie Strava évincée ne complètent jamais le gagnant.
+
+### Copie Strava : aucun champ transféré
+
+Quand un enregistrement Strava est écarté au profit d'une autre source, **aucun** de ses champs
+(titre, description, tours, segments, FC…) n'est copié dans l'enregistrement conservé. Ces
+informations seraient des données dérivées de Strava et ne pourraient pas être envoyées à l'IA.
+
+### Valeurs de `source` (en anglais dans le code)
+
+Les valeurs sont en anglais, alignées sur le schéma Zod :
+`'strava' | 'coros' | 'garmin' | 'apple_health' | 'health_connect' | 'file' | 'phone' | 'manual'`.
+La valeur `'fit_import'` existante a été renommée `'file'`.
+
+---
+
 ## Décisions adjacentes (même contexte, même date)
 
 ### Ressenti

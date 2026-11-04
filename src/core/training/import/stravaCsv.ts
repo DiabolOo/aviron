@@ -195,6 +195,7 @@ export function parseActivitiesCsv(csvText: string): CsvParseResult {
       avgHr: num(row, 'avgHr'),
       maxHr: num(row, 'maxHr'),
       source: 'strava' as const,
+      aiEligible: false,
     };
     const parsed = ActivitySchema.safeParse(candidate);
     if (parsed.success) activities.push({ activity: parsed.data, filename: cell(row, 'filename') });

@@ -43,6 +43,7 @@ describe('activityToStrava / stravaToActivity', () => {
     const ui = activityToStrava({
       id: 'a', name: 'Marche', type: 'walk', date: '2026-10-29',
       startTime: '10:00', durationMin: 30, calories: 150,
+      source: 'manual', aiEligible: true,
     });
     expect(ui.splits).toEqual([]);
     expect(ui.hrStream).toEqual([]);

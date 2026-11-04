@@ -5,7 +5,7 @@ import { ActivitySchema } from '../../schemas';
 
 const baseActivity = ActivitySchema.parse({
   id: '1', name: 'Test', type: 'run', date: '2025-03-02', startTime: '10:00',
-  durationMin: 20, distanceKm: 3,
+  durationMin: 20, distanceKm: 3, source: 'manual', aiEligible: true,
 });
 
 describe('splitsFromPoints', () => {

@@ -267,16 +267,45 @@ conditions sont vraies :
 
 1. **Même famille de sport** (course avec course). Jamais nage + course ou vélo + course :
    l'enchaînement multisport viendra avec le triathlon.
-2. **Écart court** : entre la fin de A et le début de B, 15 minutes au plus.
-3. **Même jour local**, et une séance ne dépasse pas 4 heures de bout en bout.
+2. **Écart court** : entre la fin de A et le début de B, `GROUP_MAX_GAP_MIN = 15` minutes au plus.
+3. **Même jour local** (timezone configurable, défaut `Europe/Paris`), et une séance ne dépasse
+   pas `GROUP_MAX_DURATION_H = 4` heures de bout en bout.
 4. **Pas de doublon** : la déduplication des imports (même activité venue de deux sources)
    passe avant le regroupement.
 5. **Aucun override `split`** sur ces activités.
+
+La règle est **chaînée** : si A→B ≤ 15 min et B→C ≤ 15 min, alors A, B et C forment une seule
+séance, même si l'écart A→C dépasse 15 min.
 
 Les rôles se déduisent ensuite : le bloc **principal** est l'activité la plus intense (allure
 la plus rapide, ou FC moyenne la plus haute quand elle existe). Ce qui le précède est un
 **échauffement**, ce qui le suit un **retour au calme**. Le titre de l'activité (« Échauffement »,
 « Déchauffement ») ne sert que d'indice de départage, jamais de critère seul.
+
+## Overrides disponibles
+
+```ts
+type GroupOverride =
+  | { type: 'split'; activityId: string }        // cette activité ouvre une nouvelle séance
+  | { type: 'merge'; activityIds: string[] }      // regroupement forcé (même famille obligatoire)
+  | { type: 'role'; activityId: string; role: 'warmup' | 'main' | 'cooldown' };
+```
+
+- **`split`** : empêche le regroupement automatique de cette activité avec la précédente.
+  Le chaînage avec les suivantes continue normalement.
+- **`merge`** : regroupe les activités listées, sans tenir compte de l'écart ni du jour.
+  Si les activités n'ont pas toutes la même famille de sport, l'override est ignoré
+  (retourné dans `ignoredMergeOverrides`).
+- **`role`** : attribue un rôle à une activité dans sa séance (uniquement via override ;
+  les rôles automatiques ne sont pas calculés par `groupSessions`).
+
+L'option `neverGroup` désactive tout regroupement automatique tout en appliquant les overrides
+`merge` déjà posés par l'utilisateur.
+
+## Identifiant de séance
+
+`Session.id = 's_' + id-de-la-première-activité` (ordre chronologique). L'identifiant est
+stable : il ne change pas quand des activités sont ajoutées au groupe lors d'un import ultérieur.
 
 Un groupe d'une seule activité est une séance d'une activité : c'est le cas le plus courant.
 

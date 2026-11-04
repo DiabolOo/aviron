@@ -99,7 +99,7 @@ export interface LifeModule {
 
 **🎯 Voie MVP (chemin critique, voir section dédiée)** : M1 Moteur d'analyse ✅ · M2 Écran d'analyse sur données réelles 🔧 · M3 Coach IA ⏳ (🚪 porte 1) · M4 Données testeurs ⏳ · M5 Profils, consentements, programmes sans IA ⏳ (🚪 porte 2) · M6 Bêta privée ⏳ (🚪 porte 3).
 
-**🎨 Refonte v3.1 (branche `refonte`, voir section dédiée)** : coquille ✅ · composants ⏳ · `groupSessions` et source ⏳ · écrans ⏳. Bêta limitée au sport.
+**🎨 Refonte v3.1 (branche `refonte`, voir section dédiée)** : coquille ✅ · composants ✅ · `groupSessions` et source ✅ · écrans ⏳. Bêta limitée au sport.
 
 **Correspondance avec l'ancienne roadmap** : ancien J3 → J5 · J4 → J7 · J5 → J8 · J6 → J11 · J7 → J9 · J8 → J9 (objectif de course) · J9 → J10 · J10 → J12 · J11 → J14/J15 · J12 → J18 · J13 → J16 · J14 → J17.
 
@@ -123,8 +123,8 @@ export interface LifeModule {
    - [ ] `CoachCard` · [ ] `HeroMetric` · [ ] `SessionCard` · [ ] `EffortPill` · [ ] `ProposalCard` · [ ] `EmptyState`
    - [ ] Galerie de dev des composants (relecture visuelle humaine)
 4. **`groupSessions` et source des activités** (`src/core/`, testés)
-   - [ ] `groupSessions(activities, overrides)` : règle v1 (même sport, écart ≤ 15 min, même jour, ≤ 4 h), rôles, overrides `split` / `merge` / `role` ; vérifier le seuil de 15 min sur l'export réel avant de le figer
-   - [ ] ADR-013 : `source` et `aiEligible` sur `Activity`, déduplication en faveur de la source non-Strava, `AthleteSummary` sans activité non éligible ni ses agrégats (séances mixtes exclues), champ `device`
+   - [x] `groupSessions(activities, overrides)` : règle v1 (même sport, écart ≤ 15 min, même jour, ≤ 4 h), rôles, overrides `split` / `merge` / `role` ; vérifier le seuil de 15 min sur l'export réel avant de le figer
+   - [x] ADR-013 : `source` et `aiEligible` sur `Activity`, déduplication en faveur de la source non-Strava, `AthleteSummary` sans activité non éligible ni ses agrégats (séances mixtes exclues), champ `device`
    - [ ] Jeux synthétiques versionnés dans `fixtures/synthetic/` (débutant, coureur du dimanche, sportif équipé ; aucune donnée réelle), base de développement de M3
 5. **Écrans** : Aujourd'hui → Semaine → détail d'activité (avec le débrief de course) → Coach, puis Progrès, Profil et onboarding (maquettes à produire)
    - [ ] Aujourd'hui · [ ] Semaine · [ ] Détail d'activité · [ ] Coach · [ ] Progrès · [ ] Profil · [ ] Onboarding
@@ -580,8 +580,10 @@ Aux niveaux 0 et 1, **aucune donnée d'activité ne quitte le téléphone**. Le 
 | 2026-11-04 | Refonte v3.1 — préparation (documentation seule) : tag `pre-v3` poussé ; ADR-012 (navigation `Aujourd'hui · Semaine · Coach · Progrès`, profil par l'avatar, débrief de course dans le détail d'activité) remplace l'ADR-002 ; ADR-013 (source des activités, `aiEligible`, jamais Strava vers l'IA) ; bêta limitée au sport ; AGENTS.md, `.windsurfrules` et ROADMAP mis à jour ; `docs/theme.js` et l'artefact `.claude/worktrees/` retirés |
 | 2026-11-04 | ADR-013 complétée : séances écrites par l'app Strava via Apple Santé / Health Connect (bundle id / package d'origine) → source `strava` ; `device` = `manufacturer` de `file_id` FIT ; échelle de ressenti unique `easy | moderate | hard` (« Facile · Correct · Dur ») ; constat : aucune règle de prédiction de semi dans `thresholds.ts` |
 | 2026-11-04 | Refonte v3.1, étape 2 — coquille de navigation (ADR-012) : 4 onglets et TabBar v3.1 (`size.tabBar`), écrans provisoires, Stack `profile/` ouvert par l'avatar, `(dev)/gallery`, `/agent` → `/coach` ; routes plan, suivi, stats, activities, race, scan, preview-stats supprimées ; interface nutrition, scan, Forme, ModuleSwitcher/ModuleTabs retirée ; registre `week` / `progress`, nutrition, goals et wellness désactivés par défaut ; liens de course → `/activity/<id>` ; tests 633 → 602 (−33 exceptions ESLint retirées, +3 registre, −1 nav) ; vérification sur appareil restant à faire |
+| 2026-11-04 | Refonte v3.1, étape 3 — composants SPEC-v3 : `EffortPill` · `HeroMetric` · `CoachCard` · `SessionCard` · `ProposalCard` · `EmptyState` · `UndoToast` · `useDelayedSkeleton` ; galerie de dev ; `'ok'` → `'moderate'` partout (EffortPill, gallery, SPEC-v3, ADR-013) |
+| 2026-11-04 | Refonte v3.1, étape 4 — `groupSessions` et source des activités (ADR-013) : `ActivitySchema.source` requis (enum 8 valeurs), `aiEligible` requis, `device` optionnel ; `dedupeActivities` (priorité par source, départage par données) ; `aiEligibleView` ; `sourceFromHealthKit` (liste blanche bundle ids) ; `groupSessions` (règle v1 : même sport, ≤ 15 min, même jour, ≤ 4 h, chaîné, overrides split/merge/role, neverGroup) ; `resolveSession` ; `scripts/check-sessions.ts` ; ADR-013 amendée (liste blanche HealthKit, priorités, copie Strava) ; SPEC-v3 complétée (overrides, identifiant stable) |
 
 ## ▶️ Prochaine étape
-**Refonte v3.1, étape 3 : composants de la SPEC** (`CoachCard`, `HeroMetric`, `SessionCard`, `EffortPill`, `ProposalCard`, `EmptyState`) sur la branche `refonte`, puis `groupSessions` et la source des activités (ADR-013), puis les écrans.
+**Refonte v3.1, étape 5 : écrans** (`Aujourd'hui`, `Semaine`, détail d'activité, `Coach`, `Progrès`, `Profil`, onboarding) sur la branche `refonte`.
 
 En parallèle (hors code) : faire valider juridiquement la lecture des conditions Strava (ADR-013) avant M6 ; maquetter Progrès, Profil et onboarding.
