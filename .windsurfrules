@@ -1,173 +1,145 @@
 # PulseFit - Contexte et Règles du Projet
 
+> Règles complètes et non négociables : **`AGENTS.md`**. Plan, jalons et journal : **`ROADMAP.md`**.
+> Décisions d'architecture : `docs/adr/`. Ce fichier résume le contexte pour Windsurf / Cascade.
+
 ## Vision produit
-PulseFit vise à devenir un **"Life OS" tout-en-un** : une seule app mobile pour piloter son sport,
-sa nutrition et ses objectifs personnels.
+PulseFit vise à devenir un **"Life OS" tout-en-un** piloté par un coach : l'utilisateur exprime
+une intention, l'app propose, il valide en 1 tap.
 
-### Phase 1 — MVP « Option A : Sport + Nutrition » (EN COURS)
-Le cheval de Troie : concret, facile à comprendre, public habitué à payer ses apps.
-- **Sport** : analyse Strava, planification des séances, suivi d'objectifs (courses à venir depuis un catalogue)
-- **Nutrition** : scan d'assiette avec comptage IA des calories, compteur journalier vs objectif,
-  recommandations de recettes
+### Bêta en cours — limitée au sport
+- **Sport** : analyse de l'historique sur le téléphone, plan de la semaine, séances regroupées,
+  débrief de course, coach IA optionnel (niveau 2, avec accord explicite).
+- **Hors bêta** : nutrition, scan d'assiette, module Objectifs, Forme / énergie. Leur interface
+  est supprimée (récupérable depuis le tag `pre-v3`) ; la couche données est conservée et les
+  modules sont désactivés par défaut. Ne pas les réintroduire sans décision.
 
-### Phase 2 — « Option B : Gamification & productivité » (PLUS TARD — ne pas implémenter maintenant)
-Une app qui se joue comme un jeu vidéo pour la vraie vie :
-- Objectifs journaliers + objectifs long terme
-- Points gagnés à chaque tâche → boutique de récompenses (sieste, cheat meal…)
-- Barre d'énergie journalière, statistiques personnalisées
-- Pomodoro, streaks d'habitudes
-- Description vocale de sa journée → l'IA planifie et découpe les tâches
-
-👉 La feuille de route détaillée et l'avancement sont dans **`ROADMAP.md`** (à tenir à jour à chaque jalon).
+### Plus tard — gamification & productivité (ne pas implémenter maintenant)
+Objectifs journaliers et long terme, points et récompenses, habitudes, Pomodoro, description
+vocale de sa journée découpée en tâches par l'IA.
 
 ### Règle d'or
-Construire le MVP de façon **extensible** : les futures briques Life OS viendront se brancher sur
-l'onglet Aujourd'hui (widgets) et l'onglet Profil (hub), sans changer la navigation à 4 onglets.
+Construire de façon **extensible** : un nouveau module ajoute des sections dans Semaine ou
+Progrès (manifeste `LifeModule`), jamais un onglet.
 
-## Architecture des écrans (Bottom Nav à 4 onglets — maximum)
-| Onglet | Route | Contenu MVP |
+## Refonte v3.1 (branche `refonte`)
+Direction « phrase d'abord, chiffre ensuite » : `docs/SPEC-v3.md` (composants, regroupement des
+activités en séances). Ordre imposé :
+1. Coquille de navigation (ADR-012)
+2. Composants de la SPEC (`CoachCard`, `HeroMetric`, `SessionCard`, `EffortPill`, `ProposalCard`, `EmptyState`)
+3. `groupSessions` et source des activités (ADR-013), dans `src/core/`
+4. Les écrans
+
+## Navigation (ADR-012) — 4 onglets, maximum
+| Onglet | Route | Rôle |
 |---|---|---|
-| 🏠 Aujourd'hui | `app/(tabs)/index.tsx` | Météo + statut du jour, jauge calories (mangées / brûlées / objectif), séance prévue |
-| 🏋️ Sport | `app/(tabs)/sport.tsx` | Programme en cours, calendrier de la semaine, détail séance, historique Strava, adaptation IA |
-| 🥗 Nutrition | `app/(tabs)/nutrition.tsx` | Bouton scan rapide, apports + macros, journal (matin / midi / collation / soir) |
-| 👤 Profil | `app/(tabs)/profil.tsx` | Profil, objectifs poids & calories, connexions Strava / montre, apparence |
+| Aujourd'hui | `app/(tabs)/index.tsx` | La parole du coach, la séance du jour, les décisions en attente |
+| Semaine | `app/(tabs)/semaine.tsx` | Le prévu et le fait de la semaine, jour par jour |
+| Coach | `app/(tabs)/coach.tsx` | La seule saisie libre vers l'IA : demander, recevoir des propositions |
+| Progrès | `app/(tabs)/progres.tsx` | Tendances, volume, courses |
 
-Écrans hors onglets :
-- `app/scan.tsx` : scan d'assiette en modal plein écran (ouvert depuis Nutrition)
-- `app/session/[id].tsx` : détail d'une séance
+Hors onglets :
+- `app/profile/` : Stack ouvert par l'avatar d'Aujourd'hui (`index`, `modules`, `[section]`)
+- `app/activity/[id].tsx` : détail d'une séance (variante « débrief en trois temps » pour une course confirmée)
+- `app/onboarding/index.tsx` : premier lancement
+- `app/(dev)/gallery.tsx` : galerie des composants, en dev seulement
 
 ## Stack Technique
-- **Framework**: React Native avec Expo SDK 57
-- **Navigation**: Expo Router (file-based routing dans `app/`)
-- **Styling**: NativeWind (Tailwind CSS pour React Native)
-- **State Management**: Zustand (persisté via AsyncStorage)
-- **Icons**: lucide-react-native
-- **TypeScript**: Strict mode activé
-- **Build**: EAS CLI pour builds cloud
+- **Framework** : React Native avec Expo SDK 58
+- **Navigation** : Expo Router (routes fichiers dans `app/`)
+- **Styling** : `StyleSheet` dérivés des tokens de `src/design/` via `makeStyles` — **pas de NativeWind** (ADR-011)
+- **State** : Zustand (persisté via AsyncStorage)
+- **Validation** : Zod
+- **Icônes** : lucide-react-native
+- **Polices** : Inter (400, 600) et Inter Tight (600, 700), `@expo-google-fonts`
+- **TypeScript** : strict
+- **Build** : EAS CLI
 
 ## Structure du Projet
 ```
-app/
-  _layout.tsx        # Stack racine : thème, polices, modal scan
-  (tabs)/
-    _layout.tsx      # 4 onglets + TabBar custom
-    index.tsx        # Aujourd'hui
-    sport.tsx        # Sport
-    nutrition.tsx    # Nutrition
-    profil.tsx       # Profil
-  scan.tsx           # Modal scan d'assiette
-  session/[id].tsx   # Détail séance
-components/
-  dashboard/         # Aujourd'hui : HomeHeader, DayStatus, CalorieGauge, WorkoutWidget
-  sport/             # WeekStrip, SessionDetail, ActivityHistory, AdaptControls
-  nutrition/         # ScanButton, MacroSummary, MealJournal
-  scan/              # CapturePane, AnalyzingState, MealResultCard
-  profile/           # SettingRow, ConnectionSwitch
-  ui/                # Composants réutilisables (voir Design System)
-constants/
-  theme.ts           # Palettes JS clair/sombre (miroir de global.css)
-lib/
-  store.ts           # Store Zustand (+ useTodayStats)
-  types.ts           # Tous les types
-  mock.ts            # Données mockées (profil, séances, repas, Strava, météo, IA)
-  dates.ts / format.ts
-  useTheme.ts        # Couleurs JS selon le thème actif
+app/            routes (fines : elles assemblent les modules)
+src/core/       domaine pur testé, sans React ni réseau (moteur d'analyse, séances, sources)
+src/design/     tokens v3.1 (theme.ts), useTheme, makeStyles, polices
+src/ui/         composants partagés et hooks d'UI
+src/modules/    un dossier par module de vie, manifeste LifeModule
+src/data/       repositories + adaptateurs (mock, local, fixture)
+src/agent/      agent (mock aujourd'hui), propositions
+lib/            stores Zustand
+eslint-rules/   garde-fous du design system
+docs/           SPEC-v3, ADR, workflow des agents
 ```
-Un dossier de composants par onglet. Le code non-route reste hors de `app/`.
+`components/` et `constants/` sont l'héritage d'avant la v3.1 : ils disparaissent écran par écran.
 
-## Design System
-Style épuré / futuriste : monochrome + un seul accent lime, beaucoup d'espace, peu de texte.
-
-### Thème clair / sombre
-- Couleurs = variables CSS dans `global.css` (`:root` = clair, `.dark:root` = sombre)
-- Tokens Tailwind sémantiques : `canvas` (fond), `surface` (cards), `fg` (texte), `muted`,
-  `accent` (lime), `accent-fg` (texte sur accent), `aqua`, `iris` (macros)
-- Opacités via `/` : `border-fg/5`, `bg-fg/5`, `bg-fg/10`
-- Couleurs JS (icônes, SVG, navigation) : `useTheme()` (`lib/useTheme.ts`) → `colors` depuis `constants/theme.ts`
-- Toujours garder `constants/theme.ts` synchronisé avec `global.css`
-- Préférence (`themePreference` : system / light / dark) persistée dans le store, réglable dans Profil,
-  appliquée via `colorScheme.set()` dans `app/_layout.tsx`
-
-### Styling Rules
-- Utiliser exclusivement les classes NativeWind (pas de couleurs hex dans les classes)
-- Cards `rounded-3xl border border-fg/5 bg-surface`, boutons `rounded-full`
-- Labels : composant `Label` (SpaceMono, uppercase, `text-[10px] tracking-[2px]`)
-- Titres `text-3xl font-semibold tracking-tight`, chiffres clés `text-6xl font-semibold tracking-tighter`
-- Listes : séparateurs `border-t border-fg/5` plutôt que des cards imbriquées
-- Sélection : fond `bg-fg` + `text-canvas` ; accent réservé à l'action principale / progression
-- Peu de texte : une info clé par bloc, pas de sous-titres décoratifs
-
-### Composants UI (`components/ui/`)
-- **Screen** : fond `bg-canvas` + `Glow` (halo radial accent), SafeArea, ScrollView optionnel
-- **Card**, **Label**, **IconButton** (surface/accent/outline), **Segmented**, **Stepper**
-- **PrimaryButton** : variants `primary` (accent) / `ghost`, haptics
-- **ProgressRing** (SVG), **MacroBar** (colonne compacte, `target` optionnel)
-- **TabBar** : barre flottante custom passée à `Tabs tabBar` (onglet actif = pilule `bg-fg` + libellé)
+## Design System v3.1
+- **Une seule source** : `src/design/theme.ts`. Une couleur, une taille, un rayon ou un
+  espacement absent de ce fichier n'existe pas dans l'app.
+- Styles : `const useStyles = makeStyles((t) => ({ … }))`, couleurs via `useTheme().colors`.
+- Clair / sombre selon le réglage système (`useTheme`).
+- Texte : un rôle (`hero`, `title`, `verdict`, `body`, `sub`, `caption`) via `textStyle(role, weight)` ;
+  plafond d'agrandissement par `maxFontSizeMultiplier` ; au-delà de `fontScaleBreakpoints.stack`
+  (1,3), ce qui est côte à côte s'empile.
+- Un seul héros et un seul bouton plein par écran. Donnée manquante = élément absent, jamais « 0 » ni « — ».
+- **Garde-fous ESLint** : `pulsefit/no-literal-style` (aucune valeur de style littérale hors de
+  `src/design/`) et `pulsefit/no-classname`. Ne jamais ajouter de ligne à
+  `eslint-rules/legacy-exceptions.js` ; en retirer une par fichier migré.
 
 ## Règles de Développement
 
-### Expo/React Native
-- **TOUJOURS** utiliser `npx expo install <package>` au lieu de npm/yarn
-- **TOUJOURS** vérifier la version Expo SDK dans package.json avant d'utiliser une API
-- Consulter https://docs.expo.dev/llms.txt pour les docs Expo mises à jour
-- Ne jamais créer/éditer ios/ ou android/ manuellement (Continuous Native Generation)
-- Après ajout de modules natifs, utiliser `npx expo run:ios|android` ou `eas build --profile development`
+### Expo / React Native
+- **TOUJOURS** utiliser `npx expo install <package>` au lieu de npm / yarn
+- **TOUJOURS** vérifier la version d'Expo SDK dans `package.json` avant d'utiliser une API
+- Docs Expo à jour : https://docs.expo.dev/llms.txt
+- Ne jamais créer ni éditer `ios/` ou `android/` à la main (Continuous Native Generation)
+- Après ajout d'un module natif : `npx expo run:ios|android` ou `eas build --profile development`
 
 ### Navigation
 - Importer `Link`, `router`, `useLocalSearchParams` depuis `expo-router`
-- Ne pas ajouter de 5e onglet : les nouvelles fonctionnalités vont dans un onglet existant
-  ou dans un écran empilé (Stack)
+- Pas de 5e onglet : une nouvelle fonction va dans un onglet existant ou un écran empilé
 
 ### TypeScript
-- Strict mode activé
-- Définir tous les types dans `lib/types.ts`
-- Pas de `any`, utiliser des types explicites
+- Strict, pas de `any`, types explicites
+- Schémas et types du domaine dans `src/core/` (Zod)
 
 ### State / données
 - Nouveaux champs persistés : les ajouter à `partialize` dans `lib/store.ts`
-  (le `merge` fusionne `profile` pour rester compatible avec les anciennes sauvegardes)
-- Jamais de clé API dans l'app : les appels IA / Strava passeront par un backend (voir ROADMAP)
+- L'UI passe par les repositories de `src/data/`, jamais par les mocks
+- Aucune clé secrète dans l'app ; tout appel IA passe par un serveur
+- IA : aucune activité Strava, ni ses agrégats, dans un résumé envoyé à un modèle (ADR-013)
 
 ### Suivi de projet
-- Après chaque fonctionnalité livrée, cocher les cases correspondantes dans `ROADMAP.md`
+- Après chaque tâche livrée : cocher la case dans `ROADMAP.md` et ajouter une ligne au Journal
 
 ## Commandes Utiles
 ```bash
-npx expo start              # Démarrer dev server
-npx expo start --dev-client # Pour development build
-npx expo lint               # Linter
-npx tsc --noEmit            # Typecheck
-npx expo-doctor             # Diagnostiquer problèmes
-npx expo install --fix      # Fixer versions incompatibles
-npx expo install <package>  # Installer package compatible SDK
-npx eas-cli@latest <command> # EAS builds et updates
+npx expo start              # Démarrer le serveur de dev
+npm run typecheck           # tsc --noEmit
+npm run lint                # expo lint (+ garde-fous du design system)
+npm test                    # jest (projets app + eslint-rules)
+npx expo-doctor             # Diagnostiquer
+npx expo install --fix      # Corriger les versions incompatibles
+npx eas-cli@latest <cmd>    # Builds et mises à jour EAS
 ```
-Lancer lint + typecheck avant de considérer une tâche terminée.
+Typecheck, lint et tests doivent passer avant chaque commit.
 
 ## État Actuel du Projet
-- **Expo SDK**: 57.0.0
-- **React**: 19.2.3
-- **React Native**: 0.86.3
-- **expo-router**: ~57.0.28
-- **typedRoutes**: false (désactivé dans app.json pour compatibilité)
-- **UI**: Épuré / futuriste, mode clair + sombre, navigation 4 onglets
-- **Données**: 100 % mockées (pas encore de backend)
+- **Expo SDK** : 58 (`expo` ^58.0.21)
+- **React** : 19.3.0
+- **React Native** : 0.88.1
+- **expo-router** : ~58.0.28
+- **typedRoutes** : false (désactivé dans `app.json`)
+- **UI** : refonte v3.1 en cours ; les écrans existants sont en exception temporaire ESLint
+- **Données** : mocks, ou export Strava personnel via `EXPO_PUBLIC_USE_FIXTURE=1` (snapshot gitignoré)
 
 ## Problèmes Connus
 - `react-native-worklets` peut causer des conflits de peer dependencies
-- Utiliser `--legacy-peer-deps` pour npm install si nécessaire
+- Utiliser `--legacy-peer-deps` pour `npm install` si nécessaire
 - L'éditeur peut supprimer un import ajouté avant sa première utilisation : écrire l'import et
   son usage dans la même modification
 
 ## Priorités pour Nouvelles Fonctionnalités
-1. Rester dans le périmètre de la phase en cours (voir ROADMAP)
-2. Maintenir la cohérence du design system
-3. Utiliser les composants UI existants avant d'en créer de nouveaux
-4. Respecter l'architecture modulaire (un dossier par onglet)
-5. TypeScript strict pour tous les nouveaux fichiers
-6. Mock data pour les features nécessitant des API externes
-
-## Mock Data
-Les données mockées sont dans `lib/mock.ts` : profil, séances de la semaine, repas,
-activités Strava, météo, analyse d'assiette IA et adaptation de semaine IA.
-Cela évite d'avoir besoin de clés API ou backends pendant le développement.
+1. Rester dans le périmètre de la bêta (sport) et l'ordre de la refonte
+2. Suivre `docs/SPEC-v3.md` et les tokens de `src/design/`
+3. Réutiliser les composants v3.1 avant d'en créer
+4. Logique déterministe dans `src/core/`, testée
+5. TypeScript strict
+6. Données mockées ou fixture pour ce qui demande une API externe

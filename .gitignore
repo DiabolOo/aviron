@@ -46,3 +46,6 @@ fixtures/*.snapshot.json
 
 # captures d'écrans de dev
 preview-*.png
+
+# worktrees locaux des agents
+.claude/worktrees/

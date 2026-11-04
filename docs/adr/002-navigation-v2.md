@@ -1,7 +1,7 @@
 # ADR-002 — Navigation v2 : `Accueil · Plan · Agent · Suivi · Stats`
 
 - **Date** : 2026-10-30
-- **Statut** : Accepté
+- **Statut** : Remplacé par ADR-012
 - **Décideur** : Julien (propriétaire produit)
 
 ---

@@ -42,7 +42,8 @@ src/
     sport/  nutrition/  profile/  …
   agent/       # passerelle LLM (client), routeur de modèles, prompts versionnés, outils, évals
   data/        # repositories (interfaces) + adaptateurs : mock · local · Supabase ; sync offline-first
-  ui/          # design system (tokens, Card, Label, ProposalCard, CommandBar…)
+  design/      # tokens v3.1 (theme.ts), useTheme, makeStyles, polices — sans NativeWind (ADR-011)
+  ui/          # composants partagés (CoachCard, SessionCard, ProposalCard, CommandBar…)
 app/           # routes Expo Router (fines : elles assemblent les modules)
 supabase/      # migrations, edge functions (agent-gateway, analyse d'assiette, webhooks)
 evals/         # jeux de cas et scoring des sorties d'IA
@@ -67,9 +68,9 @@ export interface LifeModule {
 
 **Objets transverses** : `Proposal` (action proposée : `pending | accepted | edited | rejected | undone`, avec `rationale` et `confidence`), `Insight` (constat/conseil), `DailyBrief`, `AgentRun` (modèle, tokens, coût, latence), `Consent`.
 
-**Navigation cible (ADR-002, amendée par l'ADR-009 le 2026-10-31)** : `Accueil · Plan · ⊕ Agent · Suivi · Stats`. L'onglet « Moi » disparaît : le **profil** s'ouvre en touchant le prénom du titre d'Accueil (« Bonsoir, Jul › »).
-- Rôles : Accueil = présent · Plan = futur (« Ma semaine ») · Suivi = passé détaillé (« Mon journal ») · Stats = tendances (« Ma progression ») · Agent = aide (« Ton agent »).
-- **Modules activables** (Profil › Modules) : Sport, Nutrition, Objectifs, Forme & sommeil. Plan et Suivi ont un **sélecteur à icônes** généré depuis les modules actifs (masqué s'il n'y en a qu'un), avec navigation glissée ; Stats est une page unique avec une carte par module. Les modules s'ajoutent sans créer d'onglet.
+**Navigation cible (ADR-012, remplace l'ADR-002)** : `Aujourd'hui · Semaine · Coach · Progrès`, quatre onglets au maximum. Le **profil** est un Stack hors onglets, ouvert par l'**avatar** d'Aujourd'hui. Le détail d'une séance (`activity/[id]`) porte aussi le débrief de course.
+- Rôles : Aujourd'hui = maintenant · Semaine = la semaine, prévue et faite · Coach = aide, seule saisie libre vers l'IA · Progrès = tendances et courses.
+- **Modules activables** (Profil › Modules) : ils ajoutent des sections dans Semaine ou Progrès, sans sélecteur à l'écran ni onglet. En bêta, seul **Sport** est actif ; Nutrition est désactivé par défaut, Objectifs et Forme n'ont plus d'interface.
 
 ## Vue d'ensemble
 
@@ -98,7 +99,38 @@ export interface LifeModule {
 
 **🎯 Voie MVP (chemin critique, voir section dédiée)** : M1 Moteur d'analyse ✅ · M2 Écran d'analyse sur données réelles 🔧 · M3 Coach IA ⏳ (🚪 porte 1) · M4 Données testeurs ⏳ · M5 Profils, consentements, programmes sans IA ⏳ (🚪 porte 2) · M6 Bêta privée ⏳ (🚪 porte 3).
 
+**🎨 Refonte v3.1 (branche `refonte`, voir section dédiée)** : coquille ⏳ · composants ⏳ · `groupSessions` et source ⏳ · écrans ⏳. Bêta limitée au sport.
+
 **Correspondance avec l'ancienne roadmap** : ancien J3 → J5 · J4 → J7 · J5 → J8 · J6 → J11 · J7 → J9 · J8 → J9 (objectif de course) · J9 → J10 · J10 → J12 · J11 → J14/J15 · J12 → J18 · J13 → J16 · J14 → J17.
+
+---
+
+# 🎨 Refonte v3.1 — « Phrase d'abord, chiffre ensuite »
+
+> Branche `refonte`, état de départ figé par le tag `pre-v3`. Spécification : `docs/SPEC-v3.md`. Tokens : `src/design/theme.ts`.
+> Décisions : ADR-011 (styles sans NativeWind), ADR-012 (navigation à 4 onglets), ADR-013 (source des activités et IA).
+> **Bêta limitée au sport.** Nutrition, scan d'assiette, module Objectifs et Forme : interface supprimée (récupérable depuis `pre-v3`), couche données conservée, modules désactivés par défaut.
+> **Ordre imposé** : on ne commence une étape qu'une fois la précédente terminée (typecheck, lint, tests verts).
+
+1. **Socle et décisions**
+   - [x] `src/design/` : tokens, `useTheme` (clair / sombre système), `makeStyles`, polices Inter / Inter Tight sous écran de démarrage
+   - [x] ADR-011 + garde-fous ESLint `pulsefit/no-literal-style` et `pulsefit/no-classname`, exceptions temporaires par étape
+   - [x] Tag `pre-v3`, inventaire des fichiers, ADR-012 et ADR-013
+2. **Coquille de navigation** (ADR-012) : 4 onglets, TabBar v3.1, Stack `profile/` ouvert par l'avatar, `activity/[id]`, onboarding ; les écrans supprimés (nutrition, scan, Objectifs, Forme, historique, `/race/[id]`, `/preview-stats`) sont retirés des routes, mais leur ancien code reste compilable jusqu'à sa réécriture
+   - [ ] Routes et TabBar
+   - [ ] Écrans supprimés retirés des routes (ancien code conservé et compilable) ; modules nutrition, Objectifs et Forme désactivés par défaut
+3. **Composants** (`docs/SPEC-v3.md`), chacun avec ses états, son accessibilité et le texte agrandi
+   - [ ] `CoachCard` · [ ] `HeroMetric` · [ ] `SessionCard` · [ ] `EffortPill` · [ ] `ProposalCard` · [ ] `EmptyState`
+   - [ ] Galerie de dev des composants (relecture visuelle humaine)
+4. **`groupSessions` et source des activités** (`src/core/`, testés)
+   - [ ] `groupSessions(activities, overrides)` : règle v1 (même sport, écart ≤ 15 min, même jour, ≤ 4 h), rôles, overrides `split` / `merge` / `role` ; vérifier le seuil de 15 min sur l'export réel avant de le figer
+   - [ ] ADR-013 : `source` et `aiEligible` sur `Activity`, déduplication en faveur de la source non-Strava, `AthleteSummary` sans activité non éligible ni ses agrégats (séances mixtes exclues), champ `device`
+   - [ ] Jeux synthétiques versionnés dans `fixtures/synthetic/` (débutant, coureur du dimanche, sportif équipé ; aucune donnée réelle), base de développement de M3
+5. **Écrans** : Aujourd'hui → Semaine → détail d'activité (avec le débrief de course) → Coach, puis Progrès, Profil et onboarding (maquettes à produire)
+   - [ ] Aujourd'hui · [ ] Semaine · [ ] Détail d'activité · [ ] Coach · [ ] Progrès · [ ] Profil · [ ] Onboarding
+   - [ ] Profil › Données : export et suppression des données (droits RGPD, **obligatoires avant la bêta**)
+   - [ ] `eslint-rules/legacy-exceptions.js` vide, puis retrait de NativeWind, Tailwind, `global.css` et des anciens tokens
+- **DoD** : les 4 onglets et le détail d'activité suivent la SPEC ; aucune exception ESLint restante ; NativeWind retiré ; aucune activité Strava ni agrégat Strava dans un résumé IA (test).
 
 ---
 
@@ -133,7 +165,7 @@ export interface LifeModule {
 
 > **Objectif** : un premier visuel d'analyse IA sur **tes vraies données** (~2 semaines de dev), puis une bêta privée de 10 à 15 testeurs (~2 à 3 semaines plus tard). Sources : [`Semi en 1h45 & intégration de l'analyse dans PulseFit`] et [`PulseFit — plan MVP analyse IA sur données réelles et bêta`] (analyses Claude du 2026-11-01).
 > **Cette voie remplace la « Voie rapide — Alpha perso » comme chemin critique** et réutilise les jalons J5/J6/J8/J9/J11/J12 en les allégeant. Numérotation **M1–M6** pour ne pas casser les références J0–J19. Ne pas ouvrir M(n+1) tant que la porte de M(n) n'est pas franchie.
-> **Priorité** : la voie MVP passe avant la fin du J4 (UX v2). Seuls restent à faire du J4 les écrans que M3 réutilise (Accueil, Suivi, Stats).
+> **Priorité** : la voie MVP passe avant la fin du J4 (UX v2). Les écrans que M3 réutilise sont désormais ceux de la refonte v3.1 (Aujourd'hui, Semaine, Coach, Progrès, détail d'activité).
 
 ## Principe : trois niveaux de personnalisation
 Un moteur de règles sert tous les profils ; le coach IA est une couche **optionnelle**. Chaque niveau est proposé, jamais exigé, modifiable dans Profil.
@@ -154,7 +186,7 @@ Aux niveaux 0 et 1, **aucune donnée d'activité ne quitte le téléphone**. Le 
 
 ## Règles d'architecture propres à cette voie
 - Le moteur d'analyse vit dans **`src/core/training/`** (convention du repo ; le plan source disait `src/domain/training/`) : TypeScript pur, sans React Native ni réseau. **Le même code tourne sur le téléphone et dans l'Edge Function.**
-- **Cadre légal Strava** : seul un **fichier exporté et importé par l'utilisateur** est envisagé (≠ API Strava, interdite pour l'IA). Tant que l'**ADR-004** n'a pas tranché, **aucune donnée Strava (même résumée) dans un prompt** (règle 9 d'AGENTS.md). Le moteur local (niveaux 0–1) n'est pas concerné.
+- **Cadre légal Strava (ADR-013)** : seul un **fichier exporté et importé par l'utilisateur** est envisagé (≠ API Strava, interdite pour l'IA). Chaque activité porte `source` et `aiEligible`, toujours faux pour Strava : **aucune donnée Strava, ni ses agrégats, dans un prompt** (règle 9 d'AGENTS.md). Le moteur local (niveaux 0–1) n'est pas concerné. Lecture des conditions Strava à valider juridiquement avant M6.
 - **Données personnelles** : le snapshot issu de ton export (`fixtures/*.snapshot.json`) et le zip Strava sont **gitignorés, jamais committés**. Les tests du moteur s'appuient sur un jeu **synthétique** reproduisant les chiffres de référence ; le test sur ta vraie donnée est local seulement (`npm run test:local`, ignoré en CI).
 - Tout `AthleteSummary` envoyé à un LLM : < 2 000 tokens, agrégé, sans nom ni identifiant, validé par Zod ; sortie `CoachResponse` validée par Zod (1 retry, repli propre).
 
@@ -181,7 +213,7 @@ Aux niveaux 0 et 1, **aucune donnée d'activité ne quitte le téléphone**. Le 
 - [x] Charger le snapshot dans le store derrière un drapeau de dev `EXPO_PUBLIC_USE_FIXTURE` (via un adaptateur de repository, pas d'import direct dans l'UI)
 - [ ] **Stats / Suivi › Sport** : volume par semaine, répartition des intensités, tendance d'efficacité aérobie — _partiel : calculs `src/core/training/engine/trends.ts` testés + carte « Tendances › Sport » hors sélecteur (8 sem / 12 sem / 6 mois, ligne « FC absente ») ; FC max configurable dans Profil (saisie > observée filtrée 12 mois > Tanaka) ; reste le volet Suivi et la relecture visuelle_
 - [ ] **Accueil** : carte « Analyse » avec les 2–3 constats prioritaires
-- [x] Écran **Débrief de course** (`app/race/[id].tsx`) : allure et FC par tranche, comparaison avec les courses précédentes
+- [x] Écran **Débrief de course** (`app/race/[id].tsx`) : allure et FC par tranche, comparaison avec les courses précédentes — _fondu dans le détail d'activité par la refonte v3.1 (ADR-012)_
 - [ ] Pouce haut / bas sur chaque carte, stocké en local (champ ajouté à `partialize`)
 - **Fini quand** tu vois tes données et tes constats sur ton téléphone.
 
@@ -203,7 +235,7 @@ Aux niveaux 0 et 1, **aucune donnée d'activité ne quitte le téléphone**. Le 
 - [ ] Adaptateur **Health Connect** (seulement si ≥ 3 testeurs Android)
 - [ ] Import allégé du fichier Strava : `activities.csv` seul d'abord (volume, durée, FC moyenne), FIT ensuite ; écran Profil → « Importer mon historique »
 - [ ] Écran d'aide « Synchroniser ta montre » (Garmin Connect, COROS, Samsung → Apple Santé / Health Connect)
-- [ ] Dédoublonnage entre sources : départ à 2 min près, distance à 3 % près
+- [ ] Dédoublonnage entre sources : départ à 2 min près, distance à 3 % près ; on garde la source non-Strava (ADR-013)
 - [ ] (Optionnel, après la bêta) connexion COROS via MCP + export du bloc d'entraînement vers la montre
 - **Fini quand** un testeur iPhone (et Android le cas échéant) voit son historique dans Suivi.
 
@@ -251,7 +283,7 @@ Aux niveaux 0 et 1, **aucune donnée d'activité ne quitte le téléphone**. Le 
 | M5 | J2, J9 (plan sans IA) | Nutrition périodisée (J10) |
 | M6 | J5, J12 (béta) | Paywall (J11), nutrition IA (J7), Phase 2 |
 
-**Nutrition / scan d'assiette (J7, J10)** : hors périmètre de la bêta MVP ; ne démarrent qu'après lecture des résultats de la bêta (une demande nutrition récurrente en fait le jalon suivant).
+**Nutrition / scan d'assiette (J7, J10)**, **module Objectifs** et **Forme** : hors périmètre de la bêta MVP, limitée au sport ; leur interface est retirée par la refonte v3.1 (récupérable depuis le tag `pre-v3`). Ils ne redémarrent qu'après lecture des résultats de la bêta (une demande nutrition récurrente en fait le jalon suivant).
 
 ---
 
@@ -287,6 +319,7 @@ Aux niveaux 0 et 1, **aucune donnée d'activité ne quitte le téléphone**. Le 
 
 ## Jalon 4 — UX v2 « zéro cliquodrome » 🔧
 > Refonte ergonomique sur les mocks, avant de brancher la vraie IA.
+> **Navigation et écrans remplacés par la refonte v3.1** (ADR-012) : les tâches ouvertes ci-dessous ne sont reprises que si la refonte en a besoin.
 - [x] ADR-002 : acter la navigation **validée** `Aujourd'hui · Plan · Agent · Suivi · Moi` (les onglets Sport et Nutrition disparaissent ; leurs écrans migrent dans *Suivi* via un sélecteur de module, la saisie passe par *Aujourd'hui* et la CommandBar)
 - [ ] **CommandBar** : champ texte + dictée vocale ; au début, `MockAgent` qui renvoie des `Proposal` conformes au schéma
 - [x] **Aujourd'hui = flux d'actions** : carte « Maintenant » (prochaine action) → bilan kcal → séance du jour validable en 1 tap → propositions en attente → brief IA (placeholder)
@@ -297,7 +330,6 @@ Aux niveaux 0 et 1, **aucune donnée d'activité ne quitte le téléphone**. Le 
 - [ ] Détail d'activité : emplacement « Analyse IA » (3 constats + 1 conseil, placeholder)
 - [ ] Barre d'énergie : afficher le « Pourquoi ? » (facteurs et poids)
 - [ ] Charte des zones tactiles et d'accessibilité (taille mini, contraste, Dynamic Type) ; s'assurer qu'aucun bouton d'action n'est collé aux bords (le bouton d'outils de dev Expo masque aujourd'hui le CTA de la carte séance)
-- [ ] ADR-009 : navigation `Accueil · Plan · Agent · Suivi · Stats` (profil via le prénom, onglet Moi supprimé) — amende ADR-002
 - [x] Thème **Aurore** (jetons clair / sombre, Inter, barre à pad glissant, `HoldToConfirmCard`) — voir `docs/UX-V2.md` §12
 - [ ] **Onglet Stats** : page unique (période Semaine / Mois / Année), une carte par module actif (Sport : total + histogramme ; Nutrition : moyenne kcal vs cible ; Forme), carte « Analyse de l'Agent » (placeholder) ; chiffres calculés dans `src/core/`
 - [x] **Profil via le prénom cliquable** (dégradé, relief, chevron) ; écrans Profil et Profil › Modules ; retrait de l'onglet Moi
@@ -465,8 +497,10 @@ Aux niveaux 0 et 1, **aucune donnée d'activité ne quitte le téléphone**. Le 
 ## Décisions ouvertes (à trancher par ADR)
 | ADR | Question | Quand |
 |---|---|---|
-| 002 | Navigation `Aujourd'hui · Plan · Agent · Suivi · Moi` — ✅ validée le 2026-10-30, **amendée par l'ADR-009** | J4 |
-| 009 | Navigation `Accueil · Plan · Agent · Suivi · Stats` : profil via le prénom, modules activables, une seule porte vers l'IA — ✅ **décidé le 2026-10-31**, à formaliser | J4 |
+| 002 | Navigation v2 `Accueil · Plan · Agent · Suivi · Stats` — **remplacée par l'ADR-012** | J4 |
+| 011 | Styles en `StyleSheet` dérivés des tokens `src/design/`, NativeWind abandonné — ✅ acceptée le 2026-11-04 | Refonte v3.1 |
+| 012 | Navigation v3.1 `Aujourd'hui · Semaine · Coach · Progrès`, profil par l'avatar, débrief de course dans le détail d'activité — ✅ acceptée le 2026-11-04 | Refonte v3.1 |
+| 013 | Source des activités et éligibilité à l'IA (`source`, `aiEligible`, jamais Strava) — ✅ acceptée le 2026-11-04, **lecture Strava à valider juridiquement** | Refonte v3.1, avant M3 |
 | 010 | Sources de données nutrition : Open Food Facts (licence ODbL) + Ciqual + base d'habitudes de l'utilisateur ; recettes générées par l'IA avec valeurs nutritionnelles **recalculées par le code** ; MyFitnessPal : API fermée aux nouveaux partenaires ; FatSecret : offre gratuite limitée à l'anglais / US (vérifier les conditions de chaque source avant adoption) | avant J7 |
 | 003 | Backend Supabase (région UE), alternatives | J5 |
 | 004 | Sources d'activité autorisées pour l'IA (Strava, Apple Health, Garmin…) | **avant J8** |
@@ -521,7 +555,7 @@ Aux niveaux 0 et 1, **aucune donnée d'activité ne quitte le téléphone**. Le 
 | 2026-10-31 | J4 — maquette v2 : onglet Stats, profil via le prénom, modules activables (Sport / Nutrition / Objectifs / Forme), Plan › Nutrition, accueil nutrition seule |
 | 2026-10-31 | J4 — thème « Aurore » (jetons clair/sombre, Inter), barre à pad glissant, `HoldToConfirmCard`, écrans Accueil / Agent / Plan / Suivi / Moi refaits d'après la maquette |
 | 2026-10-31 | J4 — rôles et IA : une seule saisie (Agent en 3 zones, exemples par domaine), titres + phrases de rôle, Plan sans zone de texte (« Modifier / Planifier avec l'Agent », écran sans plan), action `create_program` |
-| 2026-10-31 | Maquette v2.1 : onglet Moi → Stats, profil via le prénom, sélecteur de modules à icônes, Plan › Nutrition, accueil nutrition seule, Agent en 3 zones, une seule saisie IA (voir `docs/UX-V2-CHANGES.md`) ; roadmap mise à jour (ADR-009, ADR-010) |
+| 2026-10-31 | Maquette v2.1 : onglet Moi → Stats, profil via le prénom, sélecteur de modules à icônes, Plan › Nutrition, accueil nutrition seule, Agent en 3 zones, une seule saisie IA (voir `docs/UX-V2-CHANGES.md`) ; roadmap mise à jour (ADR-010) |
 | 2026-10-31 | J4 — navigation glissée entre modules (balayage, souligné qui suit le doigt, ressort, `reduced motion`) dans Plan et Suivi |
 | 2026-11-01 | **Voie MVP** ajoutée (M1–M6) : moteur d'analyse sur données réelles, coach IA, programmes sans IA, bêta privée de 10–15 testeurs ; sources : analyses Claude « Semi en 1h45 » et « plan MVP » |
 | 2026-11-01 | M1 — `src/core/training/types.ts` : schémas Zod `Split`, `DailyMetrics`, `Race`, `AthleteProfile`, `TrainingInsight` ; `Activity` et `Insight` réutilisés de J3 |
@@ -529,12 +563,6 @@ Aux niveaux 0 et 1, **aucune donnée d'activité ne quitte le téléphone**. Le 
 | 2026-11-01 | M1 — import réussi sur l'export réel : 166 activités, 138 FIT + 28 GPX lus, 137 sorties avec splits (les 29 restantes sont des musculation sans distance), 30 sans FC ; valeurs de référence confirmées (Paris 2024 1h48:16, Reims 2025 1h50:50) |
 | 2026-11-01 | M1 — `src/core/training/engine/` : volume hebdo/mensuel, régularité et coupures, zones de FC configurables, intensités, efficacité aérobie trimestrielle, détection courses + débrief (tranches, dérive, recalage officiel), prépa 8 semaines ; 9 courses détectées sur l'export réel dont les 3 semis ; « Course à pied » (titre auto Strava) exclu de la détection par nom |
 | 2026-11-01 | M1 — moteur affiné sur données réelles : `detectRaces` → candidates (confidence + reasons, confirmed/rejectedIds), prépa en 8 fenêtres glissantes de 7 j (complete, coveredDays), recalage sur `traceDistanceKm` (distance brute GPS/FIT ≠ CSV), moitiés avec split frontière partagé, EF trimestrielle = médiane par sortie (ratio Q2-26/Q1-24 ≈ 0,92) |
-
-## ▶️ Prochaine étape
-**Chemin critique : Voie MVP.** (1) Lancer les prérequis de comptes (Apple Developer, Anthropic, Supabase UE) ; (2) rédiger l'ADR-004 courte (import de fichier utilisateur) ; (3) démarrer **M1** sur la branche `jalon-m1-moteur-analyse` : types → import Strava local → moteur → insights → tests. Ne démarrer M1 que sur demande explicite.
-
-Reste du **Jalon 4** (à ne finir que pour ce dont M2 dépend) — ordre initial : (1) ADR-009 + navigation `Accueil · Plan · Agent · Suivi · Stats` et profil via le prénom ; (2) Agent en 3 zones et suppression du champ texte de Plan ; (3) modules activables + sélecteur à icônes ; (4) Plan › Sport / Nutrition ; (5) Stats ; (6) animations et test des 5 secondes. Détail et maquettes : `docs/UX-V2.md` et `docs/UX-V2-CHANGES.md`.
-En parallèle (hors code) : lire l'accord API Strava complet et ouvrir l'**ADR-004** avant le Jalon 8 ; vérifier les conditions des sources nutrition (ADR-010) avant le Jalon 7.
 | 2026-11-01 | M1 — `src/core/training/insights/` : 8 règles pures (data_quality_no_hr, intensity_too_high, race_pacing, race_prep, gap_resume, volume_ramp, consistency, aerobic_trend), `evaluateInsights` / `rankInsights`, textes FR débutant / sportif + lint, catalogue `docs/insights-catalog.md` |
 | 2026-11-01 | M1 — insights, passe de relecture : `confirm_race` (courses confirmées / déclarées uniquement pour pacing et bilan de prépa), source `trend` partout sauf `gap_resume`, conseils relatifs (reprise 70 %, sortie longue +10 %/sem., FC max effective et « environ »), prépa courte / dernière ligne droite, `consistency` masquée après une coupure, `mutedRuleIds` (rejet = 4 semaines) ; catalogue mis à jour |
 | 2026-11-01 | M2 — navigation & perf : `src/ui/nav.ts` (`openActivity`/`openRace`, verrou anti-rebond 1 s — 3 taps = 1 page), `src/ui/sportDerived.ts` (mapping + courses + index des comparables calculés une fois par version du snapshot ; débrief et moment fort mémoïsés), carte/courbes différées après transition (`requestIdleCallback`, InteractionManager retiré de RN 0.88) ; bench snapshot réel : 1,35 ms → 0,04 ms par ouverture |
@@ -546,3 +574,9 @@ En parallèle (hors code) : lire l'accord API Strava complet et ouvrir l'**ADR-0
 | 2026-11-01 | fix(M2) étape 1 — `movingTimeSec` (CSV « Temps de déplacement » + FIT) : allure/vitesse sur le temps en mouvement, temps officiel des courses inchangé (écoulé), EF aérobie sur le mouvement ; `src/core/sportFormat.ts` (run/walk→min/km, ride→km/h, swim→/100 m, formats FR virgule/jour/heure) ; titres auto Strava EN→FR à l'affichage ; `StravaActivity` optionnel — plus de 0 pour valeur absente |
 | 2026-11-01 | M2 — `startCity` : ville de départ des courses uniquement (1er point GPS GPX/FIT → ville la plus proche de `cities-fr.ts`, GeoNames cities1000 FR ; aucune coordonnée stockée, exclu de `AthleteSummary` — amendement ADR-004) ; ligne « À confirmer » enrichie (date · heure · ville · distance · chrono) ; nom suggéré « Semi-marathon de Reims 2024 » |
 | 2026-11-04 | Direction v3.1 — socle : `src/design/` (`theme.ts` + `fontScaleCaps` / `fontScaleBreakpoints` / `heroMinimumFontScale` dans `Theme`, `useTheme` système, `makeStyles`), polices Inter 400/600 + Inter Tight 600/700 sous écran de démarrage, ADR-011 (StyleSheet dérivés des tokens, NativeWind gelé), règles ESLint `pulsefit/no-literal-style` et `pulsefit/no-classname` avec exceptions temporaires par étape ; aucun écran modifié |
+| 2026-11-04 | Refonte v3.1 — préparation (documentation seule) : tag `pre-v3` poussé ; ADR-012 (navigation `Aujourd'hui · Semaine · Coach · Progrès`, profil par l'avatar, débrief de course dans le détail d'activité) remplace l'ADR-002 ; ADR-013 (source des activités, `aiEligible`, jamais Strava vers l'IA) ; bêta limitée au sport ; AGENTS.md, `.windsurfrules` et ROADMAP mis à jour ; `docs/theme.js` et l'artefact `.claude/worktrees/` retirés |
+
+## ▶️ Prochaine étape
+**Refonte v3.1, étape 2 : coquille de navigation** (ADR-012) sur la branche `refonte` : 4 onglets et TabBar v3.1, Stack `profile/` ouvert par l'avatar, `activity/[id]`, onboarding ; retrait des routes des écrans supprimés (nutrition, scan, Objectifs, Forme, historique, `/race/[id]`, `/preview-stats`), l'ancien code restant compilable jusqu'à sa réécriture. Puis les composants de la SPEC, `groupSessions` et la source des activités (ADR-013), puis les écrans.
+
+En parallèle (hors code) : faire valider juridiquement la lecture des conditions Strava (ADR-013) avant M6 ; maquetter Progrès, Profil et onboarding.
