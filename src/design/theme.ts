@@ -62,6 +62,9 @@ export type Palette = {
   /** Action destructive (supprimer le compte). */
   danger: string;
 
+  /** Fond semi-transparent des feuilles modales. */
+  overlay: string;
+
   /** Halo Aurore en haut d'Aujourd'hui : dégradé linéaire de `haloTop` vers transparent. */
   haloTop: string;
   haloBottom: string;
@@ -97,6 +100,8 @@ export const colors: Record<ColorScheme, Palette> = {
 
     danger: '#B42318',
 
+    overlay: 'rgba(0, 0, 0, 0.4)',
+
     haloTop: '#FFE6D5',
     haloBottom: 'rgba(244, 245, 247, 0)',
   },
@@ -129,6 +134,8 @@ export const colors: Record<ColorScheme, Palette> = {
     effortHardDot: '#FF7A5F',
 
     danger: '#FF8A80',
+
+    overlay: 'rgba(0, 0, 0, 0.5)',
 
     haloTop: '#2A1A14',
     haloBottom: 'rgba(10, 12, 16, 0)',
