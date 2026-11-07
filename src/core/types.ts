@@ -31,6 +31,8 @@ export type WorkoutSession = {
   durationMin: number;
   caloriesBurn: number;
   completed: boolean;
+  /** La séance a été explicitement sautée (ni faite ni reportée). */
+  skipped?: boolean;
   blocks?: WorkoutBlock[];
   exercises?: StrengthExercise[];
 };
@@ -69,6 +71,8 @@ export type UserProfile = {
   macrosTarget: Omit<Macros, 'calories'> & { calories: number };
   weightKg: number;
   targetWeightKg: number;
+  /** Jours déclarés indisponibles (YYYY-MM-DD) : le plan n'y place jamais de séance. */
+  unavailableDates?: string[];
 };
 
 export type MealMoment = 'morning' | 'noon' | 'snack' | 'evening';

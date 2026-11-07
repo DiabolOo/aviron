@@ -17,6 +17,8 @@ import { ActivitySchema, type Activity } from '../src/core/schemas';
 import { dedupeActivities } from '../src/core/training/import/dedupeActivities';
 import { groupSessions } from '../src/core/training/sessions';
 
+const SnapshotEnvelopeSchema = z.object({ activities: z.array(z.unknown()) });
+
 // ─── Résolution des arguments ────────────────────────────────────────────────
 
 const DEFAULT_SNAPSHOT = 'fixtures/julien.snapshot.json';
@@ -64,15 +66,38 @@ async function main(): Promise<void> {
 
   // ── Chargement et validation ────────────────────────────────────────────
   const raw = JSON.parse(readFileSync(snapshotPath, 'utf-8')) as unknown;
-  const parsed = z.array(ActivitySchema).safeParse(raw);
 
-  if (!parsed.success) {
-    console.error('Snapshot invalide :');
-    console.error(parsed.error.issues.slice(0, 5).map((i) => `  ${i.path.join('.')}: ${i.message}`).join('\n'));
+  // Le snapshot est une enveloppe { generatedAt, source, activities: [...] }.
+  // On utilise le même schéma que FixtureActivityRepository.
+  const envelope = SnapshotEnvelopeSchema.safeParse(raw);
+  if (!envelope.success) {
+    console.error('Snapshot invalide : (racine) Invalid input: expected envelope { activities: [...] }, received', typeof raw);
     process.exit(1);
   }
 
-  const activities = parsed.data;
+  const activities: Activity[] = [];
+  let skipped = 0;
+  for (const item of envelope.data.activities) {
+    const withDefaults =
+      typeof item === 'object' && item !== null
+        ? { source: 'strava', aiEligible: false, ...item }
+        : item;
+    const r = ActivitySchema.safeParse(withDefaults);
+    if (r.success) {
+      activities.push(r.data);
+    } else {
+      skipped++;
+    }
+  }
+
+  if (activities.length === 0 && skipped > 0) {
+    console.error('snapshot antérieur à l\'ADR-013 : relance l\'import');
+    process.exit(1);
+  }
+
+  if (skipped > 0) {
+    console.warn(`   ⚠ ${skipped} activité(s) ignorée(s) (schéma invalide)`);
+  }
   console.log(`\n📋 Snapshot : ${snapshotPath}`);
   console.log(`   Activités brutes    : ${activities.length}`);
 

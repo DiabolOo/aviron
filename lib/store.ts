@@ -65,6 +65,7 @@ type PulseFitState = {
   completeSession: (id: string) => void;
   uncompleteSession: (id: string) => void;
   moveSession: (id: string, toDate: string) => void;
+  skipSession: (id: string) => void;
   analyzePhoto: (uri: string) => Promise<void>;
   savePendingMeal: (saveAsRecipe?: boolean) => void;
   discardPendingMeal: () => void;
@@ -272,6 +273,13 @@ export const usePulseFitStore = create<PulseFitState>()(
           persistSessions(
             get().sessions.map((session) =>
               session.id === id ? { ...session, date: toDate } : session,
+            ),
+          );
+        },
+        skipSession: (id) => {
+          persistSessions(
+            get().sessions.map((session) =>
+              session.id === id ? { ...session, skipped: true } : session,
             ),
           );
         },

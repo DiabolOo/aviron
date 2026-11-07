@@ -30,6 +30,15 @@ describe('makeTheme', () => {
     expect(Object.keys(colors.dark).sort()).toEqual(Object.keys(colors.light).sort());
   });
 
+  it('expose un token overlay dans les deux schémas', () => {
+    const light = makeTheme('light');
+    const dark = makeTheme('dark');
+    expect(light.colors.overlay).toBeDefined();
+    expect(dark.colors.overlay).toBeDefined();
+    expect(typeof light.colors.overlay).toBe('string');
+    expect(typeof dark.colors.overlay).toBe('string');
+  });
+
   it('plafonne le héros à 80 px (×1,25)', () => {
     expect(typography.hero.fontSize * typography.hero.maxFontSizeMultiplier).toBe(80);
   });
