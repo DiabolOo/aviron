@@ -38,7 +38,6 @@ const STEPS = {
     'src/ui/proposals/UndoToast.tsx': C,
   },
   'Étape 4 — Suivi et détail d’activité': {
-    'app/activity/[id].tsx': CL,
     'components/sport/ActivityDetail.tsx': C,
     'components/sport/ActivityHistory.tsx': C,
     'components/sport/ActivityRow.tsx': C,

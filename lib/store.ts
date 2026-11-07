@@ -9,6 +9,7 @@ import { DEFAULT_PROFILE } from '@/src/core/defaults';
 import { uid } from '@/src/core/format';
 import { calculateMacros, calculateNutritionTargets } from '@/src/core/nutritionCalculator';
 import { buildProgram, buildProgramSessions } from '@/src/core/program';
+import type { GroupOverride } from '@/src/core/training/sessions';
 import type {
   AthleticGoal,
   Meal,
@@ -52,6 +53,9 @@ type PulseFitState = {
   raceNames: Record<string, string>;
   confirmRace: (activityId: string, name?: string) => void;
   rejectRace: (activityId: string) => void;
+  groupOverrides: GroupOverride[];
+  addGroupOverride: (override: GroupOverride) => void;
+  removeGroupOverride: (override: GroupOverride) => void;
   weather: Weather | null;
   sessions: WorkoutSession[];
   meals: Meal[];
@@ -96,6 +100,7 @@ type PersistedState = Pick<
   | 'confirmedRaceIds'
   | 'raceNames'
   | 'rejectedRaceIds'
+  | 'groupOverrides'
 >;
 
 type LegacyPersistedState = Partial<PersistedState> & {
@@ -231,6 +236,20 @@ export const usePulseFitStore = create<PulseFitState>()(
         confirmedRaceIds: [],
         rejectedRaceIds: [],
         raceNames: {},
+        groupOverrides: [],
+        addGroupOverride: (override) => {
+          const current = get().groupOverrides;
+          // Avoid duplicates
+          const isDuplicate = current.some((o) => JSON.stringify(o) === JSON.stringify(override));
+          if (!isDuplicate) set({ groupOverrides: [...current, override] });
+        },
+        removeGroupOverride: (override) => {
+          set({
+            groupOverrides: get().groupOverrides.filter(
+              (o) => JSON.stringify(o) !== JSON.stringify(override),
+            ),
+          });
+        },
         confirmRace: (activityId, name) =>
           set({
             raceNames: name?.trim() ? { ...get().raceNames, [activityId]: name.trim() } : get().raceNames,
@@ -361,6 +380,7 @@ export const usePulseFitStore = create<PulseFitState>()(
         confirmedRaceIds: state.confirmedRaceIds,
         rejectedRaceIds: state.rejectedRaceIds,
         raceNames: state.raceNames,
+        groupOverrides: state.groupOverrides,
       }),
       merge: (persisted, current) => {
         const saved = (persisted ?? {}) as LegacyPersistedState;

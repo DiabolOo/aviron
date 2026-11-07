@@ -518,3 +518,20 @@ export function highlightCopyFr(
       };
   }
 }
+
+// ─── Phrases de débrief de course ────────────────────────────────────────────
+
+/** Phrase prudente quand la course n'a pas de FC. */
+export const DEBRIEF_NO_FC =
+  "Sans cardio, impossible de dire si c'\u00e9tait de la r\u00e9serve ou ton maximum. Les allures seules ne racontent qu'une partie de la course.";
+
+/** Phrase pour la muscu : la FC ne dit pas grand-chose. */
+export const STRENGTH_FC_NOTE =
+  "En muscu, la FC dit peu de l'effort : je ne m'en sers pas pour juger la s\u00e9ance.";
+
+/** Légende de l'écart GPS (affichée une seule fois). */
+export function gpsLegendFr(measuredKm: number, officialKm: number): string {
+  const gapPct = ((measuredKm - officialKm) / officialKm) * 100;
+  const sign = gapPct > 0 ? '+' : '−';
+  return `Ton téléphone a mesuré ${km(measuredKm, 2)} (${sign}${nf(Math.abs(gapPct), 1)}\u00a0%). Allures calculées sur la distance officielle.`;
+}

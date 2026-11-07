@@ -10,3 +10,4 @@ export type {
 } from './types';
 export { groupSessions } from './groupSessions';
 export { resolveSession } from './resolveSession';
+export { buildSessionView, sourceBadge, type SessionView, type SessionPartView } from './sessionView';

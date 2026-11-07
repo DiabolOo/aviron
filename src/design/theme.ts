@@ -68,6 +68,18 @@ export type Palette = {
   /** Halo Aurore en haut d'Aujourd'hui : dégradé linéaire de `haloTop` vers transparent. */
   haloTop: string;
   haloBottom: string;
+
+  /** Couleurs par sport (icône du journal, courbe, dégradé). */
+  sportRun: string;
+  sportRunTint: string;
+  sportSwim: string;
+  sportSwimTint: string;
+  sportRide: string;
+  sportRideTint: string;
+  sportWalk: string;
+  sportWalkTint: string;
+  sportStrength: string;
+  sportStrengthTint: string;
 };
 
 export const colors: Record<ColorScheme, Palette> = {
@@ -104,6 +116,17 @@ export const colors: Record<ColorScheme, Palette> = {
 
     haloTop: '#FFE6D5',
     haloBottom: 'rgba(244, 245, 247, 0)',
+
+    sportRun: '#6351D6',
+    sportRunTint: '#DAD5FC',
+    sportSwim: '#49A5DF',
+    sportSwimTint: '#D5EDFC',
+    sportRide: '#56D2BD',
+    sportRideTint: '#D5FCF5',
+    sportWalk: '#B49C74',
+    sportWalkTint: '#F6ECDA',
+    sportStrength: '#C464A7',
+    sportStrengthTint: '#FCD5F0',
   },
   dark: {
     bg: '#0A0C10',
@@ -139,6 +162,17 @@ export const colors: Record<ColorScheme, Palette> = {
 
     haloTop: '#2A1A14',
     haloBottom: 'rgba(10, 12, 16, 0)',
+
+    sportRun: '#978BE4',
+    sportRunTint: '#2B2556',
+    sportSwim: '#86C3EA',
+    sportSwimTint: '#254356',
+    sportRide: '#8EE1D3',
+    sportRideTint: '#25564E',
+    sportWalk: '#CDBDA2',
+    sportWalkTint: '#4E422C',
+    sportStrength: '#D897C4',
+    sportStrengthTint: '#562547',
   },
 };
 
