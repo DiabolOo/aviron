@@ -2,8 +2,8 @@ import type { Activity } from '../schemas';
 import { NO_HR_MIN_MISSING, NO_HR_WINDOW_RUNS } from './insights/thresholds';
 
 const MONTHS_FR = [
-  'janvier', 'f\u00e9vrier', 'mars', 'avril', 'mai', 'juin',
-  'juillet', 'ao\u00fbt', 'septembre', 'octobre', 'novembre', 'd\u00e9cembre',
+  'janvier', 'février', 'mars', 'avril', 'mai', 'juin',
+  'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre',
 ];
 
 function monthFr(isoDate: string): string {
@@ -50,9 +50,9 @@ export function sessionRepere(activities: readonly Activity[], today: string): s
 
   if (!lastWithHr) {
     // Jamais eu de FC : guide uniquement à l'allure et à la sensation, sans date
-    return 'Je te guide \u00e0 l\u2019allure et \u00e0 la sensation.';
+    return 'Je te guide à l’allure et à la sensation.';
   }
 
   const month = monthFr(lastWithHr.date);
-  return `Pas de cardio sur tes sorties depuis ${month}\u00a0: je te guide \u00e0 l\u2019allure et \u00e0 la sensation.`;
+  return `Pas de cardio sur tes sorties depuis ${month}\u00a0: je te guide à l’allure et à la sensation.`;
 }

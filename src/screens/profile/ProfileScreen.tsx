@@ -77,7 +77,7 @@ export function ProfileScreen() {
     },
     {
       id: 'ai-consent',
-      label: 'Envoyer un résumé à l\u2019IA',
+      label: 'Envoyer un résumé à l’IA',
       sub: consent ? 'Le retirer ne supprime rien' : undefined,
       toggle: { value: consent, onChange: setConsent },
     },

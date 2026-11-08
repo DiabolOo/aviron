@@ -64,7 +64,7 @@ function dayLabel(iso: string): string {
 
 /** Résumé d'une semaine passée : « 1 sortie, 15 min » ou « Rien d'importé ». */
 function weekSummaryText(count: number, durationSec: number): string {
-  if (count === 0) return 'Rien d\u2019import\u00e9';
+  if (count === 0) return 'Rien d’importé';
   const word = count > 1 ? 'sorties' : 'sortie';
   return `${count}${NBSP}${word}, ${formatSecAsClock(durationSec)}`;
 }
@@ -149,7 +149,7 @@ export function WeekScreen() {
       const isDone = session?.completed || !!activity;
 
       const title = session?.title ?? (activity?.name ?? 'Repos');
-      const sub = isToday ? 'Aujourd\u2019hui' : undefined;
+      const sub = isToday ? 'Aujourd’hui' : undefined;
       const proposal = proposalsByDate.get(iso);
 
       return {
@@ -186,7 +186,7 @@ export function WeekScreen() {
               return parts.join(`${NBSP}·${NBSP}`);
             })
             .join('')
-        : 'Rien d\u2019import\u00e9';
+        : 'Rien d’importé';
       weeks.push({
         start: summary.start,
         end: summary.end,
@@ -226,13 +226,13 @@ export function WeekScreen() {
 
         {/* ── En-tête ── */}
         <View style={styles.header}>
-          <ScreenHeader title="Semaine" subtitle="Pr\u00e9vu et fait, jour par jour." />
+          <ScreenHeader title="Semaine" subtitle="Prévu et fait, jour par jour." />
         </View>
 
         {/* ── Période et objectif ── */}
         <View style={styles.periodRow}>
           <Text role="sub" weight="semibold" color="inkSecondary">
-            {currentPhase ? `${periodLabel}${NBSP}\u00b7${NBSP}${currentPhase}` : periodLabel}
+            {currentPhase ? `${periodLabel}${NBSP}·${NBSP}${currentPhase}` : periodLabel}
           </Text>
           {goalLabel && goalCountdown ? (
             <Text role="sub" color="inkTertiary">
@@ -253,7 +253,7 @@ export function WeekScreen() {
             {pastWeeks.map((w) => (
               <PastWeekRow
                 key={w.start}
-                title={`${formatPeriod(w.start, w.end)}${w.count > 0 ? `${NBSP}\u00b7${NBSP}${weekSummaryText(w.count, w.durationSec)}` : ''}`}
+                title={`${formatPeriod(w.start, w.end)}${w.count > 0 ? `${NBSP}·${NBSP}${weekSummaryText(w.count, w.durationSec)}` : ''}`}
                 detail={w.detail}
                 onPress={() => openWeek(w.start)}
               />

@@ -49,7 +49,7 @@ async function goToStep(step: number) {
 // ─── Tests ──────────────────────────────────────────────────────────────────
 
 describe('OnboardingScreen', () => {
-  it('affiche l\u2019étape 1 avec les 3 niveaux', async () => {
+  it('affiche l’étape 1 avec les 3 niveaux', async () => {
     await render(<OnboardingScreen />);
     expect(screen.getByTestId('onboarding-screen')).toBeTruthy();
     expect(screen.getByTestId('step-header')).toBeTruthy();
@@ -64,7 +64,7 @@ describe('OnboardingScreen', () => {
     expect(btn.props.accessibilityState?.disabled).toBe(true);
   });
 
-  it('passe à l\u2019étape 2 après sélection du niveau', async () => {
+  it('passe à l’étape 2 après sélection du niveau', async () => {
     await render(<OnboardingScreen />);
     await selectAndContinue('level-regular');
     expect(await screen.findByTestId('equipment-hrWatch')).toBeTruthy();
@@ -72,7 +72,7 @@ describe('OnboardingScreen', () => {
     expect(screen.getByTestId('equipment-none')).toBeTruthy();
   });
 
-  it('passe à l\u2019étape 3 (objectif) avec 4 choix', async () => {
+  it('passe à l’étape 3 (objectif) avec 4 choix', async () => {
     await render(<OnboardingScreen />);
     await goToStep(2);
     expect(await screen.findByTestId('goal-semi')).toBeTruthy();
@@ -90,7 +90,7 @@ describe('OnboardingScreen', () => {
     expect(screen.getByTestId('target-date')).toBeTruthy();
   });
 
-  it('n\u2019affiche pas les champs date pour régularité', async () => {
+  it('n’affiche pas les champs date pour régularité', async () => {
     await render(<OnboardingScreen />);
     await goToStep(2);
     const regular = await screen.findByTestId('goal-regular');
@@ -118,7 +118,7 @@ describe('OnboardingScreen', () => {
     expect(await screen.findByText('Tes séances arrivent par Strava')).toBeTruthy();
   });
 
-  it('complète l\u2019onboarding et navigue vers les onglets', async () => {
+  it('complète l’onboarding et navigue vers les onglets', async () => {
     const { router } = require('expo-router');
     await render(<OnboardingScreen />);
     await goToStep(3);

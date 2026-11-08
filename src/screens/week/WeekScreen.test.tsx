@@ -106,10 +106,10 @@ describe('WeekScreen', () => {
     expect(dayRows.filter(Boolean)).toHaveLength(7);
   });
 
-  it('affiche la séance du jour avec "Aujourd\u2019hui"', async () => {
+  it('affiche la séance du jour avec "Aujourd’hui"', async () => {
     seedReady({ sessions: [makeSession()] });
     await render(<WeekScreen />);
-    expect(screen.getByText('Aujourd\u2019hui')).toBeTruthy();
+    expect(screen.getByText('Aujourd’hui')).toBeTruthy();
     expect(screen.getByText('Footing 8 km')).toBeTruthy();
   });
 

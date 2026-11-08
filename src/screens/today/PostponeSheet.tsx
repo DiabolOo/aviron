@@ -20,7 +20,7 @@ function dayHasSession(sessions: readonly PlannedSession[], date: string): boole
   return sessions.some((s) => s.date === date && !s.completed && !s.skipped);
 }
 
-/** « Pas deux séances dures d\u2019affilée » : renvoie true si placer ici créerait une succession. */
+/** « Pas deux séances dures d’affilée » : renvoie true si placer ici créerait une succession. */
 function wouldCreateHardSequence(
   sessions: readonly PlannedSession[],
   targetDate: string,
@@ -67,11 +67,11 @@ function buildChoices(
     date: tomorrow,
     disabled: tomorrowUnavailable || tomorrowBusy || tomorrowHard,
     reason: tomorrowUnavailable
-      ? 'Jour d\u00e9clar\u00e9 indisponible'
+      ? 'Jour déclaré indisponible'
       : tomorrowBusy
-        ? 'Journ\u00e9e d\u00e9j\u00e0 occup\u00e9e'
+        ? 'Journée déjà occupée'
         : tomorrowHard
-          ? 'Deux s\u00e9ances dures de suite'
+          ? 'Deux séances dures de suite'
           : undefined,
     testID: 'postpone-demain',
   });
@@ -81,20 +81,20 @@ function buildChoices(
   const dayAfterBusy = dayHasSession(otherSessions, dayAfter);
   const dayAfterHard = wouldCreateHardSequence(otherSessions, dayAfter, kind);
   choices.push({
-    label: 'Apr\u00e8s-demain',
+    label: 'Après-demain',
     date: dayAfter,
     disabled: dayAfterUnavailable || dayAfterBusy || dayAfterHard,
     reason: dayAfterUnavailable
-      ? 'Jour d\u00e9clar\u00e9 indisponible'
+      ? 'Jour déclaré indisponible'
       : dayAfterBusy
-        ? 'Journ\u00e9e d\u00e9j\u00e0 occup\u00e9e'
+        ? 'Journée déjà occupée'
         : dayAfterHard
-          ? 'Deux s\u00e9ances dures de suite'
+          ? 'Deux séances dures de suite'
           : undefined,
     testID: 'postpone-apres-demain',
   });
 
-  // Un autre jour (placeholder — ouvre un sélecteur de date à l\u2019étape suivante)
+  // Un autre jour (placeholder — ouvre un sélecteur de date à l’étape suivante)
   choices.push({
     label: 'Un autre jour',
     date: addDaysISO(today, 7),
@@ -104,7 +104,7 @@ function buildChoices(
 
   // Sauter
   choices.push({
-    label: 'Sauter cette s\u00e9ance',
+    label: 'Sauter cette séance',
     date: null,
     disabled: false,
     testID: 'postpone-sauter',
@@ -160,7 +160,7 @@ export function PostponeSheet({
       <Pressable style={styles.overlay} onPress={onClose} accessibilityRole="none">
         <Pressable style={styles.sheet} onPress={(e) => e.stopPropagation()}>
           <Text role="verdict" weight="bold">
-            Reporter la s\u00e9ance
+            Reporter la séance
           </Text>
 
           {choices.map((c) => (

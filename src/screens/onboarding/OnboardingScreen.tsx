@@ -27,14 +27,14 @@ type ConsentLevel = 'profile' | 'sessions' | 'ai';
 
 const GOAL_CHOICES: readonly { id: GoalChoice; label: string; description: string }[] = [
   { id: 'semi', label: 'Un semi-marathon', description: 'Environ 12 semaines de préparation ciblée.' },
-  { id: '10k', label: 'Un 10 km', description: 'Courir 10 km sans s\u2019arrêter.' },
-  { id: '5k', label: 'Courir 5 km sans s\u2019arrêter', description: 'Le premier cap, à ton rythme.' },
+  { id: '10k', label: 'Un 10 km', description: 'Courir 10 km sans s’arrêter.' },
+  { id: '5k', label: 'Courir 5 km sans s’arrêter', description: 'Le premier cap, à ton rythme.' },
   { id: 'regular', label: 'Courir plus régulièrement', description: 'Pas de course cible, juste progresser.' },
 ];
 
 const CONSENT_OPTIONS: readonly { id: ConsentLevel; label: string; description: string }[] = [
-  { id: 'profile', label: 'Avec mon profil', description: 'Un programme d\u2019après tes réponses. Je ne lis aucune séance.' },
-  { id: 'sessions', label: 'Avec mes séances', description: 'J\u2019analyse les séances sur ton téléphone. Rien n\u2019en sort.' },
+  { id: 'profile', label: 'Avec mon profil', description: 'Un programme d’après tes réponses. Je ne lis aucune séance.' },
+  { id: 'sessions', label: 'Avec mes séances', description: 'J’analyse les séances sur ton téléphone. Rien n’en sort.' },
   { id: 'ai', label: 'Avec un coach IA', description: 'Une IA rédige tes débriefs à partir des séances venues de COROS, Garmin ou Apple\u00a0Santé.' },
 ];
 
@@ -164,7 +164,7 @@ export function OnboardingScreen() {
                 <Text role="title">Où en es-tu avec la course\u00a0?</Text>
               </View>
               <Text role="sub" color="inkSecondary">
-                Ta réponse règle les mots que j{'\u2019'}emploie et la quantité de chiffres que je te montre.
+                Ta réponse règle les mots que j{'’'}emploie et la quantité de chiffres que je te montre.
               </Text>
               <View style={styles.cards}>
                 {LEVEL_OPTIONS.map((opt) => (
@@ -214,7 +214,7 @@ export function OnboardingScreen() {
           {step === 2 && (
             <>
               <View style={styles.stepTitle}>
-                <Text role="title">Qu{'\u2019'}est-ce que tu vises\u00a0?</Text>
+                <Text role="title">Qu{'’'}est-ce que tu vises\u00a0?</Text>
               </View>
               <View style={styles.cards}>
                 {GOAL_CHOICES.map((opt) => (
@@ -266,7 +266,7 @@ export function OnboardingScreen() {
           {step === 3 && (
             <>
               <View style={styles.stepTitle}>
-                <Text role="title">Jusqu{'\u2019'}où je t{'\u2019'}accompagne\u00a0?</Text>
+                <Text role="title">Jusqu{'’'}où je t{'’'}accompagne\u00a0?</Text>
               </View>
               {stravaConnected && (
                 <View style={styles.stravaNote}>
@@ -291,7 +291,7 @@ export function OnboardingScreen() {
 
               {/* ── Prénom ── */}
               <View>
-                <Text role="sub" weight="semibold">Comment tu t{'\u2019'}appelles\u00a0?</Text>
+                <Text role="sub" weight="semibold">Comment tu t{'’'}appelles\u00a0?</Text>
                 <TextInput
                   testID="first-name"
                   value={firstName}

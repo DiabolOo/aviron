@@ -40,7 +40,7 @@ describe('ProfileScreen', () => {
     expect(screen.getByText('Fermer')).toBeTruthy();
   });
 
-  it('affiche l\u2019avatar et le prénom', async () => {
+  it('affiche l’avatar et le prénom', async () => {
     seedReady();
     await render(<ProfileScreen />);
     expect(screen.getByTestId('profile-screen')).toBeTruthy();
@@ -55,7 +55,7 @@ describe('ProfileScreen', () => {
     expect(screen.getByText('Personnalisation')).toBeTruthy();
   });
 
-  it('affiche le niveau et l\u2019équipement', async () => {
+  it('affiche le niveau et l’équipement', async () => {
     seedReady();
     await render(<ProfileScreen />);
     expect(screen.getByTestId('settings-level')).toBeTruthy();

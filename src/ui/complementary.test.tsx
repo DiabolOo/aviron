@@ -261,8 +261,8 @@ describe('ChoiceChips', () => {
       { id: 'b', label: 'Jambes' },
     ];
     await render(withPreview({ fontScale: 1.3 }, <ChoiceChips choices={choices} columns={2} onChoose={jest.fn()} />));
-    const rowA = screen.getByTestId('choice-a').parent?.parent;
-    const rowB = screen.getByTestId('choice-b').parent?.parent;
+    const rowA = screen.getByTestId('choice-a').parent;
+    const rowB = screen.getByTestId('choice-b').parent;
     expect(rowA).not.toBe(rowB);
   });
 });

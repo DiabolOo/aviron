@@ -21,7 +21,7 @@ export type PlannedIntensity = 'easy' | 'moderate' | 'hard';
 export const LEVEL_OPTIONS: readonly { id: DeclaredLevel; label: string; description: string }[] = [
   { id: 'beginner', label: 'Je débute', description: 'Je ne cours pas encore, ou très peu.' },
   { id: 'regular', label: 'Je cours un peu', description: 'Une ou deux sorties par semaine, sans plan.' },
-  { id: 'advanced', label: 'Je m\u2019entraîne', description: 'Un plan, des séances variées, un objectif chiffré.' },
+  { id: 'advanced', label: 'Je m’entraîne', description: 'Un plan, des séances variées, un objectif chiffré.' },
 ];
 
 export const EQUIPMENT_OPTIONS: readonly { id: Equipment; label: string; description: string }[] = [
@@ -31,7 +31,7 @@ export const EQUIPMENT_OPTIONS: readonly { id: Equipment; label: string; descrip
     description: 'Ou une ceinture\u00a0: je lis ta fréquence cardiaque.',
   },
   { id: 'phone', label: 'Mon téléphone', description: 'Je lis tes allures et tes distances.' },
-  { id: 'none', label: 'Rien pour l\u2019instant', description: 'Tu me dis quand la séance est faite, ça suffit.' },
+  { id: 'none', label: 'Rien pour l’instant', description: 'Tu me dis quand la séance est faite, ça suffit.' },
 ];
 
 /** Seule une montre (ou une ceinture) lit la FC ; sans réponse, on ne présume rien. */
@@ -93,9 +93,9 @@ const REFERENCE_PACE: Record<PlannedIntensity, string> = {
 };
 
 const ZONES: Record<PlannedIntensity, string> = {
-  easy: 'Z1\u2013Z2',
+  easy: 'Z1–Z2',
   moderate: 'Z3',
-  hard: 'Z4\u2013Z5',
+  hard: 'Z4–Z5',
 };
 
 const capitalize = (s: string): string => s.charAt(0).toUpperCase() + s.slice(1);
@@ -189,7 +189,7 @@ export type SessionCardLabels = { holdHint: string; postponeLabel: string };
 
 export function sessionCardLabels(level: DeclaredLevel): SessionCardLabels {
   return level === 'beginner'
-    ? { holdHint: 'Maintiens la carte quand c\u2019est fait', postponeLabel: 'Plus tard' }
+    ? { holdHint: 'Maintiens la carte quand c’est fait', postponeLabel: 'Plus tard' }
     : { holdHint: 'Maintiens la carte pour valider', postponeLabel: 'Reporter' };
 }
 

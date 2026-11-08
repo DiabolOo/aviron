@@ -48,7 +48,7 @@ function formatTodayHeader(date: Date): string {
 
 function greetingForHour(hour: number): string {
   if (hour < 12) return 'Bonjour';
-  if (hour < 18) return 'Bon apr\u00e8s-midi';
+  if (hour < 18) return 'Bon après-midi';
   return 'Bonsoir';
 }
 
@@ -67,7 +67,7 @@ function buildWeekDots(today: string, plannedSessions: readonly PlannedSession[]
   });
 }
 
-/** Phase courante du programme (jalon dont la date est pass\u00e9e ou actuelle). */
+/** Phase courante du programme (jalon dont la date est passée ou actuelle). */
 function currentPhase(
   program: { milestones: { title: string; date: string }[] } | undefined,
   today: string,
@@ -201,7 +201,7 @@ export function TodayScreen() {
   const handleValidate = useCallback(() => {
     if (!todaySession) return;
     completeSession(todaySession.id);
-    setUndoState({ message: 'S\u00e9ance valid\u00e9e', sessionId: todaySession.id, action: 'validate' });
+    setUndoState({ message: 'Séance validée', sessionId: todaySession.id, action: 'validate' });
   }, [todaySession, completeSession]);
 
   // ── reporter ──
@@ -219,7 +219,7 @@ export function TodayScreen() {
       const previousDate = todaySession.date;
       moveSession(todaySession.id, targetDate);
       setUndoState({
-        message: 'S\u00e9ance report\u00e9e',
+        message: 'Séance reportée',
         sessionId: todaySession.id,
         action: 'postpone',
         previousDate,
@@ -353,7 +353,7 @@ export function TodayScreen() {
         {/* ── En-tête ── */}
         <View style={styles.header}>
           <ScreenHeader
-            eyebrow={phase ? `${headerDate} \u00b7 ${phase}` : headerDate}
+            eyebrow={phase ? `${headerDate} · ${phase}` : headerDate}
             title={`${greeting}, ${firstName}`}
             avatar={{
               initial: firstName.charAt(0).toUpperCase(),
@@ -362,24 +362,24 @@ export function TodayScreen() {
           />
         </View>
 
-        {/* ── S\u00e9ance du jour ── */}
+        {/* ── Séance du jour ── */}
         {!hasData ? (
           <EmptyState
             reason="firstDay"
             title="Bienvenue dans PulseFit."
-            body="Connecte une montre ou importe tes activit\u00e9s pour que le coach te conna\u00eesse."
+            body="Connecte une montre ou importe tes activités pour que le coach te connaîsse."
             primary={{ label: 'Configurer', onPress: () => router.push('/profile') }}
           />
         ) : !hasPlan ? (
           <EmptyState
             reason="noPlan"
             title="Pas encore de plan."
-            body="Dis au coach ce que tu pr\u00e9pares, il construira ton programme."
+            body="Dis au coach ce que tu prépares, il construira ton programme."
             primary={{ label: 'Parler au coach', onPress: () => router.push('/coach') }}
           />
         ) : todaySession ? (
           <SessionCard
-            eyebrow="S\u00e9ance du jour"
+            eyebrow="Séance du jour"
             title={todaySession.title}
             effort={{ level: todaySession.kind === 'rest' ? 'easy' : 'moderate', scale: 'planned' }}
             instruction={sessionInstructionText}
@@ -393,20 +393,20 @@ export function TodayScreen() {
         ) : (
           <EmptyState
             reason="restWeek"
-            title={`Rien de pr\u00e9vu aujourd\u2019hui.`}
-            body="Profite de ta journ\u00e9e de repos, tu reprends bient\u00f4t."
+            title={`Rien de prévu aujourd’hui.`}
+            body="Profite de ta journée de repos, tu reprends bientôt."
           />
         )}
 
-        {/* ── Carte « C\u2019est une course ? » ── */}
+        {/* ── Carte « C’est une course ? » ── */}
         {raceInsights.confirm ? (
           <CoachCard
             kind="question"
-            body={`C\u2019est une course\u00a0? ${raceInsights.confirm.suggestedName}. Consulte le d\u00e9tail avant de r\u00e9pondre.`}
+            body={`C’est une course\u00a0? ${raceInsights.confirm.suggestedName}. Consulte le détail avant de répondre.`}
             choices={[
-              { id: 'yes', label: 'Oui, c\u2019est une course' },
-              { id: 'no', label: 'Non, un entra\u00eenement' },
-              { id: 'detail', label: 'Voir l\u2019activit\u00e9' },
+              { id: 'yes', label: 'Oui, c’est une course' },
+              { id: 'no', label: 'Non, un entraînement' },
+              { id: 'detail', label: 'Voir l’activité' },
             ]}
             selected={raceAnswer}
             columns={1}

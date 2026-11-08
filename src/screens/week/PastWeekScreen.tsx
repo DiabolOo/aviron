@@ -29,7 +29,7 @@ function formatPeriod(startISO: string, endISO: string): string {
   const sameMonth = start.getMonth() === end.getMonth();
   const startLabel = start.toLocaleDateString('fr-FR', { day: 'numeric', ...(sameMonth ? {} : { month: 'short' }) });
   const endLabel = end.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
-  return `${startLabel}${NBSP}\u2013${NBSP}${endLabel}`;
+  return `${startLabel}${NBSP}–${NBSP}${endLabel}`;
 }
 
 /** Initiale du jour (L, M, M, J, V, S, D). */
@@ -91,7 +91,7 @@ export function PastWeekScreen() {
         {/* ── Surtitre + titre ── */}
         <View style={styles.meta}>
           <Text role="sub" weight="semibold" color="inkSecondary">
-            Semaine pass\u00e9e
+            Semaine passée
           </Text>
           <Text role="title">{periodLabel}</Text>
         </View>
@@ -105,11 +105,11 @@ export function PastWeekScreen() {
         {isEmpty ? (
           <EmptyState
             reason="noImport"
-            title="Rien d\u2019import\u00e9 cette semaine."
+            title="Rien d’importé cette semaine."
             body="Soit tu as fait une pause, soit tu as couru sans rien enregistrer. Les deux arrivent, et je ne les traite pas pareil."
-            primary={{ label: 'J\u2019ai couru sans montre', onPress: () => router.push('/(tabs)/coach') }}
-            secondary={{ label: 'C\u2019\u00e9tait une pause', onPress: () => router.back() }}
-            caption="\u00ab\u00a0Sans montre\u00a0\u00bb ouvre le coach\u00a0: dis \u00ab\u00a030\u00a0minutes samedi\u00a0\u00bb et c\u2019est not\u00e9."
+            primary={{ label: 'J’ai couru sans montre', onPress: () => router.push('/(tabs)/coach') }}
+            secondary={{ label: 'C’était une pause', onPress: () => router.back() }}
+            caption="«\u00a0Sans montre\u00a0» ouvre le coach\u00a0: dis «\u00a030\u00a0minutes samedi\u00a0» et c’est noté."
           />
         ) : null}
 
@@ -117,10 +117,10 @@ export function PastWeekScreen() {
         <CoachCard
           kind="insight"
           verdict={isEmpty
-            ? 'Je ne change rien \u00e0 ton plan pour l\u2019instant.'
+            ? 'Je ne change rien à ton plan pour l’instant.'
             : `${week.count}${NBSP}${week.count > 1 ? 'sorties' : 'sortie'} cette semaine.`}
           body={isEmpty
-            ? 'La s\u00e9ance de lundi est d\u00e9j\u00e0 un footing facile. Ta r\u00e9ponse m\u2019aide \u00e0 doser la sortie longue de samedi.'
+            ? 'La séance de lundi est déjà un footing facile. Ta réponse m’aide à doser la sortie longue de samedi.'
             : undefined}
           source="device"
         />

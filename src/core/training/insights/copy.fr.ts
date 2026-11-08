@@ -523,11 +523,11 @@ export function highlightCopyFr(
 
 /** Phrase prudente quand la course n'a pas de FC. */
 export const DEBRIEF_NO_FC =
-  "Sans cardio, impossible de dire si c'\u00e9tait de la r\u00e9serve ou ton maximum. Les allures seules ne racontent qu'une partie de la course.";
+  "Sans cardio, impossible de dire si c'était de la réserve ou ton maximum. Les allures seules ne racontent qu'une partie de la course.";
 
 /** Phrase pour la muscu : la FC ne dit pas grand-chose. */
 export const STRENGTH_FC_NOTE =
-  "En muscu, la FC dit peu de l'effort : je ne m'en sers pas pour juger la s\u00e9ance.";
+  "En muscu, la FC dit peu de l'effort : je ne m'en sers pas pour juger la séance.";
 
 /** Légende de l'écart GPS (affichée une seule fois). */
 export function gpsLegendFr(measuredKm: number, officialKm: number): string {

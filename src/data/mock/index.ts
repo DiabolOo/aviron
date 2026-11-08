@@ -37,7 +37,7 @@ export const MOCK_RECIPES: Recipe[] = [
     category: 'quick',
     ingredients: [
       { name: 'Oeufs', quantity: '3' },
-      { name: 'Blancs d\u2019oeuf', quantity: '2' },
+      { name: 'Blancs d’oeuf', quantity: '2' },
       { name: 'Épinards', quantity: '50 g' },
       { name: 'Fromage frais', quantity: '30 g' },
     ],

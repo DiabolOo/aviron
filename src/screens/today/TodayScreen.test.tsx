@@ -65,7 +65,7 @@ function makeSession(over: Partial<WorkoutSession> = {}): WorkoutSession {
     date: todayISO(),
     title: 'Footing 8 km',
     kind: 'run',
-    subtitle: 'Environ 45 minutes, \u00e0 une allure o\u00f9 tu peux parler.',
+    subtitle: 'Environ 45 minutes, à une allure où tu peux parler.',
     durationMin: 45,
     caloriesBurn: 350,
     completed: false,
@@ -98,7 +98,7 @@ afterEach(() => jest.useRealTimers());
 
 // ─── 1. États ────────────────────────────────────────────────────────────────
 
-describe('TodayScreen \u2014 \u00e9tats', () => {
+describe('TodayScreen — états', () => {
   it('chargement : squelettes visibles', async () => {
     usePulseFitStore.setState({ dataReady: false });
     await render(<TodayScreen />);
@@ -106,7 +106,7 @@ describe('TodayScreen \u2014 \u00e9tats', () => {
     expect(screen.getByTestId('today-loading')).toBeTruthy();
   });
 
-  it('vide (aucune donn\u00e9e) : EmptyState firstDay', async () => {
+  it('vide (aucune donnée) : EmptyState firstDay', async () => {
     seedReady();
     await render(<TodayScreen />);
     expect(screen.getByTestId('empty-firstDay')).toBeTruthy();
@@ -125,7 +125,7 @@ describe('TodayScreen \u2014 \u00e9tats', () => {
     expect(screen.getByTestId('empty-noPlan')).toBeTruthy();
   });
 
-  it('s\u00e9ance du jour : SessionCard affich\u00e9e', async () => {
+  it('séance du jour : SessionCard affichée', async () => {
     seedReady({ sessions: [makeSession()] });
     await render(<TodayScreen />);
     expect(screen.getByTestId('session-card-planned')).toBeTruthy();
@@ -133,24 +133,24 @@ describe('TodayScreen \u2014 \u00e9tats', () => {
     expect(screen.getByText('Reporter')).toBeTruthy();
   });
 
-  it('s\u00e9ance valid\u00e9e : \u00e9tat done', async () => {
+  it('séance validée : état done', async () => {
     seedReady({ sessions: [makeSession({ completed: true })] });
     await render(<TodayScreen />);
     expect(screen.getByTestId('session-card-done')).toBeTruthy();
-    expect(screen.getByText('S\u00e9ance valid\u00e9e')).toBeTruthy();
+    expect(screen.getByText('Séance validée')).toBeTruthy();
   });
 
-  it('jour de repos (plan sans s\u00e9ance aujourd\u2019hui) : EmptyState restWeek', async () => {
+  it('jour de repos (plan sans séance aujourd’hui) : EmptyState restWeek', async () => {
     seedReady({ sessions: [makeSession({ date: '2099-01-01' })] });
     await render(<TodayScreen />);
     expect(screen.getByTestId('empty-restWeek')).toBeTruthy();
   });
 });
 
-// ─── 2. En-t\u00eate ─────────────────────────────────────────────────────────────
+// ─── 2. En-tête ─────────────────────────────────────────────────────────────
 
-describe('TodayScreen \u2014 en-t\u00eate', () => {
-  it('salutation et pr\u00e9nom affich\u00e9s', async () => {
+describe('TodayScreen — en-tête', () => {
+  it('salutation et prénom affichés', async () => {
     seedReady({ profile: { ...usePulseFitStore.getState().profile, firstName: 'Jul' } });
     await render(<TodayScreen />);
     expect(screen.getAllByText(/Jul/).length).toBeGreaterThan(0);
@@ -166,8 +166,8 @@ describe('TodayScreen \u2014 en-t\u00eate', () => {
 
 // ─── 3. Validation ───────────────────────────────────────────────────────────
 
-describe('TodayScreen \u2014 validation', () => {
-  it('action accessibilit\u00e9 « Valider » (sans maintien) : valide la s\u00e9ance', async () => {
+describe('TodayScreen — validation', () => {
+  it('action accessibilité « Valider » (sans maintien) : valide la séance', async () => {
     seedReady({ sessions: [makeSession()] });
     await render(<TodayScreen />);
     const card = screen.getByTestId('session-card-planned');
@@ -175,17 +175,17 @@ describe('TodayScreen \u2014 validation', () => {
     expect(usePulseFitStore.getState().sessions[0].completed).toBe(true);
   });
 
-  it('valider \u2192 UndoToast visible', async () => {
+  it('valider → UndoToast visible', async () => {
     seedReady({ sessions: [makeSession()] });
     await render(<TodayScreen />);
     const card = screen.getByTestId('session-card-planned');
     await fireEvent(card, 'accessibilityAction', { nativeEvent: { actionName: 'activate' } });
     await act(async () => void jest.advanceTimersByTime(100));
     expect(screen.getByTestId('undo-toast')).toBeTruthy();
-    expect(screen.getAllByText('S\u00e9ance valid\u00e9e').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Séance validée').length).toBeGreaterThanOrEqual(1);
   });
 
-  it('annuler la validation restaure la s\u00e9ance', async () => {
+  it('annuler la validation restaure la séance', async () => {
     seedReady({ sessions: [makeSession()] });
     await render(<TodayScreen />);
     const card = screen.getByTestId('session-card-planned');
@@ -199,8 +199,8 @@ describe('TodayScreen \u2014 validation', () => {
 
 // ─── 4. Report ───────────────────────────────────────────────────────────────
 
-describe('TodayScreen \u2014 report', () => {
-  it('reporter \u2192 feuille avec 4 choix', async () => {
+describe('TodayScreen — report', () => {
+  it('reporter → feuille avec 4 choix', async () => {
     seedReady({ sessions: [makeSession()] });
     await render(<TodayScreen />);
     await act(async () => void fireEvent.press(screen.getByText('Reporter')));
@@ -211,7 +211,7 @@ describe('TodayScreen \u2014 report', () => {
     expect(screen.getByTestId('postpone-sauter')).toBeTruthy();
   });
 
-  it('choisir demain d\u00e9place la s\u00e9ance', async () => {
+  it('choisir demain déplace la séance', async () => {
     const today = todayISO();
     seedReady({ sessions: [makeSession()] });
     await render(<TodayScreen />);
@@ -220,7 +220,7 @@ describe('TodayScreen \u2014 report', () => {
     expect(usePulseFitStore.getState().sessions[0].date).not.toBe(today);
   });
 
-  it('sauter marque la s\u00e9ance comme saut\u00e9e', async () => {
+  it('sauter marque la séance comme sautée', async () => {
     seedReady({ sessions: [makeSession()] });
     await render(<TodayScreen />);
     await fireEvent.press(screen.getByText('Reporter'));
@@ -228,28 +228,28 @@ describe('TodayScreen \u2014 report', () => {
     expect(usePulseFitStore.getState().sessions[0].skipped).toBe(true);
   });
 
-  it('un autre jour est pr\u00e9sent dans la feuille', async () => {
+  it('un autre jour est présent dans la feuille', async () => {
     seedReady({ sessions: [makeSession()] });
     await render(<TodayScreen />);
     await fireEvent.press(screen.getByText('Reporter'));
     expect(screen.getByTestId('postpone-autre-jour')).toBeTruthy();
   });
 
-  it('demain d\u00e9sactiv\u00e9 si s\u00e9ance existante', async () => {
+  it('demain désactivé si séance existante', async () => {
     seedReady({
       sessions: [
         makeSession(),
-        makeSession({ id: 'ws-2', date: isoOffset(1), title: 'Fractionn\u00e9' }),
+        makeSession({ id: 'ws-2', date: isoOffset(1), title: 'Fractionné' }),
       ],
     });
     await render(<TodayScreen />);
     await fireEvent.press(screen.getByText('Reporter'));
     const btn = screen.getByTestId('postpone-demain');
     expect(btn.props.accessibilityState.disabled).toBe(true);
-    expect(screen.getByText('Journ\u00e9e d\u00e9j\u00e0 occup\u00e9e')).toBeTruthy();
+    expect(screen.getByText('Journée déjà occupée')).toBeTruthy();
   });
 
-  it('demain d\u00e9sactiv\u00e9 si jour indisponible', async () => {
+  it('demain désactivé si jour indisponible', async () => {
     seedReady({
       sessions: [makeSession()],
       profile: {
@@ -261,29 +261,29 @@ describe('TodayScreen \u2014 report', () => {
     await fireEvent.press(screen.getByText('Reporter'));
     const btn = screen.getByTestId('postpone-demain');
     expect(btn.props.accessibilityState.disabled).toBe(true);
-    expect(screen.getByText('Jour d\u00e9clar\u00e9 indisponible')).toBeTruthy();
+    expect(screen.getByText('Jour déclaré indisponible')).toBeTruthy();
   });
 
-  it('deux s\u00e9ances dures d\u2019afil\u00e9e refus\u00e9es', async () => {
-    // S\u00e9ance dure avant-hier et aujourd'hui \u2192 demain provoquerait deux dures de suite si la pr\u00e9c\u00e9dente \u00e9tait aujourd'hui
-    // On met une s\u00e9ance dure apr\u00e8s-demain \u2192 placer demain cr\u00e9e deux dures de suite
+  it('deux séances dures d’afilée refusées', async () => {
+    // Séance dure avant-hier et aujourd'hui → demain provoquerait deux dures de suite si la précédente était aujourd'hui
+    // On met une séance dure après-demain → placer demain crée deux dures de suite
     seedReady({
       sessions: [
-        makeSession({ kind: 'run' }), // aujourd'hui — d\u00e9plac\u00e9e (exclue)
-        makeSession({ id: 'ws-hard', date: isoOffset(2), kind: 'run', title: 'Allure' }), // apr\u00e8s-demain
+        makeSession({ kind: 'run' }), // aujourd'hui — déplacée (exclue)
+        makeSession({ id: 'ws-hard', date: isoOffset(2), kind: 'run', title: 'Allure' }), // après-demain
       ],
     });
     await render(<TodayScreen />);
     await fireEvent.press(screen.getByText('Reporter'));
     const btn = screen.getByTestId('postpone-demain');
     expect(btn.props.accessibilityState.disabled).toBe(true);
-    expect(screen.getByText('Deux s\u00e9ances dures de suite')).toBeTruthy();
+    expect(screen.getByText('Deux séances dures de suite')).toBeTruthy();
   });
 });
 
-// ─── 5. Ligne de rep\u00e8re FC ────────────────────────────────────────────────────
+// ─── 5. Ligne de repère FC ────────────────────────────────────────────────────
 
-describe('TodayScreen \u2014 ligne de rep\u00e8re FC', () => {
+describe('TodayScreen — ligne de repère FC', () => {
   function makeRun(id: string, daysAgo: number, withHr: boolean) {
     return {
       id,
@@ -299,8 +299,8 @@ describe('TodayScreen \u2014 ligne de rep\u00e8re FC', () => {
     };
   }
 
-  it('FC r\u00e9cente : aucune ligne de rep\u00e8re', async () => {
-    // 5 courses dont les 5 derni\u00e8res ont toutes une FC
+  it('FC récente : aucune ligne de repère', async () => {
+    // 5 courses dont les 5 dernières ont toutes une FC
     const activities = [
       makeRun('r1', 10, true),
       makeRun('r2', 7, true),
@@ -311,12 +311,12 @@ describe('TodayScreen \u2014 ligne de rep\u00e8re FC', () => {
     seedReady({ sessions: [makeSession()], activities });
     await render(<TodayScreen />);
     expect(
-      screen.queryByText(/je te guide \u00e0 l\u2019allure et \u00e0 la sensation/i),
+      screen.queryByText(/je te guide à l’allure et à la sensation/i),
     ).toBeNull();
   });
 
-  it('sans FC r\u00e9cente : ligne de rep\u00e8re affich\u00e9e et data_quality_no_hr masqu\u00e9e', async () => {
-    // 5 courses sans FC, 1 ancienne avec FC (suffisant pour d\u00e9clencher la r\u00e8gle)
+  it('sans FC récente : ligne de repère affichée et data_quality_no_hr masquée', async () => {
+    // 5 courses sans FC, 1 ancienne avec FC (suffisant pour déclencher la règle)
     const activities = [
       makeRun('r0', 60, true), // ancienne avec FC
       makeRun('r1', 20, false),
@@ -328,25 +328,25 @@ describe('TodayScreen \u2014 ligne de rep\u00e8re FC', () => {
     seedReady({ sessions: [makeSession()], activities });
     await render(<TodayScreen />);
     expect(
-      screen.queryByText(/je te guide \u00e0 l\u2019allure et \u00e0 la sensation/i),
+      screen.queryByText(/je te guide à l’allure et à la sensation/i),
     ).toBeTruthy();
-    // La CoachCard data_quality_no_hr ne doit pas appara\u00eetre en double
+    // La CoachCard data_quality_no_hr ne doit pas apparaître en double
     const sources = screen.queryAllByTestId('coach-source');
-    const deviceSources = sources.filter((s) => s.props.children === 'Calcul\u00e9 sur ton t\u00e9l\u00e9phone');
-    // Si la carte data_quality est l\u00e0, elle aurait une source "Calcul\u00e9 sur ton t\u00e9l\u00e9phone"
-    // On v\u00e9rifie qu'aucune carte n'affiche "Tes courses n'ont pas de mesure cardiaque"
+    const deviceSources = sources.filter((s) => s.props.children === 'Calculé sur ton téléphone');
+    // Si la carte data_quality est là, elle aurait une source "Calculé sur ton téléphone"
+    // On vérifie qu'aucune carte n'affiche "Tes courses n'ont pas de mesure cardiaque"
     expect(screen.queryByText(/mesure cardiaque/i)).toBeNull();
-    // Suppr\u00e8ssion de l'avertissement d'utilisation
+    // Supprèssion de l'avertissement d'utilisation
     void deviceSources;
   });
 
-  it('jamais eu de FC : ligne de rep\u00e8re sans date', async () => {
+  it('jamais eu de FC : ligne de repère sans date', async () => {
     // 5 courses, aucune avec FC
     const activities = Array.from({ length: 5 }, (_, i) => makeRun(`r${i}`, i * 3 + 1, false));
     seedReady({ sessions: [makeSession()], activities });
     await render(<TodayScreen />);
     expect(
-      screen.queryByText(/je te guide \u00e0 l\u2019allure et \u00e0 la sensation/i),
+      screen.queryByText(/je te guide à l’allure et à la sensation/i),
     ).toBeTruthy();
     expect(screen.queryByText(/depuis/)).toBeNull();
   });
@@ -354,8 +354,8 @@ describe('TodayScreen \u2014 ligne de rep\u00e8re FC', () => {
 
 // ─── 6. Source coach ─────────────────────────────────────────────────────────
 
-describe('TodayScreen \u2014 source coach', () => {
-  it('les insights on-device portent « Calcul\u00e9 sur ton t\u00e9l\u00e9phone »', async () => {
+describe('TodayScreen — source coach', () => {
+  it('les insights on-device portent « Calculé sur ton téléphone »', async () => {
     const activities = Array.from({ length: 10 }, (_, i) => ({
       id: `a${i}`,
       name: `Footing ${i}`,
@@ -373,15 +373,15 @@ describe('TodayScreen \u2014 source coach', () => {
     await render(<TodayScreen />);
     const sources = screen.queryAllByTestId('coach-source');
     for (const source of sources) {
-      expect(source.props.children).not.toBe('R\u00e9dig\u00e9 par l\u2019IA');
+      expect(source.props.children).not.toBe('Rédigé par l’IA');
     }
   });
 });
 
-// ─── 7. Donn\u00e9es absentes ─────────────────────────────────────────────────────
+// ─── 7. Données absentes ─────────────────────────────────────────────────────
 
-describe('TodayScreen \u2014 donn\u00e9es absentes', () => {
-  it('aucun « 0 » affich\u00e9 pour une donn\u00e9e absente', async () => {
+describe('TodayScreen — données absentes', () => {
+  it('aucun « 0 » affiché pour une donnée absente', async () => {
     seedReady({ sessions: [makeSession()] });
     const { toJSON } = await render(<TodayScreen />);
     const json = JSON.stringify(toJSON());
@@ -392,19 +392,19 @@ describe('TodayScreen \u2014 donn\u00e9es absentes', () => {
 
 // ─── 8. ProposalCard ─────────────────────────────────────────────────────────
 
-describe('TodayScreen \u2014 ProposalCard', () => {
-  it('proposition en attente affich\u00e9e en mode compact', async () => {
+describe('TodayScreen — ProposalCard', () => {
+  it('proposition en attente affichée en mode compact', async () => {
     useProposalStore.setState({
       proposals: [
         {
           id: 'p1',
           createdAt: new Date().toISOString(),
-          title: 'Sortie longue r\u00e9duite',
+          title: 'Sortie longue réduite',
           source: 'agent',
           action: 'adjust_plan',
           payload: {},
           status: 'pending',
-          rationale: 'Fatigue accumul\u00e9e cette semaine.',
+          rationale: 'Fatigue accumulée cette semaine.',
           confidence: 0.9,
           autoApply: false,
         },
@@ -414,7 +414,7 @@ describe('TodayScreen \u2014 ProposalCard', () => {
     seedReady({ sessions: [makeSession()] });
     await render(<TodayScreen />);
     expect(screen.getByTestId('proposal-compact')).toBeTruthy();
-    expect(screen.getByText('Sortie longue r\u00e9duite')).toBeTruthy();
+    expect(screen.getByText('Sortie longue réduite')).toBeTruthy();
   });
 
   it('pas de proposition : section absente', async () => {

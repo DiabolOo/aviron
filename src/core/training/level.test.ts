@@ -38,7 +38,7 @@ const USER: UserProfile = {
 
 describe('options de l’onboarding (210)', () => {
   it('trois niveaux et trois équipements, dans l’ordre de la maquette', () => {
-    expect(LEVEL_OPTIONS.map((o) => o.label)).toEqual(['Je débute', 'Je cours un peu', 'Je m\u2019entraîne']);
+    expect(LEVEL_OPTIONS.map((o) => o.label)).toEqual(['Je débute', 'Je cours un peu', 'Je m’entraîne']);
     expect(LEVEL_OPTIONS.map((o) => o.id)).toEqual(['beginner', 'regular', 'advanced']);
     expect(EQUIPMENT_OPTIONS.map((o) => o.id)).toEqual(['hrWatch', 'phone', 'none']);
   });
@@ -168,7 +168,7 @@ describe('héros d’Aujourd’hui', () => {
   });
 
   it('carte de la séance : « quand c’est fait » et « Plus tard » pour « Je débute » (105)', () => {
-    expect(sessionCardLabels('beginner')).toEqual({ holdHint: 'Maintiens la carte quand c\u2019est fait', postponeLabel: 'Plus tard' });
+    expect(sessionCardLabels('beginner')).toEqual({ holdHint: 'Maintiens la carte quand c’est fait', postponeLabel: 'Plus tard' });
     expect(sessionCardLabels('regular')).toEqual({ holdHint: 'Maintiens la carte pour valider', postponeLabel: 'Reporter' });
     expect(sessionCardLabels('advanced')).toEqual(sessionCardLabels('regular'));
   });

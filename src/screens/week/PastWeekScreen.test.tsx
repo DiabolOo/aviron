@@ -59,7 +59,7 @@ describe('PastWeekScreen', () => {
     expect(screen.getByTestId('empty-noImport')).toBeTruthy();
   });
 
-  it('activité présente : pas d\u2019EmptyState', async () => {
+  it('activité présente : pas d’EmptyState', async () => {
     const date = addDaysISO(mockLastWeekStart(), 2);
     seedReady({
       activities: [{
