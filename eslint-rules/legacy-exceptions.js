@@ -62,9 +62,6 @@ const STEPS = {
     'components/profile/SettingRow.tsx': C,
   },
   'Étape 8 — Onboarding': {
-    'app/onboarding/index.tsx': C,
-    'components/onboarding/CalculatingStep.tsx': C,
-    'components/onboarding/StepProgress.tsx': C,
   },
   'Étape 9 — Scan': {
   },
