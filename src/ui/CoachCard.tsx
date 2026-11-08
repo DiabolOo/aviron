@@ -1,7 +1,8 @@
+import { Sparkles } from 'lucide-react-native';
 import { useState } from 'react';
 import { Pressable, View } from 'react-native';
 
-import { makeStyles } from '@/src/design';
+import { makeStyles, useTheme } from '@/src/design';
 import { Text } from '@/src/ui/Text';
 
 export type CoachSource = 'ai' | 'device' | 'profile';
@@ -62,6 +63,7 @@ const useStyles = makeStyles((t) => ({
     borderColor: t.colors.line,
   },
   chipOn: { backgroundColor: t.colors.coachSurface, borderColor: t.colors.coach },
+  label: { flexDirection: 'row', alignItems: 'center', gap: t.space.sm },
   noted: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: t.space.md },
   link: { minHeight: t.size.buttonCompact, justifyContent: 'center', alignSelf: 'flex-start' },
   underline: { textDecorationLine: 'underline' },
@@ -70,6 +72,7 @@ const useStyles = makeStyles((t) => ({
 /** La voix du coach : un constat, un conseil, une question. */
 export function CoachCard(props: CoachCardProps) {
   const styles = useStyles();
+  const { colors, size } = useTheme();
   const [changing, setChanging] = useState(false);
   const label = props.label ?? 'Ton coach';
   const sourceLabel = COACH_SOURCE_LABEL[props.source];
@@ -136,9 +139,12 @@ export function CoachCard(props: CoachCardProps) {
 
   return (
     <View style={styles.card} testID={`coach-card-${props.kind}`}>
-      <Text role="caption" weight="semibold" color="coach">
-        {label}
-      </Text>
+      <View style={styles.label}>
+        <Sparkles color={colors.coach} size={size.pillDot * 2} strokeWidth={size.iconStroke} />
+        <Text role="caption" weight="semibold" color="coach">
+          {label}
+        </Text>
+      </View>
       {content}
       {props.approxReason ? (
         <Text role="caption" color="inkSecondary">{`Environ : ${props.approxReason}`}</Text>

@@ -1,3 +1,4 @@
+import { Check, Sparkles } from 'lucide-react-native';
 import { useEffect } from 'react';
 import { Pressable, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
@@ -24,6 +25,12 @@ export type ProposalQuestion = {
 export type ProposalCardProps = {
   /** « Plan · semaine du 9 nov. » */
   context: string;
+  /** « Je propose », « À décider · 1 » : en tête, avec l'icône du coach ; le contexte passe à droite. */
+  eyebrow?: string;
+  /** Pastille à droite de l'en-tête (« En attente »), à la place du contexte. */
+  badge?: string;
+  /** Proposition appliquée : lien « Voir la semaine ». */
+  onOpenPlan?: () => void;
   title: string;
   rows: ProposalRow[];
   /** Une phrase, des faits vérifiables. */
@@ -45,6 +52,7 @@ export type ProposalCardProps = {
 
 export const PROPOSAL_SOURCE_LABEL = { ai: 'Rédigé par l’IA', device: 'Calculé sur ton téléphone' } as const;
 const CONFIDENCE_LABEL = { medium: 'Confiance moyenne', low: 'Confiance faible' } as const;
+export const APPLIED_FOOTNOTE = 'Annulable toute la journée depuis l’historique.';
 export const QUESTION_PENDING_REASON = 'Réponds d’abord à la question ci-dessus.';
 
 const useStyles = makeStyles((t) => ({
@@ -62,7 +70,22 @@ const useStyles = makeStyles((t) => ({
   dayCell: { padding: t.space.md, flexBasis: '28%' },
   cell: { flex: 1, padding: t.space.md, backgroundColor: t.colors.surfaceSunken },
   after: { flex: 1, padding: t.space.md, backgroundColor: t.colors.coachSurface },
-  head: { flexDirection: 'row' },
+  head: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: t.space.sm },
+  eyebrow: { flexDirection: 'row', alignItems: 'center', gap: t.space.sm, flexShrink: 1 },
+  badge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: t.space.xs,
+    minHeight: t.size.pill,
+    paddingHorizontal: t.space.md,
+    borderRadius: t.radius.pill,
+    backgroundColor: t.colors.surfaceSunken,
+  },
+  pair: { flexDirection: 'row', gap: t.space.sm },
+  pairStacked: { gap: t.space.sm },
+  pairBefore: { flex: 1, padding: t.space.md, gap: t.space.xs, borderRadius: t.radius.control, backgroundColor: t.colors.surfaceSunken },
+  pairAfter: { flex: 1, padding: t.space.md, gap: t.space.xs, borderRadius: t.radius.control, backgroundColor: t.colors.coachSurface },
+  strike: { textDecorationLine: 'line-through' },
   question: { gap: t.space.sm },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: t.space.sm },
   chip: {
@@ -80,8 +103,65 @@ const useStyles = makeStyles((t) => ({
   underline: { textDecorationLine: 'underline' },
 }));
 
+function Header({ left, icon, right, pill, check }: { left: string; icon: boolean; right?: string; pill?: boolean; check?: boolean }) {
+  const styles = useStyles();
+  const { colors, size } = useTheme();
+  return (
+    <View style={styles.head}>
+      <View style={styles.eyebrow}>
+        {icon ? <Sparkles color={colors.coach} size={size.pillDot * 2} strokeWidth={size.iconStroke} /> : null}
+        <Text role="caption" weight="semibold" color="coach">
+          {left}
+        </Text>
+      </View>
+      {right && pill ? (
+        <View style={styles.badge}>
+          {check ? <Check color={colors.ink} size={size.pillDot * 2} strokeWidth={size.iconStrokeStrong} /> : null}
+          <Text role="caption" weight="semibold" color="inkSecondary">
+            {right}
+          </Text>
+        </View>
+      ) : right ? (
+        <Text role="caption" color="inkTertiary">
+          {right}
+        </Text>
+      ) : null}
+    </View>
+  );
+}
+
+/** Une seule ligne : deux blocs côte à côte, l'avant barré. */
+function Pair({ row, stacked }: { row: ProposalRow; stacked: boolean }) {
+  const styles = useStyles();
+  const before = row.before ?? 'Rien de prévu';
+  return (
+    <View
+      style={stacked ? styles.pairStacked : styles.pair}
+      accessible
+      accessibilityLabel={`Avant, ${before} ; après, ${row.after}`}>
+      <View style={styles.pairBefore}>
+        <Text role="sub" color="inkSecondary">
+          Avant
+        </Text>
+        <Text role="sub" color="inkSecondary" style={row.before ? styles.strike : undefined}>
+          {before}
+        </Text>
+      </View>
+      <View style={styles.pairAfter}>
+        <Text role="sub" color="coach">
+          Après
+        </Text>
+        <Text role="sub" weight="semibold">
+          {row.after}
+        </Text>
+      </View>
+    </View>
+  );
+}
+
 function Table({ rows, stacked }: { rows: ProposalRow[]; stacked: boolean }) {
   const styles = useStyles();
+  if (rows.length === 1) return <Pair row={rows[0]} stacked={stacked} />;
   if (stacked) {
     return (
       <View style={styles.table}>
@@ -158,9 +238,22 @@ export function ProposalCard(props: ProposalCardProps) {
   if (status === 'applied') {
     return (
       <Animated.View style={[styles.card, revealStyle]} testID="proposal-applied" accessibilityLiveRegion="polite">
-        <Text role="body" weight="semibold">{`Appliqué : ${title}`}</Text>
+        <Header left={props.eyebrow ?? context} icon={Boolean(props.eyebrow)} right="Appliqué" pill check />
+        <Text role="verdict" weight="bold">
+          {title}
+        </Text>
+        <Text role="body" color="inkSecondary">
+          {rationale}
+        </Text>
+        {props.onOpenPlan ? (
+          <Pressable accessibilityRole="button" onPress={props.onOpenPlan} style={styles.link}>
+            <Text role="body" weight="semibold" style={styles.underline}>
+              Voir la semaine
+            </Text>
+          </Pressable>
+        ) : null}
         <Text role="caption" color="inkTertiary">
-          {context}
+          {APPLIED_FOOTNOTE}
         </Text>
       </Animated.View>
     );
@@ -175,9 +268,13 @@ export function ProposalCard(props: ProposalCardProps) {
 
   return (
     <View style={styles.card} testID={compact ? 'proposal-compact' : 'proposal-pending'}>
-      <Text role="caption" weight="semibold" color="coach">
-        {context}
-      </Text>
+      {props.eyebrow ? (
+        <Header left={props.eyebrow} icon right={props.badge ?? context} pill={Boolean(props.badge)} />
+      ) : (
+        <Text role="caption" weight="semibold" color="coach">
+          {context}
+        </Text>
+      )}
       <Text role="verdict" weight="bold">
         {title}
       </Text>

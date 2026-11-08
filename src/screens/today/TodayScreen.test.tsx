@@ -19,7 +19,7 @@ jest.mock('expo-haptics', () => ({
   ImpactFeedbackStyle: { Light: 'light' },
   NotificationFeedbackType: { Success: 'success' },
 }));
-jest.mock('lucide-react-native', () => ({ Check: () => null }));
+jest.mock('lucide-react-native', () => ({ Check: () => null, Sparkles: () => null }));
 jest.mock('expo-linear-gradient', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { View: RNView } = require('react-native');

@@ -30,25 +30,46 @@ const useStyles = makeStyles((t) => ({
     backgroundColor: t.colors.coachSurface,
   },
   chipLabel: { flexShrink: 1 },
-  chipClear: { width: t.size.touchMin, minHeight: t.size.buttonCompact, alignItems: 'center', justifyContent: 'center' },
-  bar: {
-    flexDirection: 'row',
+  chipClear: {
+    width: t.size.touchMin,
+    minHeight: t.size.buttonCompact,
     alignItems: 'center',
-    gap: t.space.sm,
+    justifyContent: 'center',
+  },
+  row: { flexDirection: 'row', alignItems: 'center', gap: t.space.md },
+  field: {
+    flex: 1,
     minHeight: t.size.button,
-    paddingLeft: t.space.lg,
-    paddingRight: t.space.sm,
-    borderRadius: t.radius.pill,
+    justifyContent: 'center',
+    paddingHorizontal: t.space.lg,
+    borderRadius: t.radius.control,
     backgroundColor: t.colors.surface,
     borderWidth: t.size.hairline,
     borderColor: t.colors.line,
   },
-  input: { ...textStyle('body', 'regular'), flex: 1, minHeight: t.size.touchMin, color: t.colors.ink, paddingVertical: 0 },
-  send: { width: t.size.touchMin, height: t.size.touchMin, borderRadius: t.radius.pill, alignItems: 'center', justifyContent: 'center' },
+  input: {
+    ...textStyle('body', 'regular'),
+    minHeight: t.size.touchMin,
+    color: t.colors.ink,
+    paddingVertical: 0,
+  },
+  send: {
+    width: t.size.button,
+    height: t.size.button,
+    borderRadius: t.radius.control,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 }));
 
 /** La seule saisie libre vers le coach. */
-export function Composer({ onSubmit, busy = false, placeholder = 'Que veux-tu faire ?', prefill, context }: ComposerProps) {
+export function Composer({
+  onSubmit,
+  busy = false,
+  placeholder = 'Demande à ton coach…',
+  prefill,
+  context,
+}: ComposerProps) {
   const styles = useStyles();
   const { colors, size, opacity } = useTheme();
   const [text, setText] = useState(prefill?.text ?? '');
@@ -78,23 +99,30 @@ export function Composer({ onSubmit, busy = false, placeholder = 'Que veux-tu fa
           <Text role="sub" weight="semibold" numberOfLines={1} style={styles.chipLabel}>
             {context.label}
           </Text>
-          <Pressable accessibilityRole="button" accessibilityLabel="Retirer le contexte" onPress={context.onClear} style={styles.chipClear}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Retirer le contexte"
+            onPress={context.onClear}
+            style={styles.chipClear}
+          >
             <X color={colors.ink} size={size.icon} strokeWidth={size.iconStroke} />
           </Pressable>
         </View>
       ) : null}
-      <View style={styles.bar}>
-        <TextInput
-          ref={input}
-          value={text}
-          onChangeText={setText}
-          onSubmitEditing={submit}
-          placeholder={placeholder}
-          placeholderTextColor={colors.inkTertiary}
-          returnKeyType="send"
-          accessibilityLabel="Message pour le coach"
-          style={styles.input}
-        />
+      <View style={styles.row}>
+        <View style={styles.field}>
+          <TextInput
+            ref={input}
+            value={text}
+            onChangeText={setText}
+            onSubmitEditing={submit}
+            placeholder={placeholder}
+            placeholderTextColor={colors.inkTertiary}
+            returnKeyType="send"
+            accessibilityLabel="Message pour le coach"
+            style={styles.input}
+          />
+        </View>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Envoyer"
@@ -103,10 +131,15 @@ export function Composer({ onSubmit, busy = false, placeholder = 'Que veux-tu fa
           onPress={submit}
           style={({ pressed }) => [
             styles.send,
-            { backgroundColor: canSend ? colors.buttonPrimary : colors.surfaceSunken },
+            { backgroundColor: canSend ? colors.coach : colors.coachSurface },
             pressed && { opacity: opacity.pressed },
-          ]}>
-          <ArrowUp color={canSend ? colors.onButtonPrimary : colors.inkTertiary} size={size.icon} strokeWidth={size.iconStrokeStrong} />
+          ]}
+        >
+          <ArrowUp
+            color={canSend ? colors.onCoach : colors.coach}
+            size={size.icon}
+            strokeWidth={size.iconStrokeStrong}
+          />
         </Pressable>
       </View>
     </View>

@@ -15,7 +15,7 @@ import { useConversation } from './conversationStore';
 import { ProposalUndoToast } from './ProposalUndoToast';
 
 jest.mock('expo-router', () => ({ router: { push: jest.fn(), navigate: jest.fn() } }));
-jest.mock('lucide-react-native', () => ({ ArrowUp: () => null, X: () => null, Check: () => null }));
+jest.mock('lucide-react-native', () => ({ ArrowUp: () => null, X: () => null, Check: () => null, Sparkles: () => null }));
 jest.mock('@react-native-async-storage/async-storage', () =>
   jest.requireActual('@react-native-async-storage/async-storage/jest/async-storage-mock'),
 );
@@ -214,7 +214,7 @@ describe('proposition', () => {
       });
       expect(screen.queryByTestId('undo-toast')).toBeNull();
 
-      await fireEvent.press(screen.getByText(/Historique · 1 proposition/));
+      await fireEvent.press(screen.getByText('Historique'));
       const undo = screen.getByLabelText(/^Annuler Reporter/);
       await act(async () => {
         await fireEvent.press(undo);

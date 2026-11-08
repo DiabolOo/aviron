@@ -4,9 +4,9 @@ import { makeStyles } from '@/src/design';
 import { Text } from '@/src/ui/Text';
 
 const useStyles = makeStyles((t) => ({
+  wrap: { alignSelf: 'flex-end', maxWidth: '85%', gap: t.space.xs },
+  stamp: { alignSelf: 'flex-end' },
   bubble: {
-    alignSelf: 'flex-end',
-    maxWidth: '85%',
     paddingHorizontal: t.space.lg,
     paddingVertical: t.space.md,
     borderRadius: t.radius.card,
@@ -15,11 +15,16 @@ const useStyles = makeStyles((t) => ({
 }));
 
 /** Ce que l'utilisateur a demandé au coach. */
-export function UserBubble({ text }: { text: string }) {
+export function UserBubble({ text, stamp }: { text: string; stamp?: string }) {
   const styles = useStyles();
   return (
-    <View style={styles.bubble} accessible accessibilityLabel={`Toi : ${text}`} testID="user-bubble">
-      <Text role="body">{text}</Text>
+    <View style={styles.wrap} accessible accessibilityLabel={`Toi${stamp ? `, ${stamp}` : ''} : ${text}`} testID="user-bubble">
+      <View style={styles.bubble}>
+        <Text role="body">{text}</Text>
+      </View>
+      {stamp ? (
+        <Text role="caption" color="inkTertiary" style={styles.stamp}>{`Toi · ${stamp}`}</Text>
+      ) : null}
     </View>
   );
 }

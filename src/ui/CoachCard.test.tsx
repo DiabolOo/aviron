@@ -3,6 +3,8 @@ import { useState } from 'react';
 
 import { COACH_SOURCE_LABEL, CoachCard, type CoachSource } from '@/src/ui/CoachCard';
 
+jest.mock('lucide-react-native', () => ({ Check: () => null, Sparkles: () => null }));
+
 const CHOICES = [
   { id: 'easy', label: 'Facile' },
   { id: 'hard', label: 'Dur' },

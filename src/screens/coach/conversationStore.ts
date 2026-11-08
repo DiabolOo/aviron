@@ -5,7 +5,7 @@ import type { AdjustQuestion } from '@/src/screens/coach/coachEngine';
 export type TurnSource = 'device' | 'ai';
 
 export type Turn =
-  | { id: string; kind: 'user'; text: string }
+  | { id: string; kind: 'user'; text: string; at: number }
   | { id: string; kind: 'coach'; text: string; detail?: string; source: TurnSource }
   | { id: string; kind: 'proposal'; proposalId: string; source: TurnSource; question?: AdjustQuestion };
 

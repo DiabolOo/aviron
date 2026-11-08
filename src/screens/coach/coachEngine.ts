@@ -3,7 +3,7 @@
  * lecture d'une demande de modification, passage d'une proposition aux props de ProposalCard.
  * Fonctions pures, sans React ni réseau. À rapprocher de `src/core/` (étape ultérieure).
  */
-import { addDaysISO, formatFullDay, parseISODate } from '@/src/core/dates';
+import { addDaysISO, formatFullDay, parseISODate, toISODate } from '@/src/core/dates';
 import { parseProposalPayload } from '@/src/core/proposalActions';
 import type { Proposal } from '@/src/core/schemas';
 import type { WorkoutSession } from '@/src/core/types';
@@ -163,16 +163,16 @@ export function cardModel(proposal: Proposal, ctx: PlanContext, answer?: string)
       const target = answer ?? parsed.payload.toDate;
       const others = ctx.sessions.filter((s) => s.id !== session.id && s.date === target && isOpen(s)).map((s) => s.title);
       const rows: ProposalRow[] = [
-        { day: formatFullDay(session.date), before: session.title, after: 'Rien de prévu' },
+        { day: formatShortDay(session.date), before: session.title, after: 'Rien de prévu' },
         {
-          day: formatFullDay(target),
+          day: formatShortDay(target),
           before: others.length ? others.join(' + ') : undefined,
           after: [...others, session.title].join(' + '),
         },
       ];
       return {
         ...base,
-        context: `Plan · ${formatFullDay(session.date)}`,
+        context: `Plan · ${formatLongDay(session.date)}`,
         rows,
         verified: isFree(target, session, ctx),
       };
@@ -192,4 +192,27 @@ export function cardModel(proposal: Proposal, ctx: PlanContext, answer?: string)
     context: 'Plan',
     rows: proposal.preview ? [{ day: 'Plan', before: proposal.preview.before, after: proposal.preview.after }] : [],
   };
+}
+
+const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
+/** « samedi 7 nov. » */
+export const formatLongDay = (iso: string): string =>
+  parseISODate(iso).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'short' });
+
+/** « Mar 3 » */
+export const formatShortDay = (iso: string): string =>
+  cap(parseISODate(iso).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric' }).replace('.', ''));
+
+/** « 08:12 » */
+export const formatClock = (at: Date): string =>
+  `${String(at.getHours()).padStart(2, '0')}:${String(at.getMinutes()).padStart(2, '0')}`;
+
+/** « 08:12 », « hier, 21:14 », « lundi 08:12 » : l'heure d'un message. */
+export function formatStamp(at: Date, now: Date = new Date()): string {
+  const day = toISODate(at);
+  const today = toISODate(now);
+  if (day === today) return formatClock(at);
+  if (day === addDaysISO(today, -1)) return `hier, ${formatClock(at)}`;
+  return `${at.toLocaleDateString('fr-FR', { weekday: 'long' })} ${formatClock(at)}`;
 }

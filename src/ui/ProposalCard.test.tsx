@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { ProposalCard, QUESTION_PENDING_REASON, type ProposalCardProps } from '@/src/ui/ProposalCard';
 import { withPreview } from '@/src/ui/v3-test-utils';
 
+jest.mock('lucide-react-native', () => ({ Check: () => null, Sparkles: () => null }));
+
 const base = (over: Partial<ProposalCardProps> = {}): ProposalCardProps => ({
   context: 'Plan · semaine du 9 nov.',
   title: 'Alléger la fin de semaine',
@@ -89,7 +91,9 @@ describe('ProposalCard', () => {
 
   it('appliquée : repliée en une ligne', async () => {
     await render(<ProposalCard {...base({ status: 'applied' })} />);
-    expect(screen.getByText('Appliqué : Alléger la fin de semaine')).toBeTruthy();
+    expect(screen.getByText('Alléger la fin de semaine')).toBeTruthy();
+    expect(screen.getByText('Appliqué')).toBeTruthy();
+    expect(screen.getByText('Annulable toute la journée depuis l’historique.')).toBeTruthy();
     expect(screen.queryByText('Valider')).toBeNull();
   });
 
@@ -98,5 +102,17 @@ describe('ProposalCard', () => {
     expect(screen.getByTestId('proposal-compact')).toBeTruthy();
     expect(screen.queryByText('Sortie longue 16 km')).toBeNull();
     expect(screen.getByTestId('proposal-footnote').props.children).toBe('Rédigé par l’IA');
+  });
+
+  it('en-tête « Je propose » avec pastille, contexte seul sinon', async () => {
+    await render(<ProposalCard {...base({ eyebrow: 'Je propose', badge: 'En attente' })} />);
+    expect(screen.getByText('Je propose')).toBeTruthy();
+    expect(screen.getByText('En attente')).toBeTruthy();
+  });
+
+  it('une seule ligne : avant / après côte à côte, sans jour', async () => {
+    await render(<ProposalCard {...base({ rows: [{ day: 'Sam. 14', before: '16 km', after: '12 km' }] })} />);
+    expect(screen.getByLabelText('Avant, 16 km ; après, 12 km')).toBeTruthy();
+    expect(screen.queryByText('Sam. 14')).toBeNull();
   });
 });

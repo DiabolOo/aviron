@@ -12,7 +12,7 @@ export function ProposalUndoToast() {
   return (
     <UndoToast
       visible={lastResolved !== null}
-      message={lastResolved ? `Appliqué : ${lastResolved.label}` : ''}
+      message="Plan modifié"
       onUndo={() => lastResolved && void undo(lastResolved.id)}
       onDismiss={dismiss}
       bottomInset={inset}

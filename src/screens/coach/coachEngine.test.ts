@@ -4,6 +4,8 @@ import type { WorkoutSession } from '@/src/core/types';
 import {
   cardModel,
   dayFromText,
+  formatShortDay,
+  formatStamp,
   freeDays,
   isSimpleIntent,
   isSportProposal,
@@ -154,5 +156,17 @@ describe('cardModel', () => {
       preview: { after: '1h45 · 3 séances / sem.' },
     };
     expect(cardModel(program, ctx()).rows).toEqual([{ day: 'Programme', after: '1h45 · 3 séances / sem.' }]);
+  });
+});
+
+describe('formats de la conversation', () => {
+  const now = new Date(2026, 10, 9, 12, 0);
+  it('heure d’un message', () => {
+    expect(formatStamp(new Date(2026, 10, 9, 8, 12), now)).toBe('08:12');
+    expect(formatStamp(new Date(2026, 10, 8, 21, 14), now)).toBe('hier, 21:14');
+    expect(formatStamp(new Date(2026, 10, 5, 8, 12), now)).toBe('jeudi 08:12');
+  });
+  it('jour court du tableau', () => {
+    expect(formatShortDay('2026-11-10')).toBe('Mar 10');
   });
 });

@@ -14,6 +14,8 @@ import { getEnabledModules } from '@/src/modules/registry';
 import { useIsModuleEnabled } from '@/src/modules/useModules';
 import {
   cardModel,
+  formatClock,
+  formatStamp,
   isSimpleIntent,
   isSportProposal,
   resolveAdjustment,
@@ -38,19 +40,40 @@ const engine = new MockAgent();
 
 const EDIT_PROMPT = 'Dis-moi ce que tu veux changer, par exemple « plutôt jeudi ».';
 const APPLY_FAILED = 'Pas appliqué : ton plan a changé entre-temps. Réessaie, ou demande-moi autre chose.';
+const WHY = 'Pourquoi cette proposition ?';
 const REQUEST_FAILED = 'Je n’ai pas pu traiter ta demande. Réessaie dans un instant.';
 
-const STATUS_LABEL = { accepted: 'Validée', edited: 'Modifiée', rejected: 'Laissée de côté', undone: 'Annulée' } as const;
+const STATUS_LABEL = {
+  accepted: 'Validée',
+  edited: 'Modifiée',
+  rejected: 'Laissée de côté',
+  undone: 'Annulée',
+} as const;
 
 const useStyles = makeStyles((t) => ({
   root: { flex: 1, backgroundColor: t.colors.bg },
   scroll: { flex: 1 },
-  content: { paddingHorizontal: t.space.screen, paddingTop: t.space.xl, gap: t.space.xl },
+  content: {
+    paddingHorizontal: t.space.screen,
+    paddingTop: t.space.xl,
+    gap: t.space.xl,
+  },
   section: { gap: t.space.md },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: t.space.sm },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+    gap: t.space.md,
+  },
+  headerText: { flexShrink: 1, gap: t.space.xs },
+  chips: {
+    flexDirection: 'row',
+    gap: t.space.sm,
+    paddingHorizontal: t.space.screen,
+  },
+  chipsRow: { flexGrow: 0, paddingTop: t.space.sm },
   note: { paddingHorizontal: t.space.xs },
   composer: { paddingHorizontal: t.space.screen, paddingTop: t.space.sm },
-  historyToggle: { minHeight: t.size.touchMin, flexDirection: 'row', alignItems: 'center', gap: t.space.sm },
   historyRow: {
     minHeight: t.size.touchMin,
     flexDirection: 'row',
@@ -61,11 +84,19 @@ const useStyles = makeStyles((t) => ({
     borderTopColor: t.colors.line,
   },
   historyText: { flex: 1 },
-  link: { minHeight: t.size.touchMin, justifyContent: 'center', paddingHorizontal: t.space.sm },
+  link: {
+    minHeight: t.size.touchMin,
+    justifyContent: 'center',
+    paddingHorizontal: t.space.sm,
+  },
   underline: { textDecorationLine: 'underline' },
 }));
 
-type Item = { proposal: Proposal; source: TurnSource; question?: AdjustQuestion };
+type Item = {
+  proposal: Proposal;
+  source: TurnSource;
+  question?: AdjustQuestion;
+};
 
 export function CoachScreen() {
   const styles = useStyles();
@@ -148,7 +179,7 @@ export function CoachScreen() {
     async (text: string) => {
       setBusy(true);
       const target = editing;
-      push({ kind: 'user', text });
+      push({ kind: 'user', text, at: Date.now() });
       draft.clearContext();
       setEditing(null);
       try {
@@ -157,7 +188,12 @@ export function CoachScreen() {
           text,
           editing: target ?? undefined,
           consent: main.aiConsent,
-          ctx: { sessions: main.sessions, profile: main.profile, today: toISODate(new Date()), mealPlanSeed: main.mealPlanSeed },
+          ctx: {
+            sessions: main.sessions,
+            profile: main.profile,
+            today: toISODate(new Date()),
+            mealPlanSeed: main.mealPlanSeed,
+          },
           agent,
           engine,
         });
@@ -180,10 +216,16 @@ export function CoachScreen() {
       const { proposal, question } = item;
       const answer = useConversation.getState().answers[proposal.id];
       if (question && !answer) return;
+      const picked = question?.choices.find((c) => c.id === answer);
+      if (picked) push({ kind: 'user', text: picked.label, at: Date.now() });
       setApplying((ids) => [...ids, proposal.id]);
       try {
         const store = useProposalStore.getState();
-        if (question) await store.edit(proposal.id, { ...proposal.payload, toDate: answer });
+        if (question)
+          await store.edit(proposal.id, {
+            ...proposal.payload,
+            toDate: answer,
+          });
         else await store.accept(proposal.id);
         const after = useProposalStore.getState().proposals.find((p) => p.id === proposal.id);
         if (after?.status === 'pending') push({ kind: 'coach', text: APPLY_FAILED, source: 'device' });
@@ -203,12 +245,36 @@ export function CoachScreen() {
     [draft, push],
   );
 
+  const pendingItem = useMemo(() => {
+    const turn = [...turns]
+      .reverse()
+      .find((t) => t.kind === 'proposal' && byId.get(t.proposalId)?.status === 'pending');
+    if (turn?.kind === 'proposal')
+      return {
+        proposal: byId.get(turn.proposalId) as Proposal,
+        source: turn.source,
+      };
+    return orphans[0];
+  }, [turns, byId, orphans]);
+
+  const explain = useCallback(() => {
+    if (!pendingItem) return;
+    push(
+      { kind: 'user', text: WHY, at: Date.now() },
+      {
+        kind: 'coach',
+        text: pendingItem.proposal.rationale,
+        source: pendingItem.source,
+      },
+    );
+  }, [pendingItem, push]);
+
   const clearContext = useCallback(() => {
     draft.clearContext();
     setEditing(null);
   }, [draft]);
 
-  const renderProposal = (item: Item) => {
+  const renderProposal = (item: Item, eyebrow?: string) => {
     const { proposal, source, question } = item;
     const status = proposal.status;
     if (status === 'rejected' || status === 'undone') {
@@ -225,6 +291,13 @@ export function CoachScreen() {
       <ProposalCard
         key={proposal.id}
         {...model}
+        eyebrow={
+          isApplied
+            ? `Ton coach · ${formatClock(new Date(proposal.resolvedAt ?? proposal.createdAt))}`
+            : (eyebrow ?? 'Je propose')
+        }
+        badge={eyebrow ? undefined : 'En attente'}
+        onOpenPlan={() => router.navigate('/semaine')}
         source={source}
         status={isApplied ? 'applied' : applying.includes(proposal.id) ? 'applying' : 'pending'}
         question={
@@ -245,17 +318,47 @@ export function CoachScreen() {
   };
 
   const renderTurn = (turn: Turn) => {
-    if (turn.kind === 'user') return <UserBubble key={turn.id} text={turn.text} />;
+    if (turn.kind === 'user')
+      return <UserBubble key={turn.id} text={turn.text} stamp={formatStamp(new Date(turn.at))} />;
     if (turn.kind === 'coach') {
       return <CoachCard key={turn.id} kind="insight" verdict={turn.text} body={turn.detail} source={turn.source} />;
     }
     const proposal = byId.get(turn.proposalId);
     return proposal ? (
-      <View key={turn.id}>{renderProposal({ proposal, source: turn.source, question: turn.question })}</View>
+      <View key={turn.id}>
+        {renderProposal({
+          proposal,
+          source: turn.source,
+          question: turn.question,
+        })}
+      </View>
     ) : null;
   };
 
-  const header = <Text role="title">Coach</Text>;
+  const header = (
+    <View style={styles.headerRow}>
+      <View style={styles.headerText}>
+        <Text role="title">Coach</Text>
+        {turns.length === 0 ? (
+          <Text role="body" color="inkSecondary">
+            Tu demandes, il prépare, tu valides.
+          </Text>
+        ) : null}
+      </View>
+      {history.length > 0 ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityState={{ expanded: historyOpen }}
+          onPress={() => setHistoryOpen((v) => !v)}
+          style={styles.link}
+        >
+          <Text role="body" weight="semibold" style={styles.underline}>
+            Historique
+          </Text>
+        </Pressable>
+      ) : null}
+    </View>
+  );
 
   if (showSkeleton) {
     return (
@@ -281,7 +384,8 @@ export function CoachScreen() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
         onContentSizeChange={() => !empty && scroll.current?.scrollToEnd({ animated: true })}
-        testID="coach-scroll">
+        testID="coach-scroll"
+      >
         {header}
 
         {loadFailed ? (
@@ -302,69 +406,62 @@ export function CoachScreen() {
           />
         ) : null}
 
-        {orphans.length > 0 ? (
-          <View style={styles.section} testID="coach-pending">
-            <Text role="verdict" weight="bold">
-              À décider
+        {historyOpen && history.length > 0 ? (
+          <View style={styles.section} testID="coach-history">
+            <Text role="sub" color="inkSecondary">
+              {`${history.length} ${history.length > 1 ? 'propositions' : 'proposition'}`}
             </Text>
-            {orphans.map(renderProposal)}
+            {history.map((p) => (
+              <View key={p.id} style={styles.historyRow}>
+                <View style={styles.historyText}>
+                  <Text role="sub" weight="semibold">
+                    {p.title}
+                  </Text>
+                  <Text role="caption" color="inkTertiary">
+                    {STATUS_LABEL[p.status as keyof typeof STATUS_LABEL]}
+                  </Text>
+                </View>
+                {canUndoProposal(p) ? (
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={`Annuler ${p.title}`}
+                    onPress={() => void useProposalStore.getState().undo(p.id)}
+                    style={styles.link}
+                  >
+                    <Text role="sub" weight="semibold" style={styles.underline}>
+                      Annuler
+                    </Text>
+                  </Pressable>
+                ) : null}
+              </View>
+            ))}
           </View>
         ) : null}
 
-        {empty && suggestions.length > 0 ? (
-          <View style={styles.section} testID="coach-suggestions">
-            <Text role="sub" weight="semibold" color="inkSecondary">
-              Tu peux lui demander
-            </Text>
-            <View style={styles.chips}>
-              {suggestions.map((example) => (
-                <Chip key={example} label={example} disabled={busy} onPress={() => draft.set(example, draft.context)} />
-              ))}
-            </View>
+        {orphans.length > 0 ? (
+          <View style={styles.section} testID="coach-pending">
+            {orphans.map((item) => renderProposal(item, `À décider · ${orphans.length}`))}
           </View>
         ) : null}
 
         {turns.map(renderTurn)}
-
-        {history.length > 0 ? (
-          <View style={styles.section}>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityState={{ expanded: historyOpen }}
-              onPress={() => setHistoryOpen((v) => !v)}
-              style={styles.historyToggle}>
-              <Text role="sub" weight="semibold" color="inkSecondary">
-                {`Historique · ${history.length} ${history.length > 1 ? 'propositions' : 'proposition'}`}
-              </Text>
-            </Pressable>
-            {historyOpen
-              ? history.map((p) => (
-                  <View key={p.id} style={styles.historyRow}>
-                    <View style={styles.historyText}>
-                      <Text role="sub" weight="semibold">
-                        {p.title}
-                      </Text>
-                      <Text role="caption" color="inkTertiary">
-                        {STATUS_LABEL[p.status as keyof typeof STATUS_LABEL]}
-                      </Text>
-                    </View>
-                    {canUndoProposal(p) ? (
-                      <Pressable
-                        accessibilityRole="button"
-                        accessibilityLabel={`Annuler ${p.title}`}
-                        onPress={() => void useProposalStore.getState().undo(p.id)}
-                        style={styles.link}>
-                        <Text role="sub" weight="semibold" style={styles.underline}>
-                          Annuler
-                        </Text>
-                      </Pressable>
-                    ) : null}
-                  </View>
-                ))
-              : null}
-          </View>
-        ) : null}
       </ScrollView>
+
+      {suggestions.length > 0 || pendingItem ? (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          style={styles.chipsRow}
+          contentContainerStyle={styles.chips}
+          testID="coach-suggestions"
+        >
+          {pendingItem ? <Chip label={WHY} disabled={busy} onPress={explain} /> : null}
+          {suggestions.map((example) => (
+            <Chip key={example} label={example} disabled={busy} onPress={() => draft.set(example, draft.context)} />
+          ))}
+        </ScrollView>
+      ) : null}
 
       <View style={[styles.composer, { paddingBottom: tabBarInset + space.sm }]}>
         <Composer
