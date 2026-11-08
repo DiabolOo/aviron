@@ -3,7 +3,7 @@ import { View } from 'react-native';
 
 import { TabBar } from '@/components/ui/TabBar';
 import { makeStyles } from '@/src/design';
-import { UndoToast } from '@/src/ui/proposals/UndoToast';
+import { ProposalUndoToast } from '@/src/screens/coach/ProposalUndoToast';
 
 const useStyles = makeStyles(() => ({ root: { flex: 1 } }));
 
@@ -17,7 +17,7 @@ export default function TabLayout() {
         <Tabs.Screen name="coach" options={{ title: 'Coach' }} />
         <Tabs.Screen name="progres" options={{ title: 'Progrès' }} />
       </Tabs>
-      <UndoToast />
+      <ProposalUndoToast />
     </View>
   );
 }

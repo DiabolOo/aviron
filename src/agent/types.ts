@@ -16,6 +16,8 @@ export type IntentResult = {
 export type IntentContext = ProposalContext & { mealPlanSeed?: number };
 
 export interface IAgent {
+  /** Vrai seulement si les textes sont rédigés par un modèle : seul cas où « Rédigé par l'IA » est vrai. */
+  readonly isModel?: boolean;
   interpretIntent(text: string, context: IntentContext): Promise<IntentResult>;
   analyzePlate(photoUri: string): Promise<Meal>;
   getPendingProposals(context: ProposalContext): Promise<Proposal[]>;

@@ -25,7 +25,7 @@ type Common = {
 
 export type CoachCardProps = Common &
   (
-    | { /** Constat : verdict + explication. */ kind: 'insight'; verdict: string; body: string }
+    | { /** Constat : verdict + explication (facultative : une réponse courte tient dans le verdict). */ kind: 'insight'; verdict: string; body?: string }
     | {
         /** Conseil : verdict + explication + action facultative. */
         kind: 'advice';
@@ -118,9 +118,11 @@ export function CoachCard(props: CoachCardProps) {
         <Text role="verdict" weight="bold">
           {props.verdict}
         </Text>
-        <Text role="body" color="inkSecondary">
-          {props.body}
-        </Text>
+        {props.body ? (
+          <Text role="body" color="inkSecondary">
+            {props.body}
+          </Text>
+        ) : null}
         {props.kind === 'advice' && props.action ? (
           <Pressable accessibilityRole="button" onPress={props.action.onPress} style={styles.link}>
             <Text role="body" weight="semibold" style={styles.underline}>

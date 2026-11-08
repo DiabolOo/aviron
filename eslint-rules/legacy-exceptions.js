@@ -30,13 +30,6 @@ const STEPS = {
     'components/sport/WorkoutCard.tsx': C,
     'src/modules/sport/SportPlan.tsx': C,
   },
-  'Étape 3 — Agent': {
-    'app/(tabs)/coach.tsx': C,
-    'src/ui/CommandBar.tsx': CL,
-    'src/ui/proposals/ProposalCard.tsx': C,
-    'src/ui/proposals/ProposalEditSheet.tsx': C,
-    'src/ui/proposals/UndoToast.tsx': C,
-  },
   'Étape 4 — Suivi et détail d’activité': {
     'components/sport/ActivityDetail.tsx': C,
     'components/sport/ActivityHistory.tsx': C,
@@ -90,13 +83,11 @@ const STEPS = {
     'components/ui/Label.tsx': C,
     'components/ui/PrimaryButton.tsx': C,
     'components/ui/Screen.tsx': CL,
-    'components/ui/ScreenTitle.tsx': C,
     'components/ui/Segmented.tsx': C,
     'components/ui/Stepper.tsx': C,
     'components/ui/Text.tsx': C,
     'constants/theme.ts': L,
     'src/ui/motion/FadeSlide.tsx': C,
-    'src/ui/motion/Rise.tsx': C,
     'src/ui/theme/tokens.ts': L,
   },
 };

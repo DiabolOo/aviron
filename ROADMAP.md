@@ -584,6 +584,8 @@ Aux niveaux 0 et 1, **aucune donnée d'activité ne quitte le téléphone**. Le 
 | 2026-11-04 | Refonte v3.1, étape 4 — `groupSessions` et source des activités (ADR-013) : `ActivitySchema.source` requis (enum 8 valeurs), `aiEligible` requis, `device` optionnel ; `dedupeActivities` (priorité par source, départage par données) ; `aiEligibleView` ; `sourceFromHealthKit` (liste blanche bundle ids) ; `groupSessions` (règle v1 : même sport, ≤ 15 min, même jour, ≤ 4 h, chaîné, overrides split/merge/role, neverGroup) ; `resolveSession` ; `scripts/check-sessions.ts` ; ADR-013 amendée (liste blanche HealthKit, priorités, copie Strava) ; SPEC-v3 complétée (overrides, identifiant stable) |
 
 ## ▶️ Prochaine étape
+| 2026-11-08 | Refonte v3.1, étape 5 — écran Coach : `src/screens/coach/` (conversation, `coachEngine`, `coachFlow`, bandeau Annuler), `Composer`, `UserBubble`, `Chip` ; accord IA `aiConsent` (faux par défaut) ; repli moteur annoncé ; question obligatoire et jours indisponibles ; CommandBar, `proposals/*`, Rise, ScreenTitle retirés (−5 exceptions ESLint) ; tests 760 → 796 |
+
 **Refonte v3.1, étape 5 : écrans** (`Aujourd'hui`, `Semaine`, détail d'activité, `Coach`, `Progrès`, `Profil`, onboarding) sur la branche `refonte`.
 
 En parallèle (hors code) : faire valider juridiquement la lecture des conditions Strava (ADR-013) avant M6 ; maquetter Progrès, Profil et onboarding.

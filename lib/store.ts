@@ -53,6 +53,9 @@ type PulseFitState = {
   raceNames: Record<string, string>;
   confirmRace: (activityId: string, name?: string) => void;
   rejectRace: (activityId: string) => void;
+  /** Accord explicite pour le coach IA (niveau 2). Faux tant que l'utilisateur ne l'a pas donné. */
+  aiConsent: boolean;
+  setAiConsent: (consent: boolean) => void;
   groupOverrides: GroupOverride[];
   addGroupOverride: (override: GroupOverride) => void;
   removeGroupOverride: (override: GroupOverride) => void;
@@ -101,6 +104,7 @@ type PersistedState = Pick<
   | 'raceNames'
   | 'rejectedRaceIds'
   | 'groupOverrides'
+  | 'aiConsent'
 >;
 
 type LegacyPersistedState = Partial<PersistedState> & {
@@ -236,6 +240,8 @@ export const usePulseFitStore = create<PulseFitState>()(
         confirmedRaceIds: [],
         rejectedRaceIds: [],
         raceNames: {},
+        aiConsent: false,
+        setAiConsent: (aiConsent) => set({ aiConsent }),
         groupOverrides: [],
         addGroupOverride: (override) => {
           const current = get().groupOverrides;
@@ -381,6 +387,7 @@ export const usePulseFitStore = create<PulseFitState>()(
         rejectedRaceIds: state.rejectedRaceIds,
         raceNames: state.raceNames,
         groupOverrides: state.groupOverrides,
+        aiConsent: state.aiConsent,
       }),
       merge: (persisted, current) => {
         const saved = (persisted ?? {}) as LegacyPersistedState;

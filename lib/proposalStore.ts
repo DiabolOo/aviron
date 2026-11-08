@@ -12,12 +12,20 @@ import { usePulseFitStore } from '@/lib/store';
 
 const revertFns = new Map<string, () => void>();
 
+/** Annulable toute la journée, tant que l'état d'avant est encore en mémoire. */
+export function canUndoProposal(proposal: Proposal): boolean {
+  if (proposal.status !== 'accepted' && proposal.status !== 'edited') return false;
+  if (!revertFns.has(proposal.id) || !proposal.resolvedAt) return false;
+  return toISODate(new Date(proposal.resolvedAt)) === toISODate(new Date());
+}
+
 type ProposalState = {
   proposals: Proposal[];
   loaded: boolean;
   lastResolved: { id: string; label: string } | null;
   load: () => Promise<void>;
   ask: (text: string) => Promise<IntentResult>;
+  ingest: (proposals: Proposal[]) => Promise<void>;
   accept: (id: string) => Promise<void>;
   edit: (id: string, payload: Record<string, unknown>) => Promise<void>;
   reject: (id: string) => Promise<void>;
@@ -67,10 +75,12 @@ export const useProposalStore = create<ProposalState>()((set, get) => {
         today: toISODate(new Date()),
         mealPlanSeed: main.mealPlanSeed,
       });
-      const { proposals } = result;
+      await get().ingest(result.proposals);
+      return result;
+    },
+    ingest: async (proposals) => {
       for (const proposal of proposals) await repositories.proposals.upsert(proposal);
       set({ proposals: [...proposals, ...get().proposals] });
-      return result;
     },
     accept: async (id) => {
       const proposal = get().proposals.find((p) => p.id === id);

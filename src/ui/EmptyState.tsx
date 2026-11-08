@@ -8,7 +8,7 @@ import { Text } from '@/src/ui/Text';
 type Action = { label: string; onPress: () => void };
 
 export type EmptyStateProps = {
-  reason: 'noPlan' | 'firstSessions' | 'noImport' | 'restWeek' | 'firstDay';
+  reason: 'noPlan' | 'firstSessions' | 'noImport' | 'restWeek' | 'firstDay' | 'noAi';
   /** La phrase. */
   title: string;
   /** La sous-phrase : pourquoi, sans culpabiliser. */

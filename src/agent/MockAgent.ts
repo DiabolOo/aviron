@@ -23,6 +23,8 @@ const MOVE_RE = /décal|decal|report|dimanche/i;
 const PROGRAM_RE = /semi|marathon|\b\d{1,2}\s*km\b|pr[ée]pa|cr[ée]e\w*.*plan|plan d|mon plan|muscu|force|endurance|rester actif|courir/i;
 
 export class MockAgent implements IAgent {
+  readonly isModel = false;
+
   async interpretIntent(
     text: string,
     { sessions, today, mealPlanSeed = 0 }: IntentContext,
