@@ -52,7 +52,7 @@ function seedReady(patch: Partial<ReturnType<typeof usePulseFitStore.getState>> 
   }));
 }
 
-function makeActivity(id: string, date: string, type = 'run' as const, durationMin = 45) {
+function makeActivity(id: string, date: string, type: 'run' | 'swim' | 'ride' | 'walk' | 'strength' = 'run', durationMin = 45) {
   return {
     id, name: `Activity ${id}`, type, date,
     startTime: '08:00', durationMin, splits: [], hrStream: [], polyline: [],
