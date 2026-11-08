@@ -98,6 +98,7 @@ describe('états', () => {
     await mount();
     expect(await screen.findByTestId('coach-loading')).toBeTruthy();
     expect(screen.getByText('Coach')).toBeTruthy();
+    expect(screen.getByTestId('screen-header')).toBeTruthy();
   });
 
   it('vide sans accord IA : le moteur du téléphone est présenté, sans manque ni « Ton agent »', async () => {

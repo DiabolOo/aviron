@@ -30,6 +30,7 @@ import { CoachCard } from '@/src/ui/CoachCard';
 import { Composer } from '@/src/ui/Composer';
 import { EmptyState } from '@/src/ui/EmptyState';
 import { ProposalCard } from '@/src/ui/ProposalCard';
+import { ScreenHeader } from '@/src/ui/ScreenHeader';
 import { Skeleton } from '@/src/ui/Skeleton';
 import { Text } from '@/src/ui/Text';
 import { useDelayedSkeleton } from '@/src/ui/useDelayedSkeleton';
@@ -59,13 +60,6 @@ const useStyles = makeStyles((t) => ({
     gap: t.space.xl,
   },
   section: { gap: t.space.md },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    justifyContent: 'space-between',
-    gap: t.space.md,
-  },
-  headerText: { flexShrink: 1, gap: t.space.xs },
   chips: {
     flexDirection: 'row',
     gap: t.space.sm,
@@ -336,28 +330,11 @@ export function CoachScreen() {
   };
 
   const header = (
-    <View style={styles.headerRow}>
-      <View style={styles.headerText}>
-        <Text role="title">Coach</Text>
-        {turns.length === 0 ? (
-          <Text role="body" color="inkSecondary">
-            Tu demandes, il prépare, tu valides.
-          </Text>
-        ) : null}
-      </View>
-      {history.length > 0 ? (
-        <Pressable
-          accessibilityRole="button"
-          accessibilityState={{ expanded: historyOpen }}
-          onPress={() => setHistoryOpen((v) => !v)}
-          style={styles.link}
-        >
-          <Text role="body" weight="semibold" style={styles.underline}>
-            Historique
-          </Text>
-        </Pressable>
-      ) : null}
-    </View>
+    <ScreenHeader
+      title="Coach"
+      subtitle="Tu demandes, il prépare, tu valides."
+      action={history.length > 0 ? { label: 'Historique', onPress: () => setHistoryOpen((v) => !v) } : undefined}
+    />
   );
 
   if (showSkeleton) {
@@ -471,6 +448,7 @@ export function CoachScreen() {
           context={draft.context ? { label: draft.context, onClear: clearContext } : undefined}
         />
       </View>
+
     </KeyboardAvoidingView>
   );
 }
