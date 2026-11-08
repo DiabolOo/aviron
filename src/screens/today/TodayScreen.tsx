@@ -7,24 +7,27 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Pressable, ScrollView, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
 
 import { useProposalStore } from '@/lib/proposalStore';
 import { usePulseFitStore } from '@/lib/store';
 import type { Proposal } from '@/src/core/schemas';
-import { toISODate } from '@/src/core/dates';
+import { toISODate, weekDates, weekdayLabel } from '@/src/core/dates';
 import { sessionRepere } from '@/src/core/training/hrGuidance';
 import { evaluateInsights, rankInsights } from '@/src/core/training/insights/evaluate';
 import type { InsightContext } from '@/src/core/training/insights/types';
 import { athleteProfileFrom, sessionCardLabels } from '@/src/core/training/level';
 import type { AthleteProfile } from '@/src/core/training/types';
 import type { WorkoutSession as PlannedSession } from '@/src/core/types';
-import { makeStyles, textStyle, useTheme } from '@/src/design';
+import { makeStyles, useTheme } from '@/src/design';
 import { CoachCard, type CoachCardProps, type CoachSource } from '@/src/ui/CoachCard';
+import { DayDots, type DayDot } from '@/src/ui/DayDots';
 import { EmptyState } from '@/src/ui/EmptyState';
+import { ListCard } from '@/src/ui/ListCard';
 import { openAgent } from '@/src/ui/agentDraft';
 import { openActivity } from '@/src/ui/nav';
 import { ProposalCard } from '@/src/ui/ProposalCard';
+import { ScreenHeader } from '@/src/ui/ScreenHeader';
 import { SessionCard, type SessionStatus } from '@/src/ui/SessionCard';
 import { Skeleton } from '@/src/ui/Skeleton';
 import { Text } from '@/src/ui/Text';
@@ -47,6 +50,21 @@ function greetingForHour(hour: number): string {
   if (hour < 12) return 'Bonjour';
   if (hour < 18) return 'Bon apr\u00e8s-midi';
   return 'Bonsoir';
+}
+
+/** Construit les DayDots de la semaine courante pour la carte « Ta semaine » (débutant, maquette 105). */
+function buildWeekDots(today: string, plannedSessions: readonly PlannedSession[]): DayDot[] {
+  const dates = weekDates();
+  return dates.map((iso) => {
+    const session = plannedSessions.find((s) => s.date === iso && !s.skipped);
+    const done = session?.completed === true;
+    const isToday = iso === today;
+    return {
+      id: iso,
+      label: weekdayLabel(iso).charAt(0),
+      state: done ? 'done' : isToday ? 'today' : session ? 'empty' : ('empty' as const),
+    };
+  });
 }
 
 /** Phase courante du programme (jalon dont la date est pass\u00e9e ou actuelle). */
@@ -86,25 +104,10 @@ const useStyles = makeStyles((t) => ({
   halo: { position: 'absolute', top: 0, left: 0, right: 0, height: 220 },
   scroll: { flex: 1 },
   content: { paddingHorizontal: t.space.screen, gap: t.space.section },
-  header: { gap: t.space.sm, paddingTop: t.space.xl },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: t.space.md,
-  },
-  avatar: {
-    width: t.size.avatar,
-    height: t.size.avatar,
-    borderRadius: t.radius.pill,
-    backgroundColor: t.colors.surface,
-    borderWidth: t.size.hairline,
-    borderColor: t.colors.line,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  initial: { ...textStyle('sub', 'semibold'), color: t.colors.ink },
+  header: { paddingTop: t.space.xl },
   skeletons: { gap: t.space.section },
+  weekCard: { paddingVertical: t.space.md },
+  weekTitle: { paddingBottom: t.space.md },
 }));
 
 // ─── Screen ─────────────────────────────────────────────────────────────────
@@ -296,10 +299,16 @@ export function TodayScreen() {
   );
 
   // ── instruction de séance ──
-  const sessionInstruction = useMemo(() => {
+  const sessionInstructionText = useMemo(() => {
     if (!todaySession) return '';
     return todaySession.subtitle || todaySession.title;
   }, [todaySession]);
+
+  // ── carte « Ta semaine » pour les débutants (maquette 105) ──
+  const weekDots = useMemo(() => {
+    if (athleteProfile.level !== 'beginner' || plannedSessions.length === 0) return undefined;
+    return buildWeekDots(today, plannedSessions);
+  }, [athleteProfile.level, today, plannedSessions]);
 
   // ── détail d'activité lié pour la carte « C'est une course ? » ──
   const handleRaceDetailPress = useCallback(() => {
@@ -343,23 +352,14 @@ export function TodayScreen() {
 
         {/* ── En-tête ── */}
         <View style={styles.header}>
-          <Text role="caption" weight="semibold" color="inkSecondary">
-            {phase ? `${headerDate} \u00b7 ${phase}` : headerDate}
-          </Text>
-          <View style={styles.headerRow}>
-            <Text role="title">{`${greeting}, ${firstName}`}</Text>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Ouvrir le profil"
-              hitSlop={4}
-              onPress={() => router.push('/profile')}
-              style={styles.avatar}
-              testID="avatar-button">
-              <Text role="sub" weight="semibold" style={styles.initial}>
-                {firstName.charAt(0).toUpperCase()}
-              </Text>
-            </Pressable>
-          </View>
+          <ScreenHeader
+            eyebrow={phase ? `${headerDate} \u00b7 ${phase}` : headerDate}
+            title={`${greeting}, ${firstName}`}
+            avatar={{
+              initial: firstName.charAt(0).toUpperCase(),
+              onPress: () => router.push('/profile'),
+            }}
+          />
         </View>
 
         {/* ── S\u00e9ance du jour ── */}
@@ -382,7 +382,7 @@ export function TodayScreen() {
             eyebrow="S\u00e9ance du jour"
             title={todaySession.title}
             effort={{ level: todaySession.kind === 'rest' ? 'easy' : 'moderate', scale: 'planned' }}
-            instruction={sessionInstruction}
+            instruction={sessionInstructionText}
             {...sessionCardLabels(athleteProfile.level)}
             note={repere}
             status={sessionStatus}
@@ -442,6 +442,16 @@ export function TodayScreen() {
             onEdit={() => openAgent(pendingProposal.title)}
             onReject={() => void rejectProposal(pendingProposal.id)}
           />
+        ) : null}
+
+        {/* ── Ta semaine (débutant, maquette 105) ── */}
+        {weekDots ? (
+          <ListCard testID="today-week-card">
+            <View style={styles.weekCard}>
+              <Text role="body" weight="semibold" style={styles.weekTitle}>Ta semaine</Text>
+              <DayDots days={weekDots} />
+            </View>
+          </ListCard>
         ) : null}
       </ScrollView>
 

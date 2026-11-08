@@ -83,7 +83,8 @@ function seedReady(patch: Partial<ReturnType<typeof usePulseFitStore.getState>> 
     rejectedRaceIds: [],
     raceNames: {},
     // Reset unavailableDates to avoid leakage between tests; caller can override via profile:
-    profile: { ...state.profile, unavailableDates: undefined, ...profilePatch },
+    // Default level to 'regular' to preserve existing test expectations (e.g. "Reporter" label).
+    profile: { ...state.profile, unavailableDates: undefined, level: 'regular' as const, ...profilePatch },
     ...rest,
   }));
 }
@@ -421,5 +422,34 @@ describe('TodayScreen \u2014 ProposalCard', () => {
     seedReady({ sessions: [makeSession()] });
     await render(<TodayScreen />);
     expect(screen.queryByTestId('proposal-compact')).toBeNull();
+  });
+});
+
+// ─── 9. Carte « Ta semaine » (débutant) ────────────────────────────────────
+
+describe('TodayScreen — carte Ta semaine', () => {
+  it('débutant avec plan : carte DayDots visible', async () => {
+    seedReady({
+      sessions: [makeSession()],
+      profile: { ...usePulseFitStore.getState().profile, level: 'beginner' as const },
+    });
+    await render(<TodayScreen />);
+    expect(screen.getByTestId('today-week-card')).toBeTruthy();
+    expect(screen.getByText('Ta semaine')).toBeTruthy();
+  });
+
+  it('niveau regular : pas de carte Ta semaine', async () => {
+    seedReady({ sessions: [makeSession()] });
+    await render(<TodayScreen />);
+    expect(screen.queryByTestId('today-week-card')).toBeNull();
+  });
+
+  it('débutant avec "Plus tard" au lieu de "Reporter"', async () => {
+    seedReady({
+      sessions: [makeSession()],
+      profile: { ...usePulseFitStore.getState().profile, level: 'beginner' as const },
+    });
+    await render(<TodayScreen />);
+    expect(screen.getByText('Plus tard')).toBeTruthy();
   });
 });
