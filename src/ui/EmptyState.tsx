@@ -1,8 +1,8 @@
-import { Check } from 'lucide-react-native';
 import { View } from 'react-native';
 
-import { makeStyles, useTheme } from '@/src/design';
+import { makeStyles } from '@/src/design';
 import { Button } from '@/src/ui/Button';
+import { DayDots } from '@/src/ui/DayDots';
 import { Text } from '@/src/ui/Text';
 
 type Action = { label: string; onPress: () => void };
@@ -16,8 +16,13 @@ export type EmptyStateProps = {
   /** Au plus un bouton plein. */
   primary?: Action;
   secondary?: Action;
-  /** firstSessions : « Encore 2 séances » et ce qui est déjà fait. Jamais de « 0/3 » ni de graphique vide. */
-  progress?: { remaining: string; done: string[] };
+  /** Sous les boutons : « « Sans montre » ouvre le coach : dis « 30 minutes samedi » et c'est noté. » */
+  caption?: string;
+  /**
+   * firstSessions : une rangée de cercles (pleins = séances faites) et « Encore 2 séances ».
+   * `total` cercles en tout ; `done` décrit chaque séance faite. Jamais de « 0/3 » ni de graphique vide.
+   */
+  progress?: { remaining: string; done: string[]; total: number };
 };
 
 const useStyles = makeStyles((t) => ({
@@ -29,15 +34,13 @@ const useStyles = makeStyles((t) => ({
     padding: t.space.screen,
     gap: t.space.md,
   },
-  done: { gap: t.space.sm },
-  doneRow: { flexDirection: 'row', alignItems: 'center', gap: t.space.sm },
+  progress: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: t.space.lg },
   actions: { gap: t.space.md, marginTop: t.space.sm },
 }));
 
 /** L'absence comme état : une phrase, une sous-phrase, une action facultative. */
-export function EmptyState({ reason, title, body, primary, secondary, progress }: EmptyStateProps) {
+export function EmptyState({ reason, title, body, primary, secondary, caption, progress }: EmptyStateProps) {
   const styles = useStyles();
-  const { colors, size } = useTheme();
 
   return (
     <View style={styles.root} testID={`empty-${reason}`}>
@@ -48,14 +51,16 @@ export function EmptyState({ reason, title, body, primary, secondary, progress }
         {body}
       </Text>
       {progress ? (
-        <View style={styles.done}>
-          {progress.done.map((item) => (
-            <View key={item} style={styles.doneRow} accessible accessibilityLabel={`Fait : ${item}`}>
-              <Check color={colors.effortEasy} size={size.icon} strokeWidth={size.iconStrokeStrong} />
-              <Text role="sub">{item}</Text>
-            </View>
-          ))}
-          <Text role="body" weight="semibold" color="coach">
+        <View style={styles.progress}>
+          <DayDots
+            compact
+            days={Array.from({ length: Math.max(progress.total, progress.done.length) }, (_, i) => ({
+              id: String(i),
+              state: i < progress.done.length ? 'done' : 'empty',
+              accessibilityLabel: i < progress.done.length ? `Fait : ${progress.done[i]}` : undefined,
+            }))}
+          />
+          <Text role="body" weight="semibold">
             {progress.remaining}
           </Text>
         </View>
@@ -65,6 +70,11 @@ export function EmptyState({ reason, title, body, primary, secondary, progress }
           {primary ? <Button label={primary.label} onPress={primary.onPress} /> : null}
           {secondary ? <Button label={secondary.label} variant="secondary" onPress={secondary.onPress} /> : null}
         </View>
+      ) : null}
+      {caption ? (
+        <Text role="sub" color="inkTertiary">
+          {caption}
+        </Text>
       ) : null}
     </View>
   );

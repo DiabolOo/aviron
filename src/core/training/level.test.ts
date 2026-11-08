@@ -11,6 +11,7 @@ import {
   LEVEL_OPTIONS,
   levelGuidance,
   progressFocus,
+  sessionCardLabels,
   sessionInstruction,
   todaySessionMeasure,
   weekPlace,
@@ -164,6 +165,12 @@ describe('héros d’Aujourd’hui', () => {
     expect(weekPlace('regular', 1, 4)).toBeUndefined();
     expect(weekPlace('beginner', 1, 3)).toBeUndefined();
     expect(weekPlace('advanced', 5, 4)).toBeUndefined();
+  });
+
+  it('carte de la séance : « quand c’est fait » et « Plus tard » pour « Je débute » (105)', () => {
+    expect(sessionCardLabels('beginner')).toEqual({ holdHint: 'Maintiens la carte quand c\u2019est fait', postponeLabel: 'Plus tard' });
+    expect(sessionCardLabels('regular')).toEqual({ holdHint: 'Maintiens la carte pour valider', postponeLabel: 'Reporter' });
+    expect(sessionCardLabels('advanced')).toEqual(sessionCardLabels('regular'));
   });
 });
 

@@ -20,18 +20,35 @@ describe('EmptyState', () => {
     expect(onPress).toHaveBeenCalled();
   });
 
-  it('firstSessions : « Encore N séances » et ce qui est déjà fait, sans « 0 » ni graphique', async () => {
+  it('firstSessions : des cercles (pleins = faites) et « Encore N séances », sans « 0 » ni graphique (211)', async () => {
     await render(
       <EmptyState
         reason="firstSessions"
-        title="Tes tendances arrivent bientôt."
-        body="Il me faut quelques séances."
-        progress={{ remaining: 'Encore 2 séances', done: ['Footing du lundi'] }}
+        title="Ta progression arrive."
+        body="À la troisième séance, je te montre ta régularité."
+        progress={{ remaining: 'Encore 2 séances', done: ['Footing du lundi'], total: 3 }}
       />,
     );
     expect(screen.getByText('Encore 2 séances')).toBeTruthy();
     expect(screen.getByLabelText('Fait : Footing du lundi')).toBeTruthy();
+    expect(screen.getAllByTestId('day-dot-done')).toHaveLength(1);
+    expect(screen.getAllByTestId('day-dot-empty')).toHaveLength(2);
     expect(screen.queryByText(/\b0\b/)).toBeNull();
     expect(screen.queryByRole('button')).toBeNull();
+  });
+
+  it('noImport : deux boutons empilés, la légende sous les boutons (109)', async () => {
+    await render(
+      <EmptyState
+        reason="noImport"
+        title="Rien d’importé cette semaine."
+        body="Soit tu as fait une pause, soit tu as couru sans rien enregistrer."
+        primary={{ label: 'J’ai couru sans montre', onPress: jest.fn() }}
+        secondary={{ label: 'C’était une pause', onPress: jest.fn() }}
+        caption="« Sans montre » ouvre le coach."
+      />,
+    );
+    expect(screen.getByText('« Sans montre » ouvre le coach.')).toBeTruthy();
+    expect(screen.getAllByRole('button')).toHaveLength(2);
   });
 });

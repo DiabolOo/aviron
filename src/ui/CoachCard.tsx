@@ -1,8 +1,8 @@
 import { Sparkles } from 'lucide-react-native';
-import { useState } from 'react';
 import { Pressable, View } from 'react-native';
 
 import { makeStyles, useTheme } from '@/src/design';
+import { ChoiceChips, type Choice } from '@/src/ui/ChoiceChips';
 import { Text } from '@/src/ui/Text';
 
 export type CoachSource = 'ai' | 'device' | 'profile';
@@ -13,15 +13,14 @@ export const COACH_SOURCE_LABEL: Record<CoachSource, string> = {
   profile: 'Programme établi d’après ton profil',
 };
 
-type Choice = { id: string; label: string };
-
 type Common = {
-  /** Défaut « Ton coach ». */
+  /** Défaut « Ton coach » ; une question n'a pas de libellé sauf s'il est passé (`107`, `108`, `215`). */
   label?: string;
-  /** Obligatoire : affichée en bas de chaque carte. */
   source: CoachSource;
   /** « Environ » : la cause de l'incertitude, dite une fois. */
   approxReason?: string;
+  /** Défaut true ; false sur le détail d'une séance. Ignoré pour `ai` : « Rédigé par l'IA » reste toujours. */
+  showSource?: boolean;
 };
 
 export type CoachCardProps = Common &
@@ -35,12 +34,18 @@ export type CoachCardProps = Common &
         action?: { label: string; onPress: () => void };
       }
     | {
-        /** Question : 2 à 4 réponses en un tap ; repliée en « Noté : … » une fois répondue. */
+        /** Question : 2 à 4 réponses en un tap ; la puce choisie reste affichée et une autre se touche encore. */
         kind: 'question';
-        body: string;
+        /** Début de phrase en semibold : « Je vois ton allure, pas ton effort. », « Ton ressenti ». */
+        lead?: string;
+        body?: string;
         choices: Choice[];
         selected?: string;
         onChoose: (id: string) => void;
+        /** Puces par rangée ; défaut : toutes sur une rangée jusqu'à 3, sinon grille 2 × 2. */
+        columns?: number;
+        /** « Facultatif · ça m'aide à placer tes séances de course autour. » */
+        caption?: string;
       }
   );
 
@@ -53,18 +58,7 @@ const useStyles = makeStyles((t) => ({
     padding: t.space.screen,
     gap: t.space.md,
   },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: t.space.sm },
-  chip: {
-    minHeight: t.size.buttonCompact,
-    paddingHorizontal: t.space.lg,
-    justifyContent: 'center',
-    borderRadius: t.radius.pill,
-    borderWidth: t.size.outline,
-    borderColor: t.colors.line,
-  },
-  chipOn: { backgroundColor: t.colors.coachSurface, borderColor: t.colors.coach },
   label: { flexDirection: 'row', alignItems: 'center', gap: t.space.sm },
-  noted: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: t.space.md },
   link: { minHeight: t.size.buttonCompact, justifyContent: 'center', alignSelf: 'flex-start' },
   underline: { textDecorationLine: 'underline' },
 }));
@@ -73,48 +67,37 @@ const useStyles = makeStyles((t) => ({
 export function CoachCard(props: CoachCardProps) {
   const styles = useStyles();
   const { colors, size } = useTheme();
-  const [changing, setChanging] = useState(false);
-  const label = props.label ?? 'Ton coach';
-  const sourceLabel = COACH_SOURCE_LABEL[props.source];
+  const question = props.kind === 'question';
+  const label = props.label ?? (question ? undefined : 'Ton coach');
+  const showSource = props.source === 'ai' || props.showSource !== false;
 
   let content;
   if (props.kind === 'question') {
-    const picked = props.choices.find((c) => c.id === props.selected);
-    content =
-      picked && !changing ? (
-        <View style={styles.noted}>
-          <Text role="body" weight="semibold">{`Noté : ${picked.label}`}</Text>
-          <Pressable accessibilityRole="button" onPress={() => setChanging(true)} style={styles.link}>
-            <Text role="sub" weight="semibold" style={styles.underline}>
-              Changer
+    content = (
+      <>
+        <Text role="body" color="inkSecondary">
+          {props.lead ? (
+            <Text role="body" weight="semibold">
+              {props.lead}
             </Text>
-          </Pressable>
-        </View>
-      ) : (
-        <>
-          <Text role="body">{props.body}</Text>
-          <View style={styles.chips} accessibilityRole="radiogroup">
-            {props.choices.map((c) => {
-              const on = c.id === props.selected;
-              return (
-                <Pressable
-                  key={c.id}
-                  accessibilityRole="radio"
-                  accessibilityState={{ checked: on }}
-                  onPress={() => {
-                    setChanging(false);
-                    props.onChoose(c.id);
-                  }}
-                  style={[styles.chip, on && styles.chipOn]}>
-                  <Text role="sub" weight="semibold" color={on ? 'coach' : 'ink'}>
-                    {c.label}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
-        </>
-      );
+          ) : null}
+          {props.lead && props.body ? ' ' : null}
+          {props.body}
+        </Text>
+        <ChoiceChips
+          choices={props.choices}
+          selected={props.selected}
+          onChoose={props.onChoose}
+          columns={props.columns ?? (props.choices.length <= 3 ? props.choices.length : 2)}
+          accessibilityLabel={[props.lead, props.body].filter(Boolean).join(' ')}
+        />
+        {props.caption ? (
+          <Text role="sub" color="inkTertiary">
+            {props.caption}
+          </Text>
+        ) : null}
+      </>
+    );
   } else {
     content = (
       <>
@@ -139,19 +122,23 @@ export function CoachCard(props: CoachCardProps) {
 
   return (
     <View style={styles.card} testID={`coach-card-${props.kind}`}>
-      <View style={styles.label}>
-        <Sparkles color={colors.coach} size={size.pillDot * 2} strokeWidth={size.iconStroke} />
-        <Text role="caption" weight="semibold" color="coach">
-          {label}
-        </Text>
-      </View>
+      {label ? (
+        <View style={styles.label}>
+          <Sparkles color={colors.coach} size={size.pillDot * 2} strokeWidth={size.iconStroke} />
+          <Text role="caption" weight="semibold" color="coach">
+            {label}
+          </Text>
+        </View>
+      ) : null}
       {content}
       {props.approxReason ? (
         <Text role="caption" color="inkSecondary">{`Environ : ${props.approxReason}`}</Text>
       ) : null}
-      <Text role="caption" color="inkTertiary" testID="coach-source">
-        {sourceLabel}
-      </Text>
+      {showSource ? (
+        <Text role="caption" color="inkTertiary" testID="coach-source">
+          {COACH_SOURCE_LABEL[props.source]}
+        </Text>
+      ) : null}
     </View>
   );
 }

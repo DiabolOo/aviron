@@ -11,12 +11,12 @@ jest.mock('expo-haptics', () => ({
   ImpactFeedbackStyle: { Light: 'light' },
   NotificationFeedbackType: { Success: 'success' },
 }));
-jest.mock('lucide-react-native', () => ({ Check: () => null }));
+jest.mock('lucide-react-native', () => ({ Check: () => null, Sparkles: () => null }));
 
 const props = (over: Partial<SessionCardProps> = {}): SessionCardProps => ({
   eyebrow: 'Séance du jour',
   title: 'Footing 8 km',
-  effort: { level: 'easy' },
+  effort: { level: 'easy', scale: 'planned' },
   instruction: 'Allure où tu peux parler.',
   status: 'planned',
   onValidate: jest.fn(),
@@ -57,6 +57,39 @@ describe('SessionCard — états', () => {
     expect(screen.getByText('Reportée à demain')).toBeTruthy();
     await fireEvent.press(screen.getByText('Annuler'));
     expect(p.onUndo).toHaveBeenCalled();
+  });
+
+  it('libellés du débutant (105) : « Maintiens la carte quand c’est fait » et « Plus tard »', async () => {
+    const p = props({ holdHint: 'Maintiens la carte quand c’est fait', postponeLabel: 'Plus tard' });
+    await render(<SessionCard {...p} />);
+    expect(screen.getByText('Maintiens la carte quand c’est fait')).toBeTruthy();
+    await fireEvent.press(screen.getByText('Plus tard'));
+    expect(p.onPostpone).toHaveBeenCalled();
+    expect(screen.queryByText('Reporter')).toBeNull();
+  });
+
+  it('validée avec `onFeel` : le ressenti est demandé, la réponse reste affichée (215)', async () => {
+    const onFeel = jest.fn();
+    await render(<SessionCard {...props({ status: 'done', onFeel, felt: 'moderate' })} />);
+    expect(screen.getByText('Comment tu l’as sentie ?')).toBeTruthy();
+    expect(screen.getByTestId('choice-moderate').props.accessibilityState).toEqual({ checked: true });
+    await fireEvent.press(screen.getByText('Dur'));
+    expect(onFeel).toHaveBeenCalledWith('hard');
+  });
+
+  it('validée par la montre : « Annuler » reste disponible', async () => {
+    const p = props({ status: 'autoValidated' });
+    await render(<SessionCard {...p} />);
+    expect(screen.getByText('Validée par ta montre')).toBeTruthy();
+    await fireEvent.press(screen.getByText('Annuler'));
+    expect(p.onUndo).toHaveBeenCalled();
+  });
+
+  it('repos : ni maintien ni « Reporter »', async () => {
+    await render(<SessionCard {...props({ status: 'rest', title: 'Repos', instruction: 'Le repos prépare samedi.' })} />);
+    expect(screen.getByTestId('session-card-rest')).toBeTruthy();
+    expect(screen.queryByTestId('hold-track')).toBeNull();
+    expect(screen.queryByText('Reporter')).toBeNull();
   });
 });
 

@@ -5,26 +5,41 @@ import { Pressable, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
 
 import { makeStyles, useFontScale, useReduceMotion, useTheme } from '@/src/design';
-import { EffortPill, type EffortPillProps } from '@/src/ui/EffortPill';
+import { ChoiceChips } from '@/src/ui/ChoiceChips';
+import { EFFORT_LABEL, EffortPill, type EffortLevel, type EffortPillProps } from '@/src/ui/EffortPill';
 import { Text } from '@/src/ui/Text';
 import { useHoldToConfirm } from '@/src/ui/useHoldToConfirm';
 
-export type SessionStatus = 'planned' | 'done' | 'postponed';
+export type SessionStatus = 'planned' | 'done' | 'autoValidated' | 'postponed' | 'rest';
 
 export type SessionCardProps = {
   /** « Séance du jour », « Ta première séance ». */
   eyebrow: string;
+  /** « Footing 8 km », « 20 minutes, marche et course », « Repos ». */
   title: string;
   effort: EffortPillProps;
-  /** Consigne déjà adaptée au niveau et aux données disponibles. */
+  /** Consigne déjà adaptée au niveau et aux données ; pour un repos, ce que le repos prépare. */
   instruction: string;
   /** Ligne de repère facultative. */
   note?: string;
   status: SessionStatus;
+  /** Libellés de core selon le niveau déclaré (`sessionCardLabels`). */
+  holdHint?: string;
+  postponeLabel?: string;
+  /** Ressenti déclaré après le maintien (« Facile · Correct · Dur ») : la seule mesure d'une séance sans montre. */
+  felt?: EffortLevel;
+  /** Présent : la carte validée demande le ressenti. */
+  onFeel?: (level: EffortLevel) => void;
   onValidate: () => void;
   onPostpone: () => void;
   onUndo: () => void;
 };
+
+const FELT_CHOICES = (['easy', 'moderate', 'hard'] as const).map((level) => ({
+  id: level,
+  label: EFFORT_LABEL.felt[level],
+  effort: level,
+}));
 
 const useStyles = makeStyles((t) => ({
   card: {
@@ -36,10 +51,10 @@ const useStyles = makeStyles((t) => ({
     gap: t.space.md,
     overflow: 'hidden',
   },
-  head: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: t.space.md },
-  headStacked: { gap: t.space.sm },
-  title: { flexShrink: 1 },
+  head: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: t.space.md },
+  eyebrow: { flexShrink: 1 },
   footer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: t.space.md },
+  hint: { flexShrink: 1 },
   link: { minHeight: t.size.buttonCompact, justifyContent: 'center' },
   underline: { textDecorationLine: 'underline' },
   track: {
@@ -61,9 +76,11 @@ const useStyles = makeStyles((t) => ({
   grow: { flex: 1, gap: t.space.xs },
 }));
 
-/** La séance du jour : valider par maintien, reporter, annuler. */
+/** La séance du jour : valider par maintien, donner son ressenti, reporter, annuler. */
 export function SessionCard(props: SessionCardProps) {
   const { eyebrow, title, effort, instruction, note, status, onValidate, onPostpone, onUndo } = props;
+  const holdHint = props.holdHint ?? 'Maintiens la carte pour valider';
+  const postponeLabel = props.postponeLabel ?? 'Reporter';
   const { colors, motion, space, size, fontScaleBreakpoints } = useTheme();
   const styles = useStyles();
   const reduce = useReduceMotion();
@@ -94,25 +111,58 @@ export function SessionCard(props: SessionCardProps) {
   const fillStyle = useAnimatedStyle(() => ({ transform: [{ scaleX: progress.get() }] }));
   const checkStyle = useAnimatedStyle(() => ({ transform: [{ scale: checkScale.get() }] }));
 
-  if (status === 'done' || status === 'postponed') {
-    const done = status === 'done';
+  const header = (
+    <View style={stacked ? undefined : styles.head}>
+      <Text role="caption" weight="semibold" color="inkTertiary" style={styles.eyebrow}>
+        {eyebrow}
+      </Text>
+      {stacked ? null : <EffortPill {...effort} />}
+    </View>
+  );
+  const body = (
+    <>
+      <Text role="title">{title}</Text>
+      {stacked ? <EffortPill {...effort} /> : null}
+      <Text role="body" color="inkSecondary">
+        {instruction}
+      </Text>
+      {note ? (
+        <Text role="sub" color="inkTertiary">
+          {note}
+        </Text>
+      ) : null}
+    </>
+  );
+
+  if (status === 'rest') {
+    return (
+      <View style={styles.card} testID="session-card-rest" accessible accessibilityLabel={`${eyebrow}, ${title}. ${instruction}`}>
+        {header}
+        {body}
+      </View>
+    );
+  }
+
+  if (status !== 'planned') {
+    const validated = status === 'done' || status === 'autoValidated';
+    const heading = status === 'done' ? 'Séance validée' : status === 'autoValidated' ? 'Validée par ta montre' : 'Reportée à demain';
     return (
       <View style={styles.card} testID={`session-card-${status}`}>
         <View style={styles.done}>
-          {done ? (
+          {validated ? (
             <Animated.View style={[styles.check, checkStyle]}>
               <Check color={colors.effortEasy} size={size.icon} strokeWidth={size.iconStrokeStrong} />
             </Animated.View>
           ) : null}
           <View style={styles.grow}>
             <Text role="body" weight="semibold">
-              {done ? 'Séance validée' : 'Reportée à demain'}
+              {heading}
             </Text>
             <Text role="sub" color="inkSecondary">
               {title}
             </Text>
           </View>
-          {done ? null : (
+          {status === 'done' ? null : (
             <Pressable accessibilityRole="button" onPress={onUndo} style={styles.link}>
               <Text role="sub" weight="semibold" style={styles.underline}>
                 Annuler
@@ -120,6 +170,20 @@ export function SessionCard(props: SessionCardProps) {
             </Pressable>
           )}
         </View>
+        {status === 'done' && props.onFeel ? (
+          <>
+            <Text role="body" weight="semibold">
+              Comment tu l’as sentie ?
+            </Text>
+            <ChoiceChips
+              choices={FELT_CHOICES}
+              selected={props.felt}
+              onChoose={(id) => props.onFeel?.(id as EffortLevel)}
+              columns={FELT_CHOICES.length}
+              accessibilityLabel="Ton ressenti"
+            />
+          </>
+        ) : null}
       </View>
     );
   }
@@ -131,41 +195,26 @@ export function SessionCard(props: SessionCardProps) {
       onPressOut={pressOut}
       accessibilityRole="button"
       accessibilityLabel={`${eyebrow}, ${title}. ${instruction}`}
-      accessibilityHint="Maintiens pour valider"
+      accessibilityHint={holdHint}
       accessibilityActions={[{ name: 'activate', label: 'Valider' }]}
       onAccessibilityAction={(e) => {
         if (e.nativeEvent.actionName === 'activate') onValidate();
       }}
       style={styles.card}>
-      <Text role="caption" weight="semibold" color="inkTertiary">
-        {eyebrow}
-      </Text>
-      <View style={stacked ? styles.headStacked : styles.head}>
-        <Text role="title" style={styles.title}>
-          {title}
-        </Text>
-        <EffortPill {...effort} />
+      {header}
+      {body}
+      <View style={styles.track} testID="hold-track">
+        <Animated.View style={[styles.fill, fillStyle]} />
       </View>
-      <Text role="body" color="inkSecondary">
-        {instruction}
-      </Text>
-      {note ? (
-        <Text role="sub" color="inkTertiary">
-          {note}
-        </Text>
-      ) : null}
       <View style={styles.footer}>
-        <Text role="caption" color="inkTertiary">
-          Maintiens la carte pour valider
+        <Text role="caption" color="inkTertiary" style={styles.hint}>
+          {holdHint}
         </Text>
         <Pressable accessibilityRole="button" onPress={onPostpone} style={styles.link} hitSlop={space.sm}>
           <Text role="sub" weight="semibold" style={styles.underline}>
-            Reporter
+            {postponeLabel}
           </Text>
         </Pressable>
-      </View>
-      <View style={styles.track} testID="hold-track">
-        <Animated.View style={[styles.fill, fillStyle]} />
       </View>
     </Pressable>
   );

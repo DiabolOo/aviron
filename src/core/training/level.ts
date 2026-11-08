@@ -184,6 +184,15 @@ export function weekPlace(level: DeclaredLevel, rank: number, count: number): st
   return `${rank === 1 ? '1re' : `${rank}e`} séance sur ${count} cette semaine`;
 }
 
+/** Libellés de la carte de la séance du jour (`102`, `105`) : le débutant valide « quand c'est fait ». */
+export type SessionCardLabels = { holdHint: string; postponeLabel: string };
+
+export function sessionCardLabels(level: DeclaredLevel): SessionCardLabels {
+  return level === 'beginner'
+    ? { holdHint: 'Maintiens la carte quand c\u2019est fait', postponeLabel: 'Plus tard' }
+    : { holdHint: 'Maintiens la carte pour valider', postponeLabel: 'Reporter' };
+}
+
 // ─── Densité du détail et de Progrès ─────────────────────────────────────────
 
 /** Ce que le détail d'une séance peut montrer à ce niveau ; les données retirent ensuite ce qui manque. */

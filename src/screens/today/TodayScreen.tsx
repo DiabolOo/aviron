@@ -16,7 +16,7 @@ import { toISODate } from '@/src/core/dates';
 import { sessionRepere } from '@/src/core/training/hrGuidance';
 import { evaluateInsights, rankInsights } from '@/src/core/training/insights/evaluate';
 import type { InsightContext } from '@/src/core/training/insights/types';
-import { athleteProfileFrom } from '@/src/core/training/level';
+import { athleteProfileFrom, sessionCardLabels } from '@/src/core/training/level';
 import type { AthleteProfile } from '@/src/core/training/types';
 import type { WorkoutSession as PlannedSession } from '@/src/core/types';
 import { makeStyles, textStyle, useTheme } from '@/src/design';
@@ -381,8 +381,9 @@ export function TodayScreen() {
           <SessionCard
             eyebrow="S\u00e9ance du jour"
             title={todaySession.title}
-            effort={{ level: todaySession.kind === 'rest' ? 'easy' : 'moderate' }}
+            effort={{ level: todaySession.kind === 'rest' ? 'easy' : 'moderate', scale: 'planned' }}
             instruction={sessionInstruction}
+            {...sessionCardLabels(athleteProfile.level)}
             note={repere}
             status={sessionStatus}
             onValidate={handleValidate}
@@ -408,6 +409,7 @@ export function TodayScreen() {
               { id: 'detail', label: 'Voir l\u2019activit\u00e9' },
             ]}
             selected={raceAnswer}
+            columns={1}
             onChoose={(id) => {
               if (id === 'detail') {
                 handleRaceDetailPress();

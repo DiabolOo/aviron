@@ -1,13 +1,15 @@
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { useState } from 'react';
+import { StyleSheet } from 'react-native';
 
+import { colors } from '@/src/design';
 import { COACH_SOURCE_LABEL, CoachCard, type CoachSource } from '@/src/ui/CoachCard';
 
 jest.mock('lucide-react-native', () => ({ Check: () => null, Sparkles: () => null }));
 
 const CHOICES = [
-  { id: 'easy', label: 'Facile' },
-  { id: 'hard', label: 'Dur' },
+  { id: 'easy', label: 'Facile', effort: 'easy' as const },
+  { id: 'hard', label: 'Dur', effort: 'hard' as const },
 ];
 
 function Question() {
@@ -30,13 +32,42 @@ describe('CoachCard', () => {
     expect(onPress).toHaveBeenCalled();
   });
 
-  it('question : un tap répond, la carte se replie en « Noté : … », « Changer » rouvre les choix', async () => {
+  it('question : la puce choisie reste affichée, sur le fond de son effort, et une autre se touche encore (215)', async () => {
     await render(<Question />);
     await fireEvent.press(screen.getByText('Dur'));
-    expect(screen.getByText('Noté : Dur')).toBeTruthy();
-    expect(screen.queryByText('Facile')).toBeNull();
-    await fireEvent.press(screen.getByText('Changer'));
+    expect(screen.getByTestId('choice-hard').props.accessibilityState).toEqual({ checked: true });
+    expect(StyleSheet.flatten(screen.getByTestId('choice-hard').props.style).backgroundColor).toBe(colors.light.effortHardSurface);
     expect(screen.getByText('Facile')).toBeTruthy();
+    await fireEvent.press(screen.getByText('Facile'));
+    expect(screen.getByTestId('choice-easy').props.accessibilityState).toEqual({ checked: true });
+    expect(screen.getByTestId('choice-hard').props.accessibilityState).toEqual({ checked: false });
+  });
+
+  it('question : début de phrase en semibold, légende, pas de libellé « Ton coach » par défaut (107, 108)', async () => {
+    await render(
+      <CoachCard
+        kind="question"
+        source="device"
+        showSource={false}
+        lead="Je vois ton allure, pas ton effort."
+        body="Comment tu l’as sentie ?"
+        caption="Facultatif · ça m’aide."
+        choices={CHOICES}
+        onChoose={jest.fn()}
+      />,
+    );
+    expect(screen.getByText('Je vois ton allure, pas ton effort.')).toBeTruthy();
+    expect(screen.getByText('Facultatif · ça m’aide.')).toBeTruthy();
+    expect(screen.queryByText('Ton coach')).toBeNull();
+    expect(screen.queryByTestId('coach-source')).toBeNull();
+  });
+
+  it('showSource={false} : la ligne de source disparaît, sauf pour un texte rédigé par l’IA', async () => {
+    const { unmount } = await render(<CoachCard kind="insight" source="device" showSource={false} verdict="V" />);
+    expect(screen.queryByTestId('coach-source')).toBeNull();
+    await unmount();
+    await render(<CoachCard kind="insight" source="ai" showSource={false} verdict="V" />);
+    expect(screen.getByTestId('coach-source').props.children).toBe('Rédigé par l’IA');
   });
 
   it('« Environ » : la cause est dite une fois', async () => {

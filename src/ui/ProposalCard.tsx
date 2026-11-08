@@ -5,6 +5,7 @@ import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-na
 
 import { makeStyles, useFontScale, useReduceMotion, useTheme } from '@/src/design';
 import { Button } from '@/src/ui/Button';
+import { ChoiceChips } from '@/src/ui/ChoiceChips';
 import { Text } from '@/src/ui/Text';
 
 export type ProposalRow = {
@@ -87,16 +88,6 @@ const useStyles = makeStyles((t) => ({
   pairAfter: { flex: 1, padding: t.space.md, gap: t.space.xs, borderRadius: t.radius.control, backgroundColor: t.colors.coachSurface },
   strike: { textDecorationLine: 'line-through' },
   question: { gap: t.space.sm },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: t.space.sm },
-  chip: {
-    minHeight: t.size.buttonCompact,
-    paddingHorizontal: t.space.lg,
-    justifyContent: 'center',
-    borderRadius: t.radius.pill,
-    borderWidth: t.size.outline,
-    borderColor: t.colors.line,
-  },
-  chipOn: { backgroundColor: t.colors.coachSurface, borderColor: t.colors.coach },
   buttons: { flexDirection: 'row', gap: t.space.md },
   buttonsStacked: { gap: t.space.md },
   link: { minHeight: t.size.buttonCompact, justifyContent: 'center', alignSelf: 'center' },
@@ -287,23 +278,12 @@ export function ProposalCard(props: ProposalCardProps) {
           <Text role="body" weight="semibold">
             {question.prompt}
           </Text>
-          <View style={styles.chips} accessibilityRole="radiogroup">
-            {question.choices.map((c) => {
-              const on = c.id === question.selected;
-              return (
-                <Pressable
-                  key={c.id}
-                  accessibilityRole="radio"
-                  accessibilityState={{ checked: on }}
-                  onPress={() => question.onChoose(c.id)}
-                  style={[styles.chip, on && styles.chipOn]}>
-                  <Text role="sub" weight="semibold" color={on ? 'coach' : 'ink'}>
-                    {c.label}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
+          <ChoiceChips
+            choices={question.choices}
+            selected={question.selected}
+            onChoose={question.onChoose}
+            accessibilityLabel={question.prompt}
+          />
         </View>
       ) : null}
       <Text role="caption" color="inkTertiary" testID="proposal-footnote">

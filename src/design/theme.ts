@@ -335,12 +335,38 @@ export const size = {
   hairline: 1,
   /** Contour du bouton secondaire. */
   outline: 1.5,
+  /** Contour d'un choix retenu (carte d'option, jour en cours). */
+  outlineStrong: 2,
+  /** Colonne du jour dans une liste de semaine (« Lun 2 »). Largeur minimale. */
+  dayColumn: 56,
+  /** Cercle d'un jour ou d'une séance (DayDots, progression). */
+  dayDot: 32,
   /** Distance minimale entre une action et le bord de l'écran. */
   edgeClearance: 16,
 } as const;
 
 /** Retour visuel d'appui. */
 export const opacity = { pressed: 0.7 } as const;
+
+// ─── Graphiques ──────────────────────────────────────────────────────────────
+
+/** Barres et courbes (WeekBars, PeriodCard, PaceSteps). Rien d'autre ne s'en sert. */
+export const chart = {
+  /** Hauteur de la zone des barres. */
+  bars: 72,
+  /** Hauteur du graphique en marches du débrief. */
+  steps: 160,
+  /** Coin d'une barre : plus petit que `radius.control`, réservé aux graphiques. */
+  barRadius: 6,
+  /** Période sans séance : trait plat. */
+  flat: 3,
+  /** Trait principal (allure) et trait secondaire (moyenne, FC, objectif). */
+  stroke: 2,
+  strokeThin: 1,
+  /** Tirets (moyenne, objectif) et pointillés (FC). */
+  dash: [6, 4],
+  dot: [1.5, 3],
+} as const;
 
 // ─── Mouvement ───────────────────────────────────────────────────────────────
 
@@ -379,6 +405,7 @@ export type Theme = {
   space: typeof space;
   size: typeof size;
   opacity: typeof opacity;
+  chart: typeof chart;
   motion: typeof motion;
 };
 
@@ -395,6 +422,7 @@ export const makeTheme = (scheme: ColorScheme): Theme => ({
   space,
   size,
   opacity,
+  chart,
   motion,
 });
 

@@ -404,9 +404,9 @@ function sessionSummary(session: Session, view: SessionView): string {
 function deriveEffort(
   view: SessionView,
   isStrength: boolean,
-): { level: EffortLevel } | { level: 'neutral'; label: string } {
+): { level: EffortLevel; scale: 'planned' } | { level: 'neutral'; label: string } {
   if (isStrength) return { level: 'neutral', label: 'Renfo' };
   if (!view.avgHr) return { level: 'neutral', label: 'Sans cardio' };
   // Simple heuristic based on session type — the real effort comes from core
-  return { level: 'moderate' };
+  return { level: 'moderate', scale: 'planned' };
 }
