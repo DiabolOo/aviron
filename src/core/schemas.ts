@@ -19,6 +19,11 @@ export const AthleticGoalSchema = z.object({
   weeklySessionsCount: z.number().int().min(1).max(14),
 });
 
+/** Niveau déclaré à l'onboarding (étape 1) : « Je débute · Je cours un peu · Je m'entraîne ». */
+export const DeclaredLevelSchema = z.enum(['beginner', 'regular', 'advanced']);
+/** Équipement déclaré à l'onboarding (étape 2) : montre avec cardio, téléphone, rien. */
+export const EquipmentSchema = z.enum(['hrWatch', 'phone', 'none']);
+
 export const ProfileSchema = z.object({
   firstName: z.string().min(1),
   sex: z.enum(['male', 'female', 'other']).optional(),
@@ -34,6 +39,8 @@ export const ProfileSchema = z.object({
   athleticGoal: AthleticGoalSchema.optional(),
   /** FC max saisie par l'utilisateur — prioritaire sur l'observée et l'estimée */
   maxHr: z.number().int().min(100).max(230).optional(),
+  level: DeclaredLevelSchema.optional(),
+  equipment: EquipmentSchema.optional(),
   calorieTarget: z.number().positive(),
   macrosTarget: MacrosSchema,
 });

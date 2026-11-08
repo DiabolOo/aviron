@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import {
   ActivitySchema,
+  DeclaredLevelSchema,
   InsightSchema,
   ProfileSchema,
   RaceGoalSchema,
@@ -74,7 +75,7 @@ export const AthleteProfileSchema = z.object({
   hasHrDevice: z.boolean().optional(),
   athleticGoal: ProfileSchema.shape.athleticGoal,
   // level (expérience d'entraînement) ≠ activityLevel (dépense quotidienne, pour les calories).
-  level: z.enum(['beginner', 'regular', 'advanced']).default('beginner'),
+  level: DeclaredLevelSchema.default('beginner'),
 });
 
 export type AthleteProfile = z.infer<typeof AthleteProfileSchema>;

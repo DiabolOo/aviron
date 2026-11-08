@@ -16,6 +16,7 @@ import { toISODate } from '@/src/core/dates';
 import { sessionRepere } from '@/src/core/training/hrGuidance';
 import { evaluateInsights, rankInsights } from '@/src/core/training/insights/evaluate';
 import type { InsightContext } from '@/src/core/training/insights/types';
+import { athleteProfileFrom } from '@/src/core/training/level';
 import type { AthleteProfile } from '@/src/core/training/types';
 import type { WorkoutSession as PlannedSession } from '@/src/core/types';
 import { makeStyles, textStyle, useTheme } from '@/src/design';
@@ -240,19 +241,7 @@ export function TodayScreen() {
     [activities, confirmedRaceIds, rejectedRaceIds, raceNames, goal],
   );
 
-  const athleteProfile: AthleteProfile = useMemo(
-    () => ({
-      ageYears: profile.ageYears,
-      sex: profile.sex,
-      weightKg: profile.weightKg,
-      mainSport: profile.mainSport,
-      maxHr: profile.maxHr,
-      hasHrDevice: undefined,
-      athleticGoal: profile.athleticGoal,
-      level: 'beginner',
-    }),
-    [profile],
-  );
+  const athleteProfile: AthleteProfile = useMemo(() => athleteProfileFrom(profile), [profile]);
 
   // ── ligne de repère FC ──
   const repere = useMemo(

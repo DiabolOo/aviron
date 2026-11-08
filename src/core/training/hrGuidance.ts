@@ -15,6 +15,25 @@ function hasHr(a: Activity): boolean {
   return a.avgHr !== undefined && a.avgHr > 0;
 }
 
+function sortedRuns(activities: readonly Activity[], today: string): Activity[] {
+  return activities
+    .filter((a) => a.type === 'run' && a.date <= today)
+    .sort((a, b) => a.date.localeCompare(b.date) || a.startTime.localeCompare(b.startTime));
+}
+
+function lacksHr(runs: readonly Activity[]): boolean {
+  if (runs.length < NO_HR_WINDOW_RUNS) return false;
+  return runs.slice(-NO_HR_WINDOW_RUNS).filter((a) => !hasHr(a)).length >= NO_HR_MIN_MISSING;
+}
+
+/**
+ * Vrai si la FC n'arrive plus : ≥ `NO_HR_MIN_MISSING` des `NO_HR_WINDOW_RUNS` dernières courses sans FC.
+ * Faux si l'historique est trop court. Même règle que `sessionRepere`.
+ */
+export function recentRunsLackHr(activities: readonly Activity[], today: string): boolean {
+  return lacksHr(sortedRuns(activities, today));
+}
+
 /**
  * Ligne de repère pour la SessionCard.
  * - Renvoie un texte si les dernières `NO_HR_WINDOW_RUNS` courses ont ≥ `NO_HR_MIN_MISSING`
@@ -23,15 +42,8 @@ function hasHr(a: Activity): boolean {
  * - Renvoie `undefined` si les données FC sont à jour ou si l'historique est trop court.
  */
 export function sessionRepere(activities: readonly Activity[], today: string): string | undefined {
-  const runs = activities
-    .filter((a) => a.type === 'run' && a.date <= today)
-    .sort((a, b) => a.date.localeCompare(b.date) || a.startTime.localeCompare(b.startTime));
-
-  if (runs.length < NO_HR_WINDOW_RUNS) return undefined;
-
-  const recent = runs.slice(-NO_HR_WINDOW_RUNS);
-  const missingCount = recent.filter((a) => !hasHr(a)).length;
-  if (missingCount < NO_HR_MIN_MISSING) return undefined;
+  const runs = sortedRuns(activities, today);
+  if (!lacksHr(runs)) return undefined;
 
   // Trouver la dernière course qui avait une FC pour le "depuis {mois}"
   const lastWithHr = [...runs].reverse().find(hasHr);

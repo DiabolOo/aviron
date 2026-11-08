@@ -54,6 +54,10 @@ export type NutritionGoal = 'weight_loss' | 'maintenance' | 'muscle_gain';
 
 export type MainSport = 'running' | 'strength' | 'cycling' | 'triathlon' | 'fitness';
 
+export type DeclaredLevel = 'beginner' | 'regular' | 'advanced';
+
+export type Equipment = 'hrWatch' | 'phone' | 'none';
+
 export type UserProfile = {
   firstName: string;
   mainSport?: MainSport;
@@ -67,6 +71,10 @@ export type UserProfile = {
   athleticGoal?: AthleticGoal;
   /** FC max saisie — sinon l'app retombe sur l'observée (12 mois) puis l'estimation par l'âge */
   maxHr?: number;
+  /** Niveau déclaré : fixe les mots et la densité de chiffres (SPEC-v3 « Niveau déclaré ») */
+  level?: DeclaredLevel;
+  /** Équipement déclaré : sans montre avec cardio, aucune consigne en bpm */
+  equipment?: Equipment;
   calorieTarget: number;
   macrosTarget: Omit<Macros, 'calories'> & { calories: number };
   weightKg: number;

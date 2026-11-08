@@ -6,7 +6,10 @@
  * source badge, rôles).
  */
 
+import { formatDuration } from '../../format';
 import type { Activity } from '../../schemas';
+import type { DeclaredLevel } from '../../types';
+import { detailDensity, type DetailDensity } from '../level';
 import {
   activityDurationDisplay,
   activityLayout,
@@ -19,6 +22,7 @@ import {
   formatKm,
   formatKmNumber,
   NBSP,
+  nbspUnits,
   type ActivityLayout,
   type DurationDisplay,
   type EffortPace,
@@ -62,6 +66,8 @@ export type SessionView = {
   sessionId: string;
   sport: Activity['type'];
   layout: ActivityLayout;
+  /** Ce que le niveau déclaré autorise à montrer (les données retirent ensuite ce qui manque). */
+  density: DetailDensity;
 
   /** « Mercredi 20 mai » */
   dateLine: string;
@@ -124,11 +130,17 @@ function timeOfDay(hour: number): string | undefined {
   return undefined;
 }
 
-/** Construit le view-model d'une séance pour l'écran de détail. */
+/**
+ * Construit le view-model d'une séance pour l'écran de détail.
+ * `level` fixe la densité (SPEC-v3 « Niveau déclaré ») : « Je débute » → durée en héros, aucun chiffre
+ * secondaire ; « Je cours un peu » → sans FC ; « Je m'entraîne » → tout ce que les données permettent.
+ */
 export function buildSessionView(
   session: Session,
   activitiesById: ReadonlyMap<string, Activity>,
+  level: DeclaredLevel = 'advanced',
 ): SessionView {
+  const density = detailDensity(level);
   const activities = session.activityIds
     .map((id) => activitiesById.get(id))
     .filter((a): a is Activity => a !== undefined);
@@ -162,14 +174,17 @@ export function buildSessionView(
 
   // ── Allure / vitesse ──────────────────────────────────────────────────
   const distanceKm = session.distanceM !== undefined ? session.distanceM / 1000 : undefined;
-  const pace = activityPace(session.sport, distanceKm, movingSec);
+  const pace = density.pace ? activityPace(session.sport, distanceKm, movingSec) : undefined;
 
-  // ── Héros (selon le sport) ────────────────────────────────────────────
+  // ── Héros (selon le niveau, puis le sport) ────────────────────────────
   let heroValue: string;
   let heroUnit: string | undefined;
   let heroCaption: string | undefined;
 
-  if (layout.showDistance && distanceKm !== undefined && distanceKm > 0) {
+  if (!density.distance) {
+    // « Je débute » : la séance en minutes (`215`)
+    heroValue = nbspUnits(formatDuration(movingSec / 60));
+  } else if (layout.showDistance && distanceKm !== undefined && distanceKm > 0) {
     // Run/walk/ride/swim : allure ou distance en héros
     if (pace) {
       heroValue = pace.value;
@@ -202,11 +217,11 @@ export function buildSessionView(
       }
     }
   }
-  if (session.avgHr !== undefined) {
+  if (density.hr && session.avgHr !== undefined) {
     metrics.push({ label: 'FC moy.', value: `${session.avgHr}`, unit: 'bpm' });
   }
   const maxHr = Math.max(...activities.map((a) => a.maxHr ?? 0));
-  if (maxHr > 0) {
+  if (density.hr && maxHr > 0) {
     metrics.push({ label: 'FC max', value: `${maxHr}`, unit: 'bpm' });
   }
 
@@ -220,9 +235,9 @@ export function buildSessionView(
       role,
       roleLabel: role ? ROLE_LABELS[role] : undefined,
       name: displayActivityName(a.name),
-      distanceLabel: a.distanceKm !== undefined ? formatKm(a.distanceKm) : undefined,
+      distanceLabel: density.distance && a.distanceKm !== undefined ? formatKm(a.distanceKm) : undefined,
       durationLabel: aDur.main,
-      paceLabel: aPace ? `${aPace.value}${NBSP}${aPace.unit}` : undefined,
+      paceLabel: density.pace && aPace ? `${aPace.value}${NBSP}${aPace.unit}` : undefined,
     };
   });
 
@@ -230,6 +245,7 @@ export function buildSessionView(
     sessionId: session.id,
     sport: session.sport,
     layout,
+    density,
     dateLine,
     timeLine,
     groupLabel,
