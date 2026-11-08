@@ -8,9 +8,11 @@ PulseFit est une app mobile « agent-first » : l'utilisateur exprime une intent
 Stack : Expo SDK 58, Expo Router, TypeScript strict, Zustand ; styles en `StyleSheet` dérivés des tokens de `src/design/`, **sans NativeWind** (ADR-011). Backend prévu : Supabase (UE) — pas avant le jalon 5.
 
 ## Refonte v3.1 (branche `refonte`, état de départ : tag `pre-v3`)
-- **Navigation : 4 onglets** `Aujourd'hui · Semaine · Coach · Progrès`, profil dans un Stack hors onglets ouvert par l'avatar (ADR-012). Jamais de 5e onglet.
+- **Maquettes de référence : `docs/maquettes/v3.4/`** (planche de direction `001`, écrans `102` à `216`, clair et sombre). **On fait tout comme les écrans des maquettes** : la capture fait foi, sur le contenu, l'ordre, les mots et la navigation. Un point non maquetté va dans `docs/questions.md` (Q1 à Q6 déjà tranchées). Correspondance fichier → écran : `docs/SPEC-v3.md`.
+- **Navigation : 4 onglets** `Aujourd'hui · Semaine · Coach · Progrès`, profil hors onglets ouvert par l'avatar (ADR-012). Jamais de 5e onglet. Amendement v3.4 **accepté** : détail d'une séance, semaine passée et débrief empilés dans l'onglet (barre visible), débrief ouvert depuis Progrès › Tes semis, profil en modale.
+- **Niveau déclaré** (« Je débute · Je cours un peu · Je m'entraîne », onboarding étape 1) : il fixe les mots et la densité de chiffres, les données ne font que retirer ce qu'on ne peut pas savoir. Textes produits par `src/core/` (SPEC-v3 « Niveau déclaré »).
 - **Bêta limitée au sport.** Nutrition, scan d'assiette, module Objectifs et Forme : interface supprimée (récupérable depuis `pre-v3`) ; la couche données (`src/data`, store) reste et les modules sont désactivés par défaut.
-- **Ordre de la refonte** : (1) coquille de navigation → (2) composants de `docs/SPEC-v3.md` → (3) `groupSessions` et source des activités (ADR-013) dans `src/core/` → (4) les écrans. Ne pas commencer une étape avant la fin de la précédente.
+- **Ordre de la refonte** : (1) coquille de navigation → (2) composants de `docs/SPEC-v3.md` → (3) `groupSessions` et source des activités (ADR-013) dans `src/core/` → (4) les écrans. Ne pas commencer une étape avant la fin de la précédente. Étapes 1 à 3 livrées ; étape 4 en cours (Coach en premier passage).
 - Spécification des composants : `docs/SPEC-v3.md`. Tokens : `src/design/theme.ts`.
 
 ## Commandes
@@ -25,6 +27,7 @@ src/agent/    client de la passerelle LLM, routeur de modèles, prompts versionn
 src/data/     repositories (interfaces) + adaptateurs mock / local / Supabase
 src/design/   tokens v3.1 (theme.ts), useTheme, makeStyles, polices — seule source de valeurs de style
 src/ui/       composants partagés (CoachCard, HeroMetric, SessionCard, ProposalCard…) et hooks d'UI
+src/screens/  un dossier par écran (today, coach, activity…) : assemblage, logique d'écran testée
 app/          routes Expo Router (fines : elles assemblent les modules) — structure dans ADR-012
 evals/        jeux de cas pour mesurer les sorties d'IA
 docs/adr/     décisions d'architecture

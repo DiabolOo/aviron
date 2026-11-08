@@ -1,8 +1,10 @@
-# 🗺️ PulseFit — Feuille de route v2 (agent-first & modulaire)
+# 🗺️ PulseFit — Feuille de route (agent-first & modulaire)
 
-> **Objectif final** : un **Life OS** (sport, nutrition, sommeil, agenda, objectifs, habitudes) piloté par des agents.
-> **Principe** : l'utilisateur exprime une *intention* (texte ou voix), les agents préparent, l'utilisateur **valide en 1 tap**.
-> **MVP (v1.0)** : « Coach endurance IA » = plan d'entraînement généré par intention + brief quotidien + nutrition adaptée + scan d'assiette.
+> **Objectif final** : un **Life OS** (sport, nutrition, sommeil, agenda, objectifs, habitudes) piloté par un coach.
+> **Principe** : l'utilisateur exprime une *intention* (texte ou voix), le coach prépare, l'utilisateur **valide en 1 tap**.
+> **Direction v3.1 « Phrase d'abord, chiffre ensuite »** : chaque écran commence par ce que les données veulent dire. Maquettes de référence : `docs/maquettes/v3.4/` (la capture fait foi), spécification : `docs/SPEC-v3.md`.
+> **Bêta (en cours)** : un **coach de course à pied** — séance du jour validée en maintenant la carte, semaine prévue et faite, détail et débrief des séances, propositions du coach, progrès. Le **niveau déclaré** (« Je débute · Je cours un peu · Je m'entraîne ») règle les mots et la densité de chiffres ; le coach IA est optionnel (niveau 2, accord explicite).
+> **MVP (v1.0)** : « Coach endurance IA » = plan par intention + brief quotidien ; nutrition et scan d'assiette viennent après la bêta.
 > Le reste du Life OS se branche ensuite **sans refonte**, via des modules.
 
 ## Comment utiliser ce fichier
@@ -26,9 +28,9 @@
 ## Principes produit « anti-cliquodrome »
 1. **Confirmer plutôt que saisir** : l'app propose, l'utilisateur valide.
 2. **Inférer avant de demander** : forme, temps disponible, repas habituels sont déduits des données ; on ne pose pas la question.
-3. **Une seule porte vers l'IA** : la barre de commande de l'onglet Agent (texte ou dictée) est le **seul** champ de saisie libre ; les autres écrans ont des boutons contextuels (« Modifier avec l'Agent ») qui l'ouvrent avec le contexte.
-4. **Budget de taps** : valider une séance ≤ 1 · logger un repas habituel ≤ 2 · logger par photo ≤ 3 · planifier une semaine = 1 phrase.
-5. **Chaque écran répond à « que dois-je faire maintenant ? »** avant de montrer des chiffres, et **annonce son rôle en une phrase** sous son titre (Ma semaine : ce que tu vas faire · Mon journal : ce que tu as fait · Ma progression : où tu en es).
+3. **Une seule porte vers l'IA** : la saisie de l'onglet Coach (« Demande à ton coach… », texte ou dictée) est le **seul** champ de saisie libre ; ailleurs, « Modifier » ou « J'ai couru sans montre » ouvrent le Coach avec le contexte.
+4. **Budget de taps** : valider une séance = 1 maintien (+ 1 tap de ressenti) · valider une proposition = 1 tap · planifier une semaine = 1 phrase.
+5. **Chaque écran répond à « que dois-je faire maintenant ? »** avant de montrer des chiffres, et **annonce son rôle en une phrase** sous son titre (Semaine : « Prévu et fait, jour par jour. » · Coach : « Tu demandes, il prépare, tu valides. » · Progrès : « Où tu en es, sur la durée. »).
 6. **Une donnée = un endroit** : pas d'information affichée deux fois sur le même écran.
 7. **Tout score ou conseil est explicable** (« Pourquoi ? » en un tap) ; pas de nombre magique.
 8. **Notifications actionnables** (valider, reporter) plutôt que « ouvre l'app ».
@@ -56,10 +58,9 @@ docs/adr/      # décisions d'architecture
 export interface LifeModule {
   id: string;                      // 'sport' | 'nutrition' | 'sleep' | 'calendar' | 'goals' …
   entities: ZodTypeAny[];          // schémas des données du module
-  todayWidgets: TodayWidget[];     // cartes proposées dans « Accueil »
-  planSection?: PlanSection;       // section du « Plan » (Sport : semaine ; Nutrition : cibles + repas)
-  trackSection?: TrackSection;     // vue du « Suivi » (journal, historique)
-  statsCards: StatsCard[];         // cartes de l'onglet « Stats » (tendances)
+  todayWidgets: TodayWidget[];     // cartes proposées dans « Aujourd'hui »
+  week?: Dashboard[];              // sections de « Semaine » (prévu et fait, jour par jour)
+  progress?: Dashboard[];          // cartes de « Progrès » (tendances, courses)
   settings?: ModuleSettings;       // réglages dans Profil › Modules
   agentTools: AgentTool[];         // outils que l'agent peut appeler (lecture libre, écriture via Proposal)
   analyzers: Analyzer[];           // jobs quotidiens / hebdo qui produisent des Insights
@@ -70,6 +71,7 @@ export interface LifeModule {
 
 **Navigation cible (ADR-012, remplace l'ADR-002)** : `Aujourd'hui · Semaine · Coach · Progrès`, quatre onglets au maximum. Le **profil** est un Stack hors onglets, ouvert par l'**avatar** d'Aujourd'hui. Le détail d'une séance (`activity/[id]`) porte aussi le débrief de course.
 - Rôles : Aujourd'hui = maintenant · Semaine = la semaine, prévue et faite · Coach = aide, seule saisie libre vers l'IA · Progrès = tendances et courses.
+- **Amendement maquettes v3.4 (accepté le 2026-11-08, ADR-012)** — on fait tout comme les écrans des maquettes : le détail d'une séance, la semaine passée et le débrief de course s'empilent **dans l'onglet** (barre d'onglets visible) ; le débrief « Ta course en trois temps » redevient un écran (ouvert directement depuis Progrès › Tes semis) ; le profil s'ouvre en **modale** (« Fermer ») avec Données et Réglages ; l'onboarding tient en 4 questions (niveau, équipement, objectif, accompagnement).
 - **Modules activables** (Profil › Modules) : ils ajoutent des sections dans Semaine ou Progrès, sans sélecteur à l'écran ni onglet. En bêta, seul **Sport** est actif ; Nutrition est désactivé par défaut, Objectifs et Forme n'ont plus d'interface.
 
 ## Vue d'ensemble
@@ -90,7 +92,7 @@ export interface LifeModule {
 | 11 | Monétisation : paywall & essai 7 jours | ⏳ |
 | 12 | Qualité, béta & lancement v1.0 | ⏳ |
 | 13 | Planning & agenda | ⏳ |
-| 14 | Objectifs court / long terme (onglet Objectifs de Plan / Suivi) | ⏳ |
+| 14 | Objectifs court / long terme (sections de Semaine et Progrès) | ⏳ |
 | 15 | Habitudes & streaks | ⏳ |
 | 16 | Sommeil & énergie v2 | ⏳ |
 | 17 | Productivité (tâches, Pomodoro, dictée de journée) | ⏳ |
@@ -99,7 +101,7 @@ export interface LifeModule {
 
 **🎯 Voie MVP (chemin critique, voir section dédiée)** : M1 Moteur d'analyse ✅ · M2 Écran d'analyse sur données réelles 🔧 · M3 Coach IA ⏳ (🚪 porte 1) · M4 Données testeurs ⏳ · M5 Profils, consentements, programmes sans IA ⏳ (🚪 porte 2) · M6 Bêta privée ⏳ (🚪 porte 3).
 
-**🎨 Refonte v3.1 (branche `refonte`, voir section dédiée)** : coquille ✅ · composants ✅ · `groupSessions` et source ✅ · écrans ⏳. Bêta limitée au sport.
+**🎨 Refonte v3.1 (branche `refonte`, voir section dédiée)** : coquille ✅ · composants ✅ (à compléter pour les maquettes v3.4) · `groupSessions` et source ✅ · écrans 🔧. Bêta limitée au sport.
 
 **Correspondance avec l'ancienne roadmap** : ancien J3 → J5 · J4 → J7 · J5 → J8 · J6 → J11 · J7 → J9 · J8 → J9 (objectif de course) · J9 → J10 · J10 → J12 · J11 → J14/J15 · J12 → J18 · J13 → J16 · J14 → J17.
 
@@ -108,7 +110,8 @@ export interface LifeModule {
 # 🎨 Refonte v3.1 — « Phrase d'abord, chiffre ensuite »
 
 > Branche `refonte`, état de départ figé par le tag `pre-v3`. Spécification : `docs/SPEC-v3.md`. Tokens : `src/design/theme.ts`.
-> Décisions : ADR-011 (styles sans NativeWind), ADR-012 (navigation à 4 onglets), ADR-013 (source des activités et IA).
+> **Maquettes : `docs/maquettes/v3.4/`** (planche de direction `001`, écrans `102` à `216`, clair et sombre). **On fait tout comme les écrans des maquettes** ; les points non maquettés sont tranchés dans `docs/questions.md` (Q1 à Q6).
+> Décisions : ADR-011 (styles sans NativeWind), ADR-012 (navigation à 4 onglets, amendement v3.4 accepté), ADR-013 (source des activités et IA).
 > **Bêta limitée au sport.** Nutrition, scan d'assiette, module Objectifs et Forme : interface supprimée (récupérable depuis `pre-v3`), couche données conservée, modules désactivés par défaut.
 > **Ordre imposé** : on ne commence une étape qu'une fois la précédente terminée (typecheck, lint, tests verts).
 
@@ -120,20 +123,30 @@ export interface LifeModule {
    - [x] Routes et TabBar
    - [x] Écrans supprimés retirés des routes (ancien code conservé et compilable) ; modules nutrition, Objectifs et Forme désactivés par défaut
 3. **Composants** (`docs/SPEC-v3.md`), chacun avec ses états, son accessibilité et le texte agrandi
-   - [ ] `CoachCard` · [ ] `HeroMetric` · [ ] `SessionCard` · [ ] `EffortPill` · [ ] `ProposalCard` · [ ] `EmptyState`
+   - [x] `CoachCard` · [x] `HeroMetric` · [x] `SessionCard` · [x] `EffortPill` · [x] `ProposalCard` · [x] `EmptyState` (journal du 2026-11-04)
    - [ ] Galerie de dev des composants (relecture visuelle humaine)
+   - [ ] Écarts avec les maquettes v3.4 (SPEC-v3 §1 à §6) : `EffortPill` échelle prévue « Facile · Soutenu · Intense » ; question de `CoachCard` qui garde la puce choisie au lieu de se replier ; libellés débutant de `SessionCard` (« Plus tard ») et ressenti après maintien
+   - [ ] Composants complémentaires (SPEC-v3 §7) : `BackHeader`, `ScreenHeader`, `SourceChip`, `WeekList`, `PastWeekRow`, `DayDots`, `WeekBars`, `PeriodCard`, `SegmentedControl`, `RaceList`, `PaceSteps`, `NumberedList`, `OptionCard`, `StepHeader`, `ConsentBlock`, `SettingsGroup`, ajoutés à la galerie
 4. **`groupSessions` et source des activités** (`src/core/`, testés)
    - [x] `groupSessions(activities, overrides)` : règle v1 (même sport, écart ≤ 15 min, même jour, ≤ 4 h), rôles, overrides `split` / `merge` / `role` ; vérifier le seuil de 15 min sur l'export réel avant de le figer
    - [x] ADR-013 : `source` et `aiEligible` sur `Activity`, déduplication en faveur de la source non-Strava, `AthleteSummary` sans activité non éligible ni ses agrégats (séances mixtes exclues), champ `device`
    - [ ] Jeux synthétiques versionnés dans `fixtures/synthetic/` (débutant, coureur du dimanche, sportif équipé ; aucune donnée réelle), base de développement de M3
-5. **Écrans** : Aujourd'hui → Semaine → détail d'activité (avec le débrief de course) → Coach, puis Progrès, Profil et onboarding (maquettes à produire)
-   - [ ] Aujourd'hui · [ ] Semaine · [ ] Détail d'activité · [ ] Coach · [ ] Progrès · [ ] Profil · [ ] Onboarding
-   - [ ] Onboarding v3.2 : remplace l'actuel. Sexe, taille, poids, objectif de poids et niveau d'activité ne sont plus demandés ; l'âge reste, facultatif, pour l'estimation de la FC max
-   - [ ] Profil › objectifs : ne garde que l'objectif sportif (plus de poids, rythme ni calories)
-   - [ ] Profil › Modules : revoir le texte de la page (il évoque encore les sélecteurs de Plan et Suivi)
-   - [ ] Profil › Données : export et suppression des données (droits RGPD, **obligatoires avant la bêta**)
+5. **Écrans** (SPEC-v3, « Écrans ») : Aujourd'hui → Semaine → détail d'une séance → Coach, puis Progrès et débrief, Profil, onboarding. Toutes les maquettes existent (`docs/maquettes/v3.4/`).
+   - [ ] **Niveau déclaré** dans `src/core/` : `AthleteProfile.level` (`beginner | regular | advanced`, existe déjà) et `hasHrDevice` réglés par l'onboarding, textes d'intensité et choix du héros par niveau (SPEC-v3 « Niveau déclaré »), consigne sans bpm quand il n'y a pas de cardio ; testé
+   - [ ] **Routes selon l'amendement de l'ADR-012** : détail, semaine passée et débrief empilés dans l'onglet, profil en modale ; `openActivity`, `openWeek`, `openDebrief` dans `src/ui/nav.ts`
+   - [ ] **Aujourd'hui** (`102`, `105`) : surtitre date · phase, « Bonjour, prénom », avatar ; séance du jour ; proposition compacte ou parole du coach ; carte « Ta semaine » du débutant
+   - [ ] **Semaine** (`104`, `215`) : période et objectif (J-n), sept jours, ligne du jour, proposition en attente en indigo, validés avec ressenti pour le débutant ; « Avant » avec les semaines passées
+   - [ ] **Semaine passée** (`109`) : sept jours en cercles, contenu ou `EmptyState noImport` + parole du coach
+   - [ ] **Détail d'une séance** (`106`, `107`, `108`, `215`) : `SourceChip`, héros choisi par core, trois temps / quatre quarts / zone travaillée / ressenti, « Séparer »
+   - [ ] **Coach** (`103`, `214`) : à décider, fil, proposition à plusieurs lignes avec question obligatoire, « Appliqué » + « Voir la semaine », bandeau « Plan modifié · Annuler », historique — _premier passage livré le 2026-11-08, à vérifier contre `214`_
+   - [ ] **Progrès** (`211`) : Semaine · Mois · Année, période avec héros et barres, régularité, « Tes semis » et record ; sous le seuil : « Ta progression arrive. » et « Déjà fait »
+   - [ ] **Débrief de course** (`212`) : « Ta course en trois temps », graphique en marches (allure, FC, objectif), trois temps commentés, « La prochaine fois » / « Pour ton objectif »
+   - [ ] **Profil** (`213`) en modale : Toi (niveau, équipement avec alerte, objectif), Personnalisation (niveau choisi, analyser mes séances, envoyer un résumé à l'IA avec date d'accord), Données, Réglages (apparence, modules)
+   - [ ] **Profil › Données** (`213`) : sources et volume, ce qui manque, bascule « Regrouper les séances », export JSON, suppression (droits RGPD, **obligatoires avant la bêta**)
+   - [ ] **Profil › Réglages** : apparence et Modules (non maquetté ; revoir le texte de Modules qui évoque encore Plan et Suivi)
+   - [ ] **Onboarding** (`210`, `216`) : remplace l'actuel, quatre questions — niveau, équipement, objectif (temps visé et date pour une course), accompagnement (niveaux 0 / 1 / 2, accord IA obligatoire pour le niveau 2, encadré Strava). Sexe, taille, poids, objectif de poids, niveau d'activité et âge ne sont plus demandés
    - [ ] `eslint-rules/legacy-exceptions.js` vide, puis retrait de NativeWind, Tailwind, `global.css` et des anciens tokens
-- **DoD** : les 4 onglets et le détail d'activité suivent la SPEC ; aucune exception ESLint restante ; NativeWind retiré ; aucune activité Strava ni agrégat Strava dans un résumé IA (test).
+- **DoD** : chaque écran ci-dessus correspond à sa maquette v3.4 en clair et en sombre (relecture humaine sur appareil) ; texte agrandi à 1,3 vérifié ; aucune exception ESLint restante ; NativeWind retiré ; aucune activité Strava ni agrégat Strava dans un résumé IA (test).
 
 ---
 
@@ -244,10 +257,10 @@ Aux niveaux 0 et 1, **aucune donnée d'activité ne quitte le téléphone**. Le 
 
 ## Jalon M5 — Profils, consentements, programmes sans IA ⏳ (5 jours, parallèle de M4) — 🚪 Porte 2
 > Allège J2/J5/J9 : tout fonctionne sans IA ni compte.
-- [ ] Bloc « Sport » dans l'onboarding : sports, niveau, objectif (me mettre au sport, 5 km, 10 km, semi, forme générale, muscu), jours disponibles, durée par séance, montre ou non ; rappel « consulte un médecin en cas de doute » pour les débutants
-- [ ] Écran de consentement aux 3 niveaux, **versionné et horodaté**, modifiable dans Profil (table `consents` en M6)
+- [ ] Onboarding en 4 questions (maquette `210`) : niveau (« Je débute · Je cours un peu · Je m'entraîne »), équipement (montre avec cardio, téléphone, rien), objectif (semi, 10 km, courir 5 km sans m'arrêter, courir plus régulièrement ; temps visé et date pour une course), accompagnement ; rappel « consulte un médecin en cas de doute » pour les débutants. Jours disponibles et durée par séance ne sont pas demandés : déduits de l'historique ou dits au Coach (Q5)
+- [ ] Consentement aux 3 niveaux = étape 4 de l'onboarding (« Avec mon profil · Avec mes séances · Avec un coach IA », accord « J'accepte cet envoi »), **versionné et horodaté**, modifiable dans Profil › Personnalisation (table `consents` en M6)
 - [ ] Bibliothèque de programmes JSON : Débuter (marche/course, 8 sem.), 5 km, 10 km, semi 12 sem., reprise après coupure, renforcement 2×/sem.
-- [ ] Générateur déterministe (`src/core/training/programs/`) : choix du modèle et du calibre selon volume déclaré ou mesuré + jours dispos → affiché dans Plan
+- [ ] Générateur déterministe (`src/core/training/programs/`) : choix du modèle et du calibre selon volume déclaré ou mesuré + jours dispos → affiché dans Semaine
 - [ ] Règles d'ajustement : +10 % de volume max/sem., séance manquée décalée, semaine allégée toutes les 3–4 sem.
 - [ ] Check-in hebdo niveau 0 en 3 taps : séances faites, fatigue 1–5, envie de continuer
 - **Fini quand** un débutant sans données et un sportif équipé obtiennent chacun un plan qui leur parle. **Porte 2.**
@@ -454,16 +467,16 @@ Aux niveaux 0 et 1, **aucune donnée d'activité ne quitte le téléphone**. Le 
 ---
 
 # Phase 2 — Life OS (modules)
-> Chaque jalon = un module qui s'enregistre via `LifeModule` : cartes dans *Accueil*, section dans *Plan*, vue dans *Suivi*, cartes de tendances dans *Stats*, outils pour l'agent, analyseurs quotidiens / hebdo. **Aucun nouvel onglet.**
+> Chaque jalon = un module qui s'enregistre via `LifeModule` : cartes dans *Aujourd'hui*, sections dans *Semaine*, cartes de tendances dans *Progrès*, outils pour le coach, analyseurs quotidiens / hebdo. **Aucun nouvel onglet.**
 
 ## Jalon 13 — Planning & agenda ⏳
-- [ ] Entité `CalendarEvent`, section Agenda dans *Plan* (semaine / mois)
+- [ ] Entité `CalendarEvent`, section Agenda dans *Semaine*
 - [ ] Import du calendrier en lecture seule (Apple / Google)
 - [ ] **Time-blocking par l'agent** : « place mes 4 séances autour de mon agenda » → `Proposal`
 - [ ] Détection de conflits ; disponibilités injectées dans le coach (J9)
 
 ## Jalon 14 — Objectifs court / long terme ⏳
-- [ ] Écrans **Plan › Objectifs** et **Suivi › Objectifs** (progression par objectif) ; l'onglet existe déjà dans les sélecteurs, désactivé tant que le module n'est pas lancé
+- [ ] Sections **Objectifs** dans Semaine et Progrès (progression par objectif) ; le module existe, désactivé par défaut, sans interface depuis la refonte v3.1
 - [ ] `Goal` (court / long terme) avec jalons et tâches
 - [ ] Dictée : « je veux courir mon premier marathon d'ici avril » → décomposition en étapes et tâches (`Proposal`)
 - [ ] Revue hebdo des objectifs ; liens avec agenda et plan d'entraînement
@@ -583,9 +596,12 @@ Aux niveaux 0 et 1, **aucune donnée d'activité ne quitte le téléphone**. Le 
 | 2026-11-04 | Refonte v3.1, étape 3 — composants SPEC-v3 : `EffortPill` · `HeroMetric` · `CoachCard` · `SessionCard` · `ProposalCard` · `EmptyState` · `UndoToast` · `useDelayedSkeleton` ; galerie de dev ; `'ok'` → `'moderate'` partout (EffortPill, gallery, SPEC-v3, ADR-013) |
 | 2026-11-04 | Refonte v3.1, étape 4 — `groupSessions` et source des activités (ADR-013) : `ActivitySchema.source` requis (enum 8 valeurs), `aiEligible` requis, `device` optionnel ; `dedupeActivities` (priorité par source, départage par données) ; `aiEligibleView` ; `sourceFromHealthKit` (liste blanche bundle ids) ; `groupSessions` (règle v1 : même sport, ≤ 15 min, même jour, ≤ 4 h, chaîné, overrides split/merge/role, neverGroup) ; `resolveSession` ; `scripts/check-sessions.ts` ; ADR-013 amendée (liste blanche HealthKit, priorités, copie Strava) ; SPEC-v3 complétée (overrides, identifiant stable) |
 
-## ▶️ Prochaine étape
 | 2026-11-08 | Refonte v3.1, étape 5 — écran Coach : `src/screens/coach/` (conversation, `coachEngine`, `coachFlow`, bandeau Annuler), `Composer`, `UserBubble`, `Chip` ; accord IA `aiConsent` (faux par défaut) ; repli moteur annoncé ; question obligatoire et jours indisponibles ; CommandBar, `proposals/*`, Rise, ScreenTitle retirés (−5 exceptions ESLint) ; tests 760 → 796 |
+| 2026-11-08 | Documentation alignée sur les maquettes v3.4 (`docs/maquettes/v3.4/`) : ROADMAP (description de la bêta, principes, tâches d'écrans et d'onboarding), SPEC-v3 (direction, niveau déclaré, deux échelles d'effort, composants mis à jour et complémentaires, section « Écrans »), amendement **proposé** de l'ADR-012 (détail, semaine passée et débrief dans l'onglet, débrief à part, profil en modale, onboarding en 4 questions), AGENTS.md, `.windsurfrules` ; écarts dans `docs/questions.md` ; aucun code modifié |
+| 2026-11-08 | Décision : « tout faire comme les écrans des maquettes ». Amendement v3.4 de l'ADR-012 accepté ; Q1 à Q6 répondues dans le sens des captures (débrief ouvert depuis Tes semis, pas de source sur le détail sauf texte IA, « — » permis dans les graphiques, onboarding sans âge ni jours, séance prévue non touchable dans Semaine) ; SPEC-v3, AGENTS.md et `.windsurfrules` mis à jour |
 
-**Refonte v3.1, étape 5 : écrans** (`Aujourd'hui`, `Semaine`, détail d'activité, `Coach`, `Progrès`, `Profil`, onboarding) sur la branche `refonte`.
+## ▶️ Prochaine étape
 
-En parallèle (hors code) : faire valider juridiquement la lecture des conditions Strava (ADR-013) avant M6 ; maquetter Progrès, Profil et onboarding.
+**Refonte v3.1, étape 5 : écrans** exactement comme `docs/maquettes/v3.4/`, sur la branche `refonte` : routes de l'amendement de l'ADR-012, niveau déclaré dans `src/core/`, écarts des composants et composants complémentaires, puis les écrans dans l'ordre de la section Refonte.
+
+En parallèle (hors code) : faire valider juridiquement la lecture des conditions Strava (ADR-013) avant M6 ; maquetter Réglages, Modules et l'historique du Coach.

@@ -1,5 +1,8 @@
 # UX v2 — ce qui change par rapport au premier thème Aurore
 
+> ⚠️ **Obsolète — archive du Jalon 4.** Remplacé par la refonte v3.1 : `docs/SPEC-v3.md`,
+> maquettes `docs/maquettes/v3.4/`, ADR-012.
+
 Ce document ne liste que les **différences** entre le premier Aurore (5 onglets `Accueil · Plan · Agent · Suivi · Moi`, Plan = sport seul, Suivi = `Nutrition | Sport`) et la version actuelle de la maquette. Les tokens, la typographie, la carte « maintenir pour valider » et le mode sombre ne changent pas : voir `UX-V2.md` §12.
 
 Maquette : canvas « PulseFit — Refonte visuelle » (un jeu d'écrans clair, un jeu sombre).

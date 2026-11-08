@@ -1,7 +1,7 @@
 # ADR-012 — Navigation v3.1 : `Aujourd'hui · Semaine · Coach · Progrès`
 
 - **Date** : 2026-11-04
-- **Statut** : Accepté
+- **Statut** : Accepté — amendé le 2026-11-08 (maquettes v3.4, voir la fin du document)
 - **Décideur** : Julien (propriétaire produit)
 - **Remplace** : ADR-002 (navigation v2)
 
@@ -137,3 +137,116 @@ app/
   avant d'être codés, ou dérivés strictement des composants de la SPEC.
 - **Ordre de mise en œuvre** (ROADMAP, Refonte v3.1) : coquille de navigation, composants,
   `groupSessions` et source des activités (ADR-013), puis les écrans.
+
+---
+
+## Amendement — maquettes v3.4 (2026-11-08)
+
+- **Statut** : Accepté le 2026-11-08 (« tout faire comme les écrans des maquettes », `docs/questions.md` Q1).
+- **Source** : `docs/maquettes/v3.4/*.png` (planche de direction `001` et écrans `102` à `216`).
+  **La capture fait foi** ; les points non maquettés sont tranchés dans `docs/questions.md`.
+
+Les quatre onglets, leur ordre, leurs icônes (soleil, calendrier, étincelle, barres) et le profil
+hors onglets ne changent pas. Les maquettes précisent en revanche cinq points que la décision
+initiale laissait ouverts ou tranchait autrement.
+
+### 1. La barre d'onglets reste visible dans le détail d'une séance
+
+Dans les maquettes `106`, `107`, `108` et `215`, le détail d'une séance s'ouvre avec un retour
+« ‹ Semaine » **et la barre d'onglets visible**, onglet Semaine actif. Le débrief de course (`212`)
+garde de même l'onglet Progrès actif. Le détail n'est donc plus une route du Stack racine : il est
+empilé **dans l'onglet d'où on l'ouvre**.
+
+Structure retenue (routes partagées d'Expo Router ; les noms de fichiers peuvent s'ajuster à
+l'implémentation, pas le comportement) :
+
+```
+app/
+  _layout.tsx                       Stack racine : polices, démarrage, onboarding protégé, profil
+  (tabs)/
+    _layout.tsx                     Tabs : 4 onglets, TabBar v3.1
+    index.tsx                       Aujourd'hui
+    coach.tsx                       Coach
+    (semaine,progres)/
+      _layout.tsx                   Stack de l'onglet (un par groupe)
+      activity/[id].tsx             Détail d'une séance (id = Session.id)
+      activity/[id]/debrief.tsx     Débrief de course « Ta course en trois temps »
+    (semaine)/semaine.tsx           Semaine en cours
+    (semaine)/week/[start].tsx      Semaine passée (retour « ‹ Cette semaine »)
+    (progres)/progres.tsx           Progrès
+  profile/                          Stack présenté en modale (voir point 4)
+  onboarding/index.tsx
+  (dev)/gallery.tsx
+```
+
+- `activity/[id]` reste résolu vers la séance qui contient une activité (liens existants intacts).
+- Aujourd'hui n'ouvre pas de détail dans les maquettes ; s'il en ouvre un plus tard, il passera par
+  l'onglet Semaine.
+
+### 2. Les semaines passées : un écran empilé dans Semaine
+
+`104` liste, sous « Avant », les semaines précédentes (période, une ligne de résumé, chevron). Le
+toucher ouvre la **semaine passée** (`109`) : titre de période, sept jours en cercles, puis le contenu
+de la semaine ou `EmptyState noImport` (« J'ai couru sans montre » / « C'était une pause »). Cela
+remplace « chevrons ou balayage » de la décision initiale. Le retour s'intitule « ‹ Cette semaine ».
+
+### 3. Le débrief de course redevient un écran à part
+
+La décision initiale fondait le débrief dans le détail d'activité. Les maquettes séparent :
+
+- **Détail d'une course** (`107`) : temps officiel en héros, verdict du coach, « Ta course en quatre
+  quarts » (barres d'allure), question de ressenti si la course n'a pas de cardio.
+- **Débrief** (`212`) : « Ta course en trois temps » (départ, milieu, final), graphique d'allure en
+  marches, FC en pointillé quand elle existe, objectif en tirets, carte « La prochaine fois » ou
+  « Pour ton 1h45 ». Il s'ouvre **directement** depuis une ligne de Progrès › Tes semis ; le retour
+  porte le nom de la course (« ‹ Semi de Reims ») et ramène à Progrès. Le détail `107` n'a pas de
+  lien vers le débrief (Q2).
+
+La route est `activity/[id]/debrief`, pas le retour de `/race/[id]` : un seul identifiant (la
+séance), une seule source de données.
+
+### 4. Le profil s'ouvre en modale, et ses sous-écrans changent
+
+`213` montre le profil avec « Fermer » en haut à droite : le Stack `profile/` est présenté en
+**modale** depuis l'avatar ; ses sous-écrans se poussent dedans avec « ‹ Profil ».
+
+| Section du profil (`213`) | Ligne | Ouvre |
+|---|---|---|
+| Toi | Niveau · Équipement · Objectif | Écran de choix, mêmes options que l'onboarding |
+| Personnalisation | Niveau choisi (« Avec un coach IA ») | Écran de choix, mêmes options que l'onboarding |
+| Personnalisation | « Analyser mes séances » · « Envoyer un résumé à l'IA » | Bascules sur place (accord daté) |
+| — | Données | `profile/donnees` |
+| — | Réglages (« Apparence, modules ») | `profile/reglages` (apparence, puis Modules) |
+
+- `connexions` disparaît comme section : l'équipement et la source des séances se règlent dans
+  Équipement ; « Connecter COROS, Garmin ou Apple Santé » est un lien (`216`).
+- **Données** (`213`) : sources et volume (« Strava · 166 activités · Jamais envoyées à l'IA »),
+  ce qui manque, bascule **« Regrouper les séances »** (remplace « Ne jamais regrouper », sens
+  inversé, même effet), « Exporter mes données » (JSON : activités, plan, réglages, consentements),
+  « Supprimer mes données » (lien rouge, confirmation).
+
+### 5. L'onboarding tient en quatre questions
+
+`210` et `216` : quatre étapes « N sur 4 » avec barre segmentée et retour à partir de la deuxième.
+
+1. **Où en es-tu avec la course ?** Je débute · Je cours un peu · Je m'entraîne (le **niveau
+   déclaré**, qui règle les mots et la densité de chiffres, SPEC-v3 « Niveau déclaré »).
+2. **Tu cours avec quoi ?** Une montre avec cardio · Mon téléphone · Rien pour l'instant.
+3. **Qu'est-ce que tu vises ?** Un semi-marathon · Un 10 km · Courir 5 km sans m'arrêter · Courir
+   plus régulièrement ; pour une course : temps visé et date.
+4. **Jusqu'où je t'accompagne ?** Avec mon profil (niveau 0) · Avec mes séances (niveau 1) · Avec
+   un coach IA (niveau 2, bascule « J'accepte cet envoi » obligatoire pour continuer). Si les
+   séances arrivent par Strava, un encadré le dit et l'option IA ne parle que des séances COROS,
+   Garmin ou Apple Santé (ADR-013).
+
+Âge, sexe, taille, poids et jours disponibles ne sont plus demandés, ni à l'onboarding ni dans
+Profil (Q5) : FC max observée ; jours disponibles déduits de l'historique ou dits au Coach.
+
+### Conséquences de l'amendement
+
+- `app/activity/[id].tsx` se déplace sous `(tabs)` ; le Stack racine ne garde que `(tabs)`,
+  `profile` (modale), `onboarding` et `(dev)`.
+- `src/ui/nav.ts` : `openActivity` pousse dans l'onglet courant ; ajout de `openWeek(start)` et
+  `openDebrief(sessionId)`.
+- « Écrans sans maquette » (ci-dessus) n'a plus d'objet : Progrès, Profil, Données et Onboarding
+  sont maquettés. Restent sans maquette : Réglages, Modules, Historique du Coach.

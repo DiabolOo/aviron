@@ -1,5 +1,9 @@
 # UX v2 — de l'ancienne app à la nouvelle (spec écran par écran + système visuel)
 
+> ⚠️ **Obsolète — archive du Jalon 4.** Navigation, écrans et système visuel sont remplacés par la
+> refonte v3.1 : `docs/SPEC-v3.md`, maquettes `docs/maquettes/v3.4/`, ADR-011 et ADR-012. Ne pas
+> s'en servir pour un nouvel écran ; les principes « proposer plutôt que saisir » restent dans `ROADMAP.md`.
+
 > À donner à l'agent au **Jalon 4** (avec `AGENTS.md` et `ROADMAP.md`).
 > Navigation et direction visuelle **validées par Julien le 2026-10-31** (maquette « PulseFit — Refonte visuelle » : Accueil, Plan, Agent, Suivi en clair et en sombre + page « Système visuel »).
 > Le contenu détaillé de chaque écran est une **proposition** à ajuster après essai sur téléphone. Les données restent des mocks : on change la structure, l'ergonomie et le look, pas le backend.

@@ -8,8 +8,12 @@ PulseFit vise à devenir un **"Life OS" tout-en-un** piloté par un coach : l'ut
 une intention, l'app propose, il valide en 1 tap.
 
 ### Bêta en cours — limitée au sport
-- **Sport** : analyse de l'historique sur le téléphone, plan de la semaine, séances regroupées,
-  débrief de course, coach IA optionnel (niveau 2, avec accord explicite).
+- **Sport (course à pied d'abord)** : séance du jour validée en maintenant la carte (+ ressenti),
+  semaine prévue et faite, semaines passées, détail des séances regroupées, débrief de course
+  « en trois temps », propositions du coach validées en 1 tap, progrès (volume, régularité, courses),
+  coach IA optionnel (niveau 2, avec accord explicite).
+- **Niveau déclaré** à l'onboarding (« Je débute · Je cours un peu · Je m'entraîne ») : il fixe les
+  mots et la densité de chiffres ; les données ne font que retirer ce qu'on ne peut pas savoir.
 - **Hors bêta** : nutrition, scan d'assiette, module Objectifs, Forme / énergie. Leur interface
   est supprimée (récupérable depuis le tag `pre-v3`) ; la couche données est conservée et les
   modules sont désactivés par défaut. Ne pas les réintroduire sans décision.
@@ -23,12 +27,17 @@ Construire de façon **extensible** : un nouveau module ajoute des sections dans
 Progrès (manifeste `LifeModule`), jamais un onglet.
 
 ## Refonte v3.1 (branche `refonte`)
-Direction « phrase d'abord, chiffre ensuite » : `docs/SPEC-v3.md` (composants, regroupement des
-activités en séances). Ordre imposé :
-1. Coquille de navigation (ADR-012)
-2. Composants de la SPEC (`CoachCard`, `HeroMetric`, `SessionCard`, `EffortPill`, `ProposalCard`, `EmptyState`)
-3. `groupSessions` et source des activités (ADR-013), dans `src/core/`
-4. Les écrans
+Direction « phrase d'abord, chiffre ensuite » : `docs/SPEC-v3.md` (direction, niveau déclaré,
+composants, écrans, regroupement des activités en séances).
+**Maquettes de référence : `docs/maquettes/v3.4/*.png`** (clair et sombre ; `*-pleine-hauteur`
+= écran entier). **On fait tout comme les écrans des maquettes** ; un point non maquetté va dans
+`docs/questions.md` (Q1 à Q6 déjà tranchées).
+Ordre imposé :
+1. Coquille de navigation (ADR-012) — livrée
+2. Composants de la SPEC (`CoachCard`, `HeroMetric`, `SessionCard`, `EffortPill`, `ProposalCard`, `EmptyState`,
+   puis les composants complémentaires de la SPEC §7) — livrés, complément en cours
+3. `groupSessions` et source des activités (ADR-013), dans `src/core/` — livrés
+4. Les écrans — en cours
 
 ## Navigation (ADR-012) — 4 onglets, maximum
 | Onglet | Route | Rôle |
@@ -38,11 +47,19 @@ activités en séances). Ordre imposé :
 | Coach | `app/(tabs)/coach.tsx` | La seule saisie libre vers l'IA : demander, recevoir des propositions |
 | Progrès | `app/(tabs)/progres.tsx` | Tendances, volume, courses |
 
-Hors onglets :
+Hors onglets (état actuel du code) :
 - `app/profile/` : Stack ouvert par l'avatar d'Aujourd'hui (`index`, `modules`, `[section]`)
-- `app/activity/[id].tsx` : détail d'une séance (variante « débrief en trois temps » pour une course confirmée)
+- `app/activity/[id].tsx` : détail d'une séance
 - `app/onboarding/index.tsx` : premier lancement
 - `app/(dev)/gallery.tsx` : galerie des composants, en dev seulement
+
+Amendement v3.4 de l'ADR-012 (**accepté**, cible des routes) :
+- détail d'une séance, semaine passée (`‹ Cette semaine`) et débrief de course (« Ta course en
+  trois temps », ouvert directement depuis Progrès › Tes semis) s'empilent **dans l'onglet**,
+  barre d'onglets visible ;
+- une séance prévue n'est pas touchable dans Semaine ;
+- profil présenté en **modale** (« Fermer ») : Toi, Personnalisation, Données, Réglages ;
+- onboarding en 4 questions : niveau, équipement, objectif, accompagnement (niveaux 0 / 1 / 2).
 
 ## Stack Technique
 - **Framework** : React Native avec Expo SDK 58
@@ -61,6 +78,7 @@ app/            routes (fines : elles assemblent les modules)
 src/core/       domaine pur testé, sans React ni réseau (moteur d'analyse, séances, sources)
 src/design/     tokens v3.1 (theme.ts), useTheme, makeStyles, polices
 src/ui/         composants partagés et hooks d'UI
+src/screens/    un dossier par écran (today, coach, activity…), logique d'écran testée
 src/modules/    un dossier par module de vie, manifeste LifeModule
 src/data/       repositories + adaptateurs (mock, local, fixture)
 src/agent/      agent (mock aujourd'hui), propositions
@@ -79,6 +97,9 @@ docs/           SPEC-v3, ADR, workflow des agents
   plafond d'agrandissement par `maxFontSizeMultiplier` ; au-delà de `fontScaleBreakpoints.stack`
   (1,3), ce qui est côte à côte s'empile.
 - Un seul héros et un seul bouton plein par écran. Donnée manquante = élément absent, jamais « 0 » ni « — ».
+- Couleur : l'indigo (`coach`) = le coach parle ; vert, ambre, corail = l'effort ; le reste en encre.
+  Surfaces opaques + liseré 1 px, pas d'ombre ni de flou ; halo linéaire en haut d'Aujourd'hui seulement.
+- Deux échelles d'effort : intensité prévue « Facile · Soutenu · Intense », ressenti « Facile · Correct · Dur ».
 - **Garde-fous ESLint** : `pulsefit/no-literal-style` (aucune valeur de style littérale hors de
   `src/design/`) et `pulsefit/no-classname`. Ne jamais ajouter de ligne à
   `eslint-rules/legacy-exceptions.js` ; en retirer une par fichier migré.
@@ -127,7 +148,7 @@ Typecheck, lint et tests doivent passer avant chaque commit.
 - **React Native** : 0.88.1
 - **expo-router** : ~58.0.28
 - **typedRoutes** : false (désactivé dans `app.json`)
-- **UI** : refonte v3.1 en cours ; les écrans existants sont en exception temporaire ESLint
+- **UI** : refonte v3.1 en cours, d'après les maquettes v3.4 ; les écrans pas encore migrés sont en exception temporaire ESLint
 - **Données** : mocks, ou export Strava personnel via `EXPO_PUBLIC_USE_FIXTURE=1` (snapshot gitignoré)
 
 ## Problèmes Connus
