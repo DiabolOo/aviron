@@ -19,8 +19,22 @@ function pushOnce(path: string): void {
   router.push(path);
 }
 
-export function openActivity(id: string): void {
-  pushOnce(`/activity/${id}`);
+/** Onglet dont la pile reçoit l'écran empilé (ADR-012, amendement v3.4). */
+export type StackTab = 'semaine' | 'progres';
+
+/** Détail d'une séance, empilé dans l'onglet donné (Semaine par défaut, y compris depuis Aujourd'hui). */
+export function openActivity(id: string, tab: StackTab = 'semaine'): void {
+  pushOnce(`/(tabs)/(${tab})/activity/${id}`);
+}
+
+/** Semaine passée commençant le lundi `start` (AAAA-MM-JJ), empilée dans Semaine. */
+export function openWeek(start: string): void {
+  pushOnce(`/(tabs)/(semaine)/week/${start}`);
+}
+
+/** Débrief d'une course, empilé dans Progrès (ouvert depuis Tes semis). */
+export function openDebrief(sessionId: string): void {
+  pushOnce(`/(tabs)/(progres)/activity/${sessionId}/debrief`);
 }
 
 /** `[perf]` dev : instant du dernier tap, pour mesurer tap → premier rendu. */

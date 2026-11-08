@@ -7,12 +7,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { usePulseFitStore } from '@/lib/store';
 import { NBSP } from '@/src/core/sportFormat';
 import type { Activity } from '@/src/core/schemas';
-import { groupSessions, resolveSession, type GroupOverride, type Session } from '@/src/core/training/sessions';
-import { buildSessionView, sourceBadge, type SessionView } from '@/src/core/training/sessions/sessionView';
+import type { GroupOverride, Session } from '@/src/core/training/sessions';
+import { buildSessionView, type SessionView } from '@/src/core/training/sessions/sessionView';
 import { DEBRIEF_NO_FC, gpsLegendFr, STRENGTH_FC_NOTE } from '@/src/core/training/insights/copy.fr';
-import { activityLayout, formatClock, formatKm, formatKmNumber } from '@/src/core/sportFormat';
-import { stravaToActivity } from '@/src/data/mappers';
+import { formatClock, formatKm, formatKmNumber } from '@/src/core/sportFormat';
 import { makeStyles, useTheme, type Palette } from '@/src/design';
+import { useResolvedSession } from '@/src/screens/activity/useResolvedSession';
 import { CoachCard } from '@/src/ui/CoachCard';
 import { EffortPill, type EffortLevel } from '@/src/ui/EffortPill';
 import { EmptyState } from '@/src/ui/EmptyState';
@@ -25,6 +25,7 @@ import { Text } from '@/src/ui/Text';
 import { UndoToast } from '@/src/ui/UndoToast';
 import { perfLog } from '@/src/ui/nav';
 import { useSportDerived } from '@/src/ui/useRaces';
+import { useTabBarInset } from '@/src/ui/useTabBarInset';
 
 // ─── Sport color helper (v3 palette) ────────────────────────────────────────
 
@@ -94,14 +95,13 @@ const useStyles = makeStyles((t) => ({
 
 // ─── Screen ─────────────────────────────────────────────────────────────────
 
-export default function ActivityScreen() {
+export function ActivityScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { colors, opacity, size } = useTheme();
+  const { colors, opacity, size, space } = useTheme();
   const styles = useStyles();
+  const tabBarInset = useTabBarInset();
 
   // ── Store ──────────────────────────────────────────────────────────────
-  const stravaActivities = usePulseFitStore((s) => s.activities);
-  const groupOverrides = usePulseFitStore((s) => s.groupOverrides);
   const addGroupOverride = usePulseFitStore((s) => s.addGroupOverride);
   const removeGroupOverride = usePulseFitStore((s) => s.removeGroupOverride);
 
@@ -109,13 +109,7 @@ export default function ActivityScreen() {
   const derived = useSportDerived();
 
   // ── Map activities and build sessions ─────────────────────────────────
-  const { session, activitiesById, allActivities } = useMemo(() => {
-    const mapped = stravaActivities.map(stravaToActivity);
-    const byId = new Map(mapped.map((a) => [a.id, a]));
-    const { sessions } = groupSessions(mapped, groupOverrides);
-    const resolved = id ? resolveSession(sessions, id) : undefined;
-    return { session: resolved, activitiesById: byId, allActivities: mapped };
-  }, [stravaActivities, groupOverrides, id]);
+  const { session, activitiesById } = useResolvedSession(id);
 
   // ── Session view ──────────────────────────────────────────────────────
   const view = useMemo(() => {
@@ -261,7 +255,7 @@ export default function ActivityScreen() {
           </View>
         </View>
 
-        <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
+        <ScrollView style={styles.scroll} contentContainerStyle={[styles.content, { paddingBottom: tabBarInset + space.section }]}>
           {/* ── Meta line ──────────────────────────────────────────────── */}
           <View style={styles.meta}>
             <View style={styles.metaRow}>

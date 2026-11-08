@@ -115,7 +115,7 @@ describe('Débrief de course', () => {
     expect(screen.getAllByTestId('race-row-current')).toHaveLength(1);
     expect(screen.getAllByText('Meilleure')).toHaveLength(1);
     await fireEvent.press(screen.getAllByText('1h50:50')[0]);
-    expect(mockPush).toHaveBeenCalledWith('/activity/a25');
+    expect(mockPush).toHaveBeenCalledWith('/(tabs)/(semaine)/activity/a25');
   });
 
   it('le nom choisi à la confirmation sert de titre unique (2 lignes max) ; titre d’origine en bas, sans troncature', async () => {
@@ -173,7 +173,7 @@ describe('Accueil : carte course', () => {
     expect(screen.getByTestId('race-card-line').props.children).toMatch(/^Jusqu’à environ \d+\u00a0min à gagner/);
     expect(screen.queryByText('Voir le débrief')).toBeNull();
     await fireEvent.press(screen.getByTestId('race-card-time'));
-    expect(mockPush).toHaveBeenCalledWith('/activity/a26');
+    expect(mockPush).toHaveBeenCalledWith('/(tabs)/(semaine)/activity/a26');
   });
 
   it('avec un objectif de même distance : écart à l’objectif', async () => {
@@ -246,7 +246,7 @@ describe('Journal : durée et badge Course', () => {
     await render(<ActivityRow activity={activity} first raceId="race-run" />);
     expect(screen.getByText(/49:13/)).toBeTruthy();
     await fireEvent.press(screen.getByText('Course'));
-    expect(mockPush).toHaveBeenCalledWith('/activity/run');
+    expect(mockPush).toHaveBeenCalledWith('/(tabs)/(semaine)/activity/run');
   });
 });
 
@@ -265,7 +265,7 @@ describe('Suivi › Sport › Courses', () => {
     expect(screen.getByText('Courses passées')).toBeTruthy();
     expect(screen.getAllByText('C’était une course ?').length).toBeGreaterThan(0);
     await fireEvent.press(screen.getByText('1h50:50'));
-    expect(mockPush).toHaveBeenCalledWith('/activity/a25');
+    expect(mockPush).toHaveBeenCalledWith('/(tabs)/(semaine)/activity/a25');
   });
 
   it('candidates seules : « À confirmer » sans « Courses passées »', async () => {

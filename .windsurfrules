@@ -43,17 +43,22 @@ Ordre imposé :
 | Onglet | Route | Rôle |
 |---|---|---|
 | Aujourd'hui | `app/(tabs)/index.tsx` | La parole du coach, la séance du jour, les décisions en attente |
-| Semaine | `app/(tabs)/semaine.tsx` | Le prévu et le fait de la semaine, jour par jour |
+| Semaine | `app/(tabs)/(semaine)/semaine.tsx` | Le prévu et le fait de la semaine, jour par jour |
 | Coach | `app/(tabs)/coach.tsx` | La seule saisie libre vers l'IA : demander, recevoir des propositions |
-| Progrès | `app/(tabs)/progres.tsx` | Tendances, volume, courses |
+| Progrès | `app/(tabs)/(progres)/progres.tsx` | Tendances, volume, courses |
+
+Empilés dans l'onglet (pile commune `app/(tabs)/(semaine,progres)/_layout.tsx`, barre visible) :
+- `activity/[id].tsx` : détail d'une séance · `activity/[id]/debrief.tsx` : débrief de course
+- `(semaine)/week/[start].tsx` : semaine passée
+- liens par `openActivity(id, tab)`, `openWeek(start)`, `openDebrief(id)` de `src/ui/nav.ts`
+  (toujours avec le groupe, `/(tabs)/(semaine)/…`)
 
 Hors onglets (état actuel du code) :
-- `app/profile/` : Stack ouvert par l'avatar d'Aujourd'hui (`index`, `modules`, `[section]`)
-- `app/activity/[id].tsx` : détail d'une séance
+- `app/profile/` : Stack présenté en modale depuis l'avatar d'Aujourd'hui (« Fermer »)
 - `app/onboarding/index.tsx` : premier lancement
 - `app/(dev)/gallery.tsx` : galerie des composants, en dev seulement
 
-Amendement v3.4 de l'ADR-012 (**accepté**, cible des routes) :
+Amendement v3.4 de l'ADR-012 (**accepté**, routes en place) :
 - détail d'une séance, semaine passée (`‹ Cette semaine`) et débrief de course (« Ta course en
   trois temps », ouvert directement depuis Progrès › Tes semis) s'empilent **dans l'onglet**,
   barre d'onglets visible ;

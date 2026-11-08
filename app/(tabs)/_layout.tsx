@@ -13,9 +13,9 @@ export default function TabLayout() {
     <View style={styles.root}>
       <Tabs tabBar={(props) => <TabBar {...props} />} screenOptions={{ headerShown: false }}>
         <Tabs.Screen name="index" options={{ title: 'Aujourd’hui' }} />
-        <Tabs.Screen name="semaine" options={{ title: 'Semaine' }} />
+        <Tabs.Screen name="(semaine)" options={{ title: 'Semaine' }} />
         <Tabs.Screen name="coach" options={{ title: 'Coach' }} />
-        <Tabs.Screen name="progres" options={{ title: 'Progrès' }} />
+        <Tabs.Screen name="(progres)" options={{ title: 'Progrès' }} />
       </Tabs>
       <ProposalUndoToast />
     </View>

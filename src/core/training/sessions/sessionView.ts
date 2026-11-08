@@ -2,7 +2,7 @@
  * Données d'affichage d'une séance — pur, sans React.
  *
  * Prend une Session et ses activités, retourne tout ce que l'écran
- * `app/activity/[id].tsx` doit afficher (titres, héros, métriques,
+ * `src/screens/activity/ActivityScreen.tsx` doit afficher (titres, héros, métriques,
  * source badge, rôles).
  */
 

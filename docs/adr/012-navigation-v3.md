@@ -248,5 +248,10 @@ Profil (Q5) : FC max observée ; jours disponibles déduits de l'historique ou d
   `profile` (modale), `onboarding` et `(dev)`.
 - `src/ui/nav.ts` : `openActivity` pousse dans l'onglet courant ; ajout de `openWeek(start)` et
   `openDebrief(sessionId)`.
+- **Mise en œuvre (2026-11-08)** : la structure ci-dessus est celle du code. Les onglets Semaine et
+  Progrès s'appellent `(semaine)` et `(progres)` dans `Tabs` ; leur pile commune est
+  `(tabs)/(semaine,progres)/_layout.tsx` (ancres `semaine` et `progres`). Les liens nomment le
+  groupe (`/(tabs)/(semaine)/activity/<id>`) : sans lui, un lien froid ou ouvert depuis Aujourd'hui
+  tomberait dans le premier groupe alphabétique, Progrès. `openActivity(id, tab = 'semaine')`.
 - « Écrans sans maquette » (ci-dessus) n'a plus d'objet : Progrès, Profil, Données et Onboarding
   sont maquettés. Restent sans maquette : Réglages, Modules, Historique du Coach.

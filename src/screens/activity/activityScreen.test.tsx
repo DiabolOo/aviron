@@ -195,7 +195,7 @@ function setId(id: string) {
 }
 
 function renderScreen() {
-  const ActivityScreen = require('@/app/activity/[id]').default;
+  const ActivityScreen = require('@/src/screens/activity/ActivityScreen').ActivityScreen;
   return render(<ActivityScreen />);
 }
 
@@ -411,7 +411,7 @@ describe('ActivityScreen', () => {
   it("texte lisible a x2 : l'ecran rend sans erreur", async () => {
     setId('run1');
     setStoreActivities([RUN]);
-    const ActivityScreen = require('@/app/activity/[id]').default;
+    const ActivityScreen = require('@/src/screens/activity/ActivityScreen').ActivityScreen;
     const { unmount } = await render(withPreview({ fontScale: 2 }, <ActivityScreen />));
     expect(screen.getByTestId('activity-screen')).toBeTruthy();
     unmount();
