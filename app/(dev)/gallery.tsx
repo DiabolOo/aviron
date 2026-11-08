@@ -12,7 +12,9 @@ import {
 } from '@/src/design';
 import { Button } from '@/src/ui/Button';
 import { CoachCard } from '@/src/ui/CoachCard';
-import { EffortPill } from '@/src/ui/EffortPill';
+import { sessionCardLabels } from '@/src/core/training/level';
+import { ComplementaryGallery } from '@/src/screens/gallery/ComplementaryGallery';
+import { EffortPill, type EffortLevel } from '@/src/ui/EffortPill';
 import { EmptyState } from '@/src/ui/EmptyState';
 import { HeroMetric } from '@/src/ui/HeroMetric';
 import { ProposalCard, type ProposalCardProps } from '@/src/ui/ProposalCard';
@@ -127,6 +129,8 @@ function Gallery({ preview, setPreview }: { preview: Preview; setPreview: (p: Pr
   const [session, setSession] = useState<SessionStatus>('planned');
   const [toast, setToast] = useState<string | null>(null);
   const [coachAnswer, setCoachAnswer] = useState<string>();
+  const [zoneAnswer, setZoneAnswer] = useState<string>();
+  const [felt, setFelt] = useState<EffortLevel>();
   const [proposalAnswer, setProposalAnswer] = useState<string>();
   const [applied, setApplied] = useState(false);
   const [heroKey, setHeroKey] = useState(0);
@@ -176,10 +180,16 @@ function Gallery({ preview, setPreview }: { preview: Preview; setPreview: (p: Pr
 
           <Section title="EffortPill">
             <View style={styles.row}>
-              <EffortPill level="easy" />
-              <EffortPill level="moderate" />
-              <EffortPill level="hard" />
+              <EffortPill level="easy" scale="planned" />
+              <EffortPill level="moderate" scale="planned" />
+              <EffortPill level="hard" scale="planned" />
+            </View>
+            <View style={styles.row}>
+              <EffortPill level="easy" scale="felt" />
+              <EffortPill level="moderate" scale="felt" />
+              <EffortPill level="hard" scale="felt" />
               <EffortPill level="neutral" label="Renfo" />
+              <EffortPill level="neutral" label="Prévu" />
               <EffortPill level="neutral" label="Sans cardio" />
             </View>
           </Section>
@@ -222,13 +232,29 @@ function Gallery({ preview, setPreview }: { preview: Preview; setPreview: (p: Pr
               kind="question"
               source="profile"
               body="Comment s’est passée la séance d’hier ?"
+              lead="Je vois ton allure, pas ton effort."
               choices={[
-                { id: 'easy', label: 'Facile' },
-                { id: 'moderate', label: 'Correct' },
-                { id: 'hard', label: 'Dur' },
+                { id: 'easy', label: 'Facile', effort: 'easy' },
+                { id: 'moderate', label: 'Correct', effort: 'moderate' },
+                { id: 'hard', label: 'Dur', effort: 'hard' },
               ]}
               selected={coachAnswer}
               onChoose={setCoachAnswer}
+            />
+            <CoachCard
+              kind="question"
+              source="device"
+              showSource={false}
+              lead="Qu’as-tu travaillé ?"
+              caption="Facultatif · ça m’aide à placer tes séances de course autour."
+              choices={[
+                { id: 'upper', label: 'Haut du corps' },
+                { id: 'legs', label: 'Jambes' },
+                { id: 'full', label: 'Tout le corps' },
+                { id: 'core', label: 'Gainage' },
+              ]}
+              selected={zoneAnswer}
+              onChoose={setZoneAnswer}
             />
             <CoachCard kind="insight" source="device" verdict="Environ 25 km cette semaine." body="Deux sorties n’ont pas de distance mesurée." approxReason="montre sans GPS sur deux séances" />
           </Section>
@@ -237,10 +263,12 @@ function Gallery({ preview, setPreview }: { preview: Preview; setPreview: (p: Pr
             <SessionCard
               eyebrow="Séance du jour"
               title="Footing 8 km"
-              effort={{ level: 'easy' }}
+              effort={{ level: 'easy', scale: 'planned' }}
               instruction="Allure où tu peux parler, environ 45 minutes."
               note="Pas de cardio sur tes dernières sorties : fie-toi à la sensation."
               status={session}
+              felt={felt}
+              onFeel={setFelt}
               onValidate={() => {
                 setSession('done');
                 setToast('Séance validée');
@@ -252,9 +280,31 @@ function Gallery({ preview, setPreview }: { preview: Preview; setPreview: (p: Pr
             <SessionCard
               eyebrow="Ta première séance"
               title="20 minutes, marche et course"
-              effort={{ level: 'neutral', label: 'Découverte' }}
-              instruction="Alterne 1 minute de course et 2 minutes de marche."
-              status="postponed"
+              effort={{ level: 'easy', scale: 'planned' }}
+              instruction="5 fois de suite : 1 minute de course, puis 3 minutes de marche. Cours assez doucement pour pouvoir parler."
+              note="Pas besoin de montre : dis-moi juste quand c’est fait."
+              status="planned"
+              {...sessionCardLabels('beginner')}
+              onValidate={noop}
+              onPostpone={noop}
+              onUndo={noop}
+            />
+            <SessionCard
+              eyebrow="Séance du jour"
+              title="Footing 8 km"
+              effort={{ level: 'easy', scale: 'planned' }}
+              instruction="Environ 45 minutes."
+              status="autoValidated"
+              onValidate={noop}
+              onPostpone={noop}
+              onUndo={noop}
+            />
+            <SessionCard
+              eyebrow="Aujourd’hui"
+              title="Repos"
+              effort={{ level: 'neutral', label: 'Repos' }}
+              instruction="Le repos d’aujourd’hui prépare la sortie longue de samedi."
+              status="rest"
               onValidate={noop}
               onPostpone={noop}
               onUndo={noop}
@@ -321,11 +371,21 @@ function Gallery({ preview, setPreview }: { preview: Preview; setPreview: (p: Pr
             />
             <EmptyState
               reason="firstSessions"
-              title="Tes tendances arrivent bientôt."
-              body="Il me faut quelques séances pour voir comment tu progresses."
-              progress={{ remaining: 'Encore 2 séances', done: ['Footing du lundi', 'Marche rapide du mercredi'] }}
+              title="Ta progression arrive."
+              body="À la troisième séance, je te montre ta régularité. À la sixième, tes premiers progrès."
+              progress={{ remaining: 'Encore 2 séances', done: ['Lun. 2 nov., 20 min, marche et course'], total: 3 }}
+            />
+            <EmptyState
+              reason="noImport"
+              title="Rien d’importé cette semaine."
+              body="Soit tu as fait une pause, soit tu as couru sans rien enregistrer. Les deux arrivent, et je ne les traite pas pareil."
+              primary={{ label: 'J’ai couru sans montre', onPress: noop }}
+              secondary={{ label: 'C’était une pause', onPress: noop }}
+              caption="« Sans montre » ouvre le coach : dis « 30 minutes samedi » et c’est noté."
             />
           </Section>
+
+          <ComplementaryGallery />
 
           <Section title="UndoToast">
             <Button variant="secondary" label="Montrer le bandeau" onPress={() => setToast('Séance validée')} />
