@@ -54,7 +54,6 @@ const STEPS = {
     'components/race/TargetRace.tsx': C,
   },
   'Étape 7 — Profil': {
-    'app/profile/index.tsx': C,
     'app/profile/modules.tsx': CL,
     'app/profile/[section].tsx': C,
     'components/profile/EditProfileModal.tsx': C,
