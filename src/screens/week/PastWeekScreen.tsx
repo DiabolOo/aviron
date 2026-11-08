@@ -9,7 +9,7 @@ import { useMemo } from 'react';
 import { ScrollView, View } from 'react-native';
 
 import { usePulseFitStore } from '@/lib/store';
-import { addDaysISO, parseISODate, weekdayLabel } from '@/src/core/dates';
+import { addDaysISO, parseISODate } from '@/src/core/dates';
 import { selectWeek } from '@/src/core/sportWeek';
 import { NBSP } from '@/src/core/sportFormat';
 import { makeStyles, useTheme } from '@/src/design';

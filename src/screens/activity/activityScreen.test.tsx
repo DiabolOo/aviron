@@ -406,6 +406,40 @@ describe('ActivityScreen', () => {
     expect(screen.getByText(/3 activités regroupées/)).toBeTruthy();
   });
 
+  // ── v3.4 polish: BackHeader + SourceChip + strength zone ───────────
+
+  it('BackHeader "Semaine" affiché', async () => {
+    setId('run1');
+    setStoreActivities([RUN]);
+    await renderScreen();
+    expect(screen.getByTestId('back-header')).toBeTruthy();
+  });
+
+  it('SourceChip affiché avec la source', async () => {
+    setId('run1');
+    setStoreActivities([RUN]);
+    await renderScreen();
+    expect(screen.getByTestId('source-chip')).toBeTruthy();
+  });
+
+  it('muscu : question "Qu\'as-tu travaillé ?" avec 4 choix', async () => {
+    setId('str1');
+    setStoreActivities([STRENGTH]);
+    await renderScreen();
+    expect(screen.getByText(/Qu.as-tu travaill/)).toBeTruthy();
+    expect(screen.getByTestId('choice-upper')).toBeTruthy();
+    expect(screen.getByTestId('choice-legs')).toBeTruthy();
+    expect(screen.getByTestId('choice-full')).toBeTruthy();
+    expect(screen.getByTestId('choice-core')).toBeTruthy();
+  });
+
+  it('course : pas de question muscu', async () => {
+    setId('run1');
+    setStoreActivities([RUN]);
+    await renderScreen();
+    expect(screen.queryByTestId('choice-upper')).toBeNull();
+  });
+
   // ── Text at ×2 ────────────────────────────────────────────────────────
 
   it("texte lisible a x2 : l'ecran rend sans erreur", async () => {

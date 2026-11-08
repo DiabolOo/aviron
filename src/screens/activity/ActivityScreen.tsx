@@ -1,25 +1,25 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { ChevronLeft } from 'lucide-react-native';
 import { useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { usePulseFitStore } from '@/lib/store';
-import { NBSP } from '@/src/core/sportFormat';
+import { NBSP, formatClock, formatKm, formatKmNumber } from '@/src/core/sportFormat';
 import type { Activity } from '@/src/core/schemas';
 import type { GroupOverride, Session } from '@/src/core/training/sessions';
 import { buildSessionView, type SessionView } from '@/src/core/training/sessions/sessionView';
 import { DEBRIEF_NO_FC, gpsLegendFr, STRENGTH_FC_NOTE } from '@/src/core/training/insights/copy.fr';
-import { formatClock, formatKm, formatKmNumber } from '@/src/core/sportFormat';
 import { makeStyles, useTheme, type Palette } from '@/src/design';
 import { useResolvedSession } from '@/src/screens/activity/useResolvedSession';
+import { BackHeader } from '@/src/ui/BackHeader';
+import type { Choice } from '@/src/ui/ChoiceChips';
 import { CoachCard } from '@/src/ui/CoachCard';
 import { EffortPill, type EffortLevel } from '@/src/ui/EffortPill';
 import { EmptyState } from '@/src/ui/EmptyState';
 import { HeroMetric } from '@/src/ui/HeroMetric';
 import { RaceBands } from '@/src/ui/RaceBands';
 import { SessionParts } from '@/src/ui/SessionParts';
-import { Skeleton } from '@/src/ui/Skeleton';
+import { SourceChip } from '@/src/ui/SourceChip';
 import { SplitsList } from '@/src/ui/SplitsList';
 import { Text } from '@/src/ui/Text';
 import { UndoToast } from '@/src/ui/UndoToast';
@@ -39,15 +39,14 @@ function sportColor(colors: Palette, type: Activity['type']): string {
   }
 }
 
-function sportTint(colors: Palette, type: Activity['type']): string {
-  switch (type) {
-    case 'run': return colors.sportRunTint;
-    case 'swim': return colors.sportSwimTint;
-    case 'ride': return colors.sportRideTint;
-    case 'walk': return colors.sportWalkTint;
-    default: return colors.sportStrengthTint;
-  }
-}
+// ─── Strength zone choices (mockup 108) ────────────────────────────────────
+
+const STRENGTH_ZONES: Choice[] = [
+  { id: 'upper', label: 'Haut du corps' },
+  { id: 'legs', label: 'Jambes' },
+  { id: 'full', label: 'Tout le corps' },
+  { id: 'core', label: 'Gainage' },
+];
 
 // ─── Styles ─────────────────────────────────────────────────────────────────
 
@@ -56,26 +55,8 @@ const useStyles = makeStyles((t) => ({
   safe: { flex: 1 },
   scroll: { flex: 1 },
   content: { paddingHorizontal: t.space.screen, paddingTop: t.space.lg, paddingBottom: t.space.section * 2, gap: t.space.section },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: t.space.screen, paddingTop: t.space.lg },
-  backBtn: {
-    height: t.size.touchMin,
-    width: t.size.touchMin,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: t.radius.pill,
-    borderWidth: t.size.hairline,
-    borderColor: t.colors.line,
-    backgroundColor: t.colors.surface,
-  },
-  badge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: t.space.sm,
-    paddingHorizontal: t.space.md,
-    paddingVertical: t.space.xs,
-    borderRadius: t.radius.pill,
-    backgroundColor: t.colors.surfaceSunken,
-  },
+  backHeaderWrap: { paddingHorizontal: t.space.screen, paddingTop: t.space.lg },
+  sourceRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: t.space.md },
   meta: { gap: t.space.xs },
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: t.space.sm },
   titleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: t.space.md },
@@ -91,13 +72,14 @@ const useStyles = makeStyles((t) => ({
   separator: { height: t.size.hairline, backgroundColor: t.colors.line },
   splitBtnRow: { flexDirection: 'row', gap: t.space.md, marginTop: t.space.sm },
   link: { minHeight: t.size.buttonCompact, justifyContent: 'center', alignSelf: 'flex-start' },
+  underline: { textDecorationLine: 'underline' as const },
 }));
 
 // ─── Screen ─────────────────────────────────────────────────────────────────
 
 export function ActivityScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { colors, opacity, size, space } = useTheme();
+  const { colors, space } = useTheme();
   const styles = useStyles();
   const tabBarInset = useTabBarInset();
 
@@ -121,8 +103,6 @@ export function ActivityScreen() {
   const mainActivityId = session?.activityIds[0];
   const raceId = mainActivityId ? derived.confirmedRaceMap.get(mainActivityId) : undefined;
   const raceDebrief = derived.raceDebrief(raceId);
-  const raceSummary = derived.raceSummaryFor(raceId);
-
   // ── Highlight ─────────────────────────────────────────────────────────
   const mainActivity = mainActivityId ? activitiesById.get(mainActivityId) : undefined;
   const highlight = useMemo(
@@ -133,6 +113,9 @@ export function ActivityScreen() {
     () => (mainActivity ? derived.comparisonFor(mainActivity) : null),
     [derived, mainActivity],
   );
+
+  // ── Strength zone state (mockup 108) ──────────────────────────────────
+  const [strengthZone, setStrengthZone] = useState<string | undefined>(undefined);
 
   // ── Undo state for split/merge ────────────────────────────────────────
   const [undoMsg, setUndoMsg] = useState<string | null>(null);
@@ -165,13 +148,8 @@ export function ActivityScreen() {
     return (
       <View style={styles.root}>
         <SafeAreaView edges={['top']} style={styles.safe}>
-          <View style={styles.header}>
-            <Pressable
-              onPress={() => router.back()}
-              hitSlop={8}
-              style={({ pressed }) => [styles.backBtn, pressed && { opacity: opacity.pressed }]}>
-              <ChevronLeft color={colors.ink} size={size.icon} strokeWidth={size.iconStroke} />
-            </Pressable>
+          <View style={styles.backHeaderWrap}>
+            <BackHeader label="Semaine" onBack={() => router.back()} />
           </View>
           <View style={styles.content}>
             <EmptyState
@@ -241,31 +219,21 @@ export function ActivityScreen() {
   return (
     <View style={styles.root} testID="activity-screen">
       <SafeAreaView edges={['top']} style={styles.safe}>
-        {/* Header with back + source badge */}
-        <View style={styles.header}>
-          <Pressable
-            accessibilityLabel="Retour"
-            onPress={() => router.back()}
-            hitSlop={8}
-            style={({ pressed }) => [styles.backBtn, pressed && { opacity: opacity.pressed }]}>
-            <ChevronLeft color={colors.ink} size={size.icon} strokeWidth={size.iconStroke} />
-          </Pressable>
-          <View style={styles.badge}>
-            <Text role="caption" weight="semibold" color="inkTertiary">{view.source}</Text>
-          </View>
+        {/* ── Back header ── */}
+        <View style={styles.backHeaderWrap}>
+          <BackHeader label="Semaine" onBack={() => router.back()} />
         </View>
 
         <ScrollView style={styles.scroll} contentContainerStyle={[styles.content, { paddingBottom: tabBarInset + space.section }]}>
-          {/* ── Meta line ──────────────────────────────────────────────── */}
+          {/* ── Meta line + source chip ─────────────────────────────── */}
           <View style={styles.meta}>
-            <View style={styles.metaRow}>
+            <View style={styles.sourceRow}>
               <Text role="sub" color="inkSecondary">
                 {view.dateLine}
                 {view.timeLine ? `${NBSP}·${NBSP}${view.timeLine}` : ''}
+                {view.groupLabel ? `${NBSP}·${NBSP}${view.groupLabel}` : ''}
               </Text>
-              {view.groupLabel ? (
-                <Text role="sub" color="inkSecondary">{`${NBSP}·${NBSP}${view.groupLabel}`}</Text>
-              ) : null}
+              <SourceChip label={view.source} />
             </View>
 
             {/* Title + effort pill */}
@@ -302,6 +270,21 @@ export function ActivityScreen() {
               <Text role="sub" color="inkSecondary">{STRENGTH_FC_NOTE}</Text>
             ) : null}
           </View>
+
+          {/* ── Strength zone question (mockup 108) ────────────────────── */}
+          {isStrength ? (
+            <CoachCard
+              kind="question"
+              lead="Qu'as-tu travaillé ?"
+              choices={STRENGTH_ZONES}
+              selected={strengthZone}
+              onChoose={setStrengthZone}
+              columns={2}
+              caption="Facultatif · ça m'aide à placer tes séances de course autour."
+              source="device"
+              showSource={false}
+            />
+          ) : null}
 
           {/* ── Coach card (debrief or highlight) ─────────────────────── */}
           {isRace && raceDebrief?.pacing ? (
@@ -357,7 +340,7 @@ export function ActivityScreen() {
                   accessibilityRole="button"
                   onPress={handleSplit}
                   style={styles.link}>
-                  <Text role="sub" weight="semibold" style={{ textDecorationLine: 'underline' }}>
+                  <Text role="sub" weight="semibold" style={styles.underline}>
                     Séparer
                   </Text>
                 </Pressable>
