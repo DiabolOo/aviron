@@ -1,5 +1,5 @@
-import { PlaceholderScreen } from '@/src/ui/PlaceholderScreen';
+import { ProgressScreen } from '@/src/screens/progress/ProgressScreen';
 
-export default function ProgressScreen() {
-  return <PlaceholderScreen title="Progrès" />;
+export default function ProgressRoute() {
+  return <ProgressScreen />;
 }
